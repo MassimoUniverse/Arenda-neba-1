@@ -781,25 +781,23 @@ async function displayServices() {
 }
 
 function initServicesCarousel() {
-  const section = document.getElementById('autopark');
   const viewport = document.querySelector('.services-viewport');
   const grid = document.querySelector('.services-grid');
+  const prevBtn = document.querySelector('.carousel-btn.prev');
+  const nextBtn = document.querySelector('.carousel-btn.next');
   const dotsContainer = document.getElementById('carousel-dots');
 
-  if (!section || !viewport || !grid || !dotsContainer) return;
+  if (!viewport || !grid || !prevBtn || !nextBtn || !dotsContainer) return;
 
   const cards = Array.from(grid.children);
   if (!cards.length) return;
 
+  let currentIndex = 0;
+  let scrollTimeout;
+  let rafId = null;
+  let isScrolling = false;
   let cachedMetrics = null;
   let resizeTimeout;
-  let rafId = null;
-  let ticking = false;
-  let isDragging = false;
-  let dragStartX = 0;
-  let dragCurrentX = 0;
-  let dragOffset = 0;
-  let lastProgress = 0;
 
   // Кэшируем метрики и пересчитываем только при необходимости
   function recalculate(force = false) {
@@ -810,234 +808,147 @@ function initServicesCarousel() {
     const cardWidth = cards[0].getBoundingClientRect().width;
     const gap = 20; // gap между карточками из CSS
     const viewportWidth = viewport.offsetWidth;
-    const gridWidth = grid.scrollWidth;
-    
-    // Вычисляем максимальное смещение (когда последняя карточка полностью видна)
-    // translateX должен быть отрицательным для движения влево
-    const maxTranslateX = Math.min(0, viewportWidth - gridWidth);
     
     const visibleCount = Math.floor((viewportWidth + gap) / (cardWidth + gap));
     const maxIndex = Math.max(0, cards.length - visibleCount);
     
-    cachedMetrics = { 
-      cardWidth, 
-      gap, 
-      visibleCount, 
-      maxIndex, 
-      viewportWidth, 
-      gridWidth,
-      maxTranslateX
-    };
+    cachedMetrics = { cardWidth, gap, visibleCount, maxIndex };
     return cachedMetrics;
   }
 
-  // Инициализация точек навигации
-  function initDots() {
-    const { maxIndex } = recalculate();
-    dotsContainer.innerHTML = '';
-    const dots = [];
-    
-    for (let i = 0; i <= maxIndex; i++) {
-      const dot = document.createElement('button');
-      dot.className = 'carousel-dot';
-      if (i === 0) dot.classList.add('active');
-      dot.type = 'button';
-      dot.setAttribute('aria-label', `Перейти к слайду ${i + 1}`);
-      dotsContainer.appendChild(dot);
-      dots.push(dot);
-    }
-    
-    return dots;
+  const { cardWidth, gap, visibleCount, maxIndex } = recalculate();
+
+  dotsContainer.innerHTML = '';
+  const dots = [];
+  for (let i = 0; i <= maxIndex; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot';
+    if (i === 0) dot.classList.add('active');
+    dot.type = 'button';
+    dot.addEventListener('click', () => {
+      currentIndex = i;
+      updateCarousel();
+    });
+    dotsContainer.appendChild(dot);
+    dots.push(dot);
   }
 
-  const dots = initDots();
-
-  // Обновление точек на основе прогресса
-  function updateDots(progress) {
-    const { maxIndex } = recalculate();
-    const currentIndex = Math.min(maxIndex, Math.floor(progress * (maxIndex + 1)));
-    
+  function updateDots() {
     dots.forEach((dot, idx) => {
       dot.classList.toggle('active', idx === currentIndex);
     });
   }
 
-  // Вычисление прогресса прокрутки секции
-  function calculateProgress() {
-    const rect = section.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    const sectionTop = rect.top;
-    const sectionHeight = rect.height;
-    
-    // Если секция еще не достигла верха экрана, прогресс = 0
-    if (sectionTop > windowHeight) {
-      return 0;
-    }
-    
-    // Вычисляем прогресс: когда секция входит в viewport
-    // и прокручивается до конца
-    const startPoint = windowHeight;
-    const endPoint = -sectionHeight + windowHeight;
-    
-    // Добавляем задержку для первого слайда
-    const delayOffset = windowHeight * 0.3; // 30% высоты экрана задержки
-    const adjustedStartPoint = startPoint - delayOffset;
-    
-    // Нормализуем прогресс от 0 до 1
-    const scrolled = adjustedStartPoint - sectionTop;
-    const totalScroll = adjustedStartPoint - endPoint;
-    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
-    
-    // Если прогресс еще в зоне задержки, возвращаем 0
-    if (sectionTop > adjustedStartPoint) {
-      progress = 0;
-    }
-    
-    return progress;
+  function updateButtons() {
+    const { maxIndex: newMaxIndex } = recalculate();
+    prevBtn.disabled = currentIndex <= 0;
+    nextBtn.disabled = currentIndex >= newMaxIndex;
   }
 
-  // Обновление позиции карусели на основе прогресса
-  function updateCarouselPosition(progress) {
-    const { maxTranslateX } = recalculate();
-    
-    // Применяем прогресс к translateX
-    // progress 0 = translateX 0 (начало, все карточки слева)
-    // progress 1 = translateX maxTranslateX (конец, последняя карточка видна)
-    const translateX = progress * maxTranslateX;
-    
-    // Применяем transform
-    grid.style.transform = `translateX(${translateX}px)`;
-    
-    // Обновляем точки
-    updateDots(progress);
-    
-    lastProgress = progress;
-  }
+  function updateCarousel() {
+    const { cardWidth, gap, maxIndex: newMaxIndex } = recalculate();
+    let targetScroll;
 
-  // Обработчик прокрутки страницы
-  function handleScroll() {
-    if (!ticking && !isDragging) {
-      rafId = window.requestAnimationFrame(() => {
-        const progress = calculateProgress();
-        updateCarouselPosition(progress);
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }
-
-  // Подключение обработчика прокрутки
-  function setupScrollHandler() {
-    if (window.lenis) {
-      window.lenis.on('scroll', handleScroll);
+    if (currentIndex >= newMaxIndex) {
+      // Если это последняя позиция, прокручиваем так, чтобы последняя карточка была полностью видна
+      // Используем реальные размеры элементов вместо расчетов
+      const gridScrollWidth = grid.scrollWidth; // Реальная ширина содержимого grid
+      const viewportWidth = viewport.offsetWidth; // Видимая ширина viewport
+      
+      // Максимальная прокрутка = реальная ширина содержимого - видимая ширина viewport
+      // Это гарантирует, что последняя карточка будет полностью видна
+      // Добавляем небольшой запас для гарантии полной видимости
+      const maxScroll = Math.max(0, gridScrollWidth - viewportWidth + 1);
+      targetScroll = maxScroll;
     } else {
-      window.addEventListener('scroll', handleScroll, { passive: true });
+      targetScroll = currentIndex * (cardWidth + gap);
     }
+    
+    // Устанавливаем флаг, чтобы не обрабатывать программную прокрутку
+    isScrolling = true;
+    viewport.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    updateDots();
+    updateButtons();
+    
+    // Сбрасываем флаг после завершения прокрутки
+    setTimeout(() => {
+      isScrolling = false;
+    }, 500);
   }
 
-  setupScrollHandler();
-
-  // Переключимся на Lenis, когда он загрузится
-  const checkLenis = setInterval(() => {
-    if (window.lenis) {
-      window.removeEventListener('scroll', handleScroll);
-      window.lenis.on('scroll', handleScroll);
-      clearInterval(checkLenis);
+  // Оптимизированная обработка прокрутки с requestAnimationFrame
+  function handleScroll() {
+    if (isScrolling) return; // Пропускаем обработку при программной прокрутке
+    
+    if (rafId) {
+      cancelAnimationFrame(rafId);
     }
-  }, 100);
-
-  // Поддержка свайпа на мобильных устройствах
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchCurrentX = 0;
-  let isTouching = false;
-  let touchProgress = 0;
-
-  function handleTouchStart(e) {
-    if (e.touches.length !== 1) return;
-    isTouching = true;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchCurrentX = touchStartX;
-    touchProgress = lastProgress;
-  }
-
-  function handleTouchMove(e) {
-    if (!isTouching || e.touches.length !== 1) return;
     
-    touchCurrentX = e.touches[0].clientX;
-    const touchCurrentY = e.touches[0].clientY;
-    
-    // Определяем, это горизонтальный или вертикальный свайп
-    const deltaX = Math.abs(touchCurrentX - touchStartX);
-    const deltaY = Math.abs(touchCurrentY - touchStartY);
-    
-    // Если горизонтальный свайп больше вертикального, обрабатываем его
-    if (deltaX > deltaY && deltaX > 10) {
-      e.preventDefault();
+    rafId = requestAnimationFrame(() => {
+      const { cardWidth, gap, maxIndex: newMaxIndex } = recalculate();
+      const scrollLeft = viewport.scrollLeft;
+      const newIndex = Math.round(scrollLeft / (cardWidth + gap));
       
-    const { maxTranslateX, viewportWidth } = recalculate();
-    const dragDelta = touchStartX - touchCurrentX; // Отрицательное значение = свайп вправо
-      
-      // Конвертируем пиксели свайпа в прогресс
-      // Свайп влево (dragDelta > 0) = увеличение прогресса
-      // Свайп вправо (dragDelta < 0) = уменьшение прогресса
-      const swipeProgress = -dragDelta / Math.abs(maxTranslateX); // Инвертируем для правильного направления
-      const newProgress = Math.max(0, Math.min(1, touchProgress + swipeProgress));
-      
-      updateCarouselPosition(newProgress);
-    }
-  }
-
-  function handleTouchEnd(e) {
-    if (!isTouching) return;
-    isTouching = false;
-    
-    // Опционально: snap к ближайшему слайду
-    const { maxIndex } = recalculate();
-    const currentIndex = Math.round(lastProgress * (maxIndex + 1));
-    const snapProgress = currentIndex / (maxIndex + 1);
-    
-    // Плавная анимация к ближайшему слайду
-    const startProgress = lastProgress;
-    const duration = 300; // 300ms
-    const startTime = performance.now();
-    
-    function animateSnap(currentTime) {
-      const elapsed = currentTime - startTime;
-      const t = Math.min(1, elapsed / duration);
-      
-      // Easing функция для плавности
-      const easeOut = 1 - Math.pow(1 - t, 3);
-      const progress = startProgress + (snapProgress - startProgress) * easeOut;
-      
-      updateCarouselPosition(progress);
-      
-      if (t < 1) {
-        requestAnimationFrame(animateSnap);
+      if (newIndex !== currentIndex && newIndex >= 0 && newIndex <= newMaxIndex) {
+        currentIndex = newIndex;
+        updateDots();
+        updateButtons();
       }
-    }
-    
-    requestAnimationFrame(animateSnap);
+      
+      rafId = null;
+    });
   }
 
-  // Добавляем обработчики для свайпа
-  viewport.addEventListener('touchstart', handleTouchStart, { passive: true });
-  viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
-  viewport.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-  // Инициализация при загрузке
-  updateCarouselPosition(calculateProgress());
+  // Обновляем currentIndex при прокрутке с оптимизацией
+  // ВАЖНО: слушаем только прокрутку viewport (горизонтальную), НЕ прокрутку страницы
+  viewport.addEventListener('scroll', handleScroll, { passive: true });
   
-  // Обновление при изменении размера окна
+  // Убеждаемся, что нет inline стилей transform от предыдущей scroll-driven версии
+  if (grid.style.transform) {
+    grid.style.transform = '';
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex -= 1;
+      updateCarousel();
+    }
+  });
+
+  nextBtn.addEventListener('click', () => {
+    const { maxIndex: newMaxIndex } = recalculate();
+    if (currentIndex < newMaxIndex) {
+      currentIndex += 1;
+      updateCarousel();
+    } else if (currentIndex === newMaxIndex) {
+      // Если уже на последней позиции, убеждаемся что последняя карточка полностью видна
+      updateCarousel();
+    }
+  });
+
+  updateButtons();
+  
+  // При загрузке страницы и изменении размера окна пересчитываем и проверяем последнюю карточку
+  const checkLastCard = () => {
+    const { maxIndex: checkMaxIndex } = recalculate();
+    if (currentIndex >= checkMaxIndex) {
+      updateCarousel();
+    }
+  };
+  
+  // Оптимизированная обработка изменения размера окна
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      cachedMetrics = null;
-      recalculate(true);
-      updateCarouselPosition(calculateProgress());
+      cachedMetrics = null; // Сбрасываем кэш при изменении размера
+      checkLastCard();
     }, 150);
   }, { passive: true });
+  
+  // Проверяем после небольшой задержки при загрузке (когда карточки уже отрендерены)
+  setTimeout(() => {
+    checkLastCard();
+  }, 100);
 }
 
 async function displayReviews() {
