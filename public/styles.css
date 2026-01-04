@@ -1323,15 +1323,15 @@ input[type='number'] {
   pointer-events: none;
   will-change: transform, opacity;
   top: 50%;
-  transform: translateX(-50%) translateY(calc(-50% + 50%)) scale(0.95);
-  opacity: 0;
+  transform: translateX(-50%) translateY(calc(-50% + 20%)) scale(0.95);
+  opacity: 0.3; /* Начальная видимость - слайды видны сразу */
   transition: none; /* Убираем transition, управляем через JS */
   /* Убираем размытие и улучшаем четкость */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform-style: preserve-3d;
   image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  image-rendering: auto;
 }
 
 .our-capabilities-slide-bg {

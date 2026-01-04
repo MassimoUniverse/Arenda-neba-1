@@ -1730,19 +1730,20 @@ async function initOurCapabilitiesSlider() {
       
       // Вычисляем позицию и прозрачность для каждого слайда
       if (slideProgress < 0) {
-        // Слайд еще не достигнут - внизу
+        // Слайд еще не достигнут - внизу, но видимый
         const offset = Math.abs(slideProgress);
-        const translateY = 50 + offset * 10; // Уменьшили расстояние - было 100 + offset * 20
-        const scale = Math.max(0.9, 0.95 - offset * 0.02); // Меньше изменение scale для четкости
+        const translateY = 20 + offset * 5; // Начинаем с 20% вместо 50% - слайды выше
+        const scale = Math.max(0.92, 0.95 - offset * 0.01); // Меньше изменение scale
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
-        slide.style.opacity = '0';
-        slide.style.zIndex = '1';
+        slide.style.opacity = String(Math.max(0, 0.3 - offset * 0.1)); // Немного видимые
+        slide.style.zIndex = String(1 + index);
+        slide.style.pointerEvents = 'none';
       } else if (slideProgress >= 0 && slideProgress < 1) {
-        // Текущий активный слайд - плавно появляется
+        // Текущий активный слайд - плавно появляется в центре
         const t = slideProgress;
-        const translateY = 50 - t * 100; // Уменьшили расстояние - было 100 - t * 200
+        const translateY = 20 - t * 40; // От 20% до -20% - слайды ближе к центру
         const scale = 0.95 + t * 0.05; // От 0.95 до 1
-        const opacity = t;
+        const opacity = 0.3 + t * 0.7; // От 0.3 до 1 - начинаем с видимости
         
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = String(opacity);
@@ -1751,11 +1752,11 @@ async function initOurCapabilitiesSlider() {
       } else {
         // Слайд уже пройден - уходит наверх
         const offset = slideProgress - 1;
-        const translateY = -50 - offset * 10; // Уменьшили расстояние - было -100 - offset * 20
-        const scale = Math.max(0.85, 0.9 - offset * 0.02); // Меньше изменение scale для четкости
+        const translateY = -20 - offset * 5; // От -20% и дальше вверх
+        const scale = Math.max(0.88, 0.9 - offset * 0.01); // Меньше изменение scale
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
-        slide.style.opacity = '0';
-        slide.style.zIndex = '0';
+        slide.style.opacity = String(Math.max(0, 0.3 - offset * 0.1)); // Плавно исчезают
+        slide.style.zIndex = String(10 - index);
         slide.style.pointerEvents = 'none';
       }
     });
@@ -1787,8 +1788,8 @@ async function initOurCapabilitiesSlider() {
     const startPoint = windowHeight; // когда верх секции достигает верха экрана
     const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
-    // Увеличиваем задержку для первого слайда - он должен показываться дольше
-    const delayOffset = windowHeight * 1.5; // 1.5 высоты экрана задержки - слайды начнут листаться позже
+    // Небольшая задержка для первого слайда
+    const delayOffset = windowHeight * 0.3; // 30% высоты экрана задержки
     const adjustedStartPoint = startPoint - delayOffset;
     
     // Нормализуем прогресс от 0 до 1
