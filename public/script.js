@@ -1718,11 +1718,54 @@ async function initOurCapabilitiesSlider() {
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-  // Вычисляем максимальное смещение для translateX
-  function getMaxTranslateX() {
-    const sliderWidth = sliderContainer.offsetWidth;
-    const wrapperWidth = sliderWrapper.scrollWidth;
-    return Math.min(0, sliderWidth - wrapperWidth);
+  // Функция обновления позиции слайдов на основе прогресса
+  function updateSlidesPosition(progress) {
+    // Вычисляем текущий индекс слайда на основе прогресса
+    // progress 0 = первый слайд (индекс 0)
+    // progress 1 = последний слайд (индекс totalSlides - 1)
+    const slideIndex = progress * (totalSlides - 1);
+    
+    slides.forEach((slide, index) => {
+      const slideProgress = slideIndex - index;
+      
+      // Вычисляем позицию и прозрачность для каждого слайда
+      if (slideProgress < 0) {
+        // Слайд еще не достигнут - внизу
+        const offset = Math.abs(slideProgress);
+        const translateY = 100 + offset * 20; // Дополнительное смещение для будущих слайдов
+        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${0.95 - offset * 0.1})`;
+        slide.style.opacity = '0';
+        slide.style.zIndex = '1';
+      } else if (slideProgress >= 0 && slideProgress < 1) {
+        // Текущий активный слайд - плавно появляется
+        const t = slideProgress;
+        const translateY = 100 - t * 200; // От 100% до -100%
+        const scale = 0.95 + t * 0.05; // От 0.95 до 1
+        const opacity = t;
+        
+        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
+        slide.style.opacity = String(opacity);
+        slide.style.zIndex = '10';
+        slide.style.pointerEvents = 'auto';
+      } else {
+        // Слайд уже пройден - уходит наверх
+        const offset = slideProgress - 1;
+        const translateY = -100 - offset * 20; // Дополнительное смещение для прошедших слайдов
+        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${0.85 - offset * 0.1})`;
+        slide.style.opacity = '0';
+        slide.style.zIndex = '0';
+        slide.style.pointerEvents = 'none';
+      }
+    });
+    
+    // Показываем кнопку когда показывается последний слайд
+    if (buttonContainer) {
+      if (progress >= 0.85) {
+        buttonContainer.classList.add('visible');
+      } else if (progress < 0.7) {
+        buttonContainer.classList.remove('visible');
+      }
+    }
   }
   
   // Функция вычисления прогресса прокрутки секции
@@ -1759,32 +1802,10 @@ async function initOurCapabilitiesSlider() {
     return progress;
   }
   
-  // Функция обновления позиции слайдера на основе прогресса
-  function updateSliderPosition(progress) {
-    const maxTranslateX = getMaxTranslateX();
-    
-    // Применяем прогресс к translateX
-    // progress 0 = translateX 0 (начало, первый слайд)
-    // progress 1 = translateX maxTranslateX (конец, последний слайд)
-    const translateX = progress * maxTranslateX;
-    
-    // Применяем transform
-    sliderWrapper.style.transform = `translateX(${translateX}px)`;
-    
-    // Показываем кнопку когда показывается последний слайд
-    if (buttonContainer) {
-      if (progress >= 0.85) {
-        buttonContainer.classList.add('visible');
-      } else if (progress < 0.7) {
-        buttonContainer.classList.remove('visible');
-      }
-    }
-  }
-  
   // Функция обновления слайдера при прокрутке
   function updateSlideFromScroll() {
     const progress = calculateProgress();
-    updateSliderPosition(progress);
+    updateSlidesPosition(progress);
   }
   
   // Обработчик прокрутки - используем Lenis, если доступен
@@ -1858,21 +1879,21 @@ async function initOurCapabilitiesSlider() {
     const deltaX = Math.abs(touchCurrentX - touchStartX);
     const deltaY = Math.abs(touchCurrentY - touchStartY);
     
-    // Если горизонтальный свайп больше вертикального, обрабатываем его
-    if (deltaX > deltaY && deltaX > 10) {
+    // Для вертикального слайдера используем вертикальный свайп
+    if (deltaY > deltaX && deltaY > 10) {
       e.preventDefault();
       
-      const maxTranslateX = getMaxTranslateX();
-      const sliderWidth = sliderContainer.offsetWidth;
-      const dragDelta = touchStartX - touchCurrentX; // Отрицательное значение = свайп вправо
+      const windowHeight = window.innerHeight;
+      const dragDelta = touchStartY - touchCurrentY; // Отрицательное значение = свайп вниз
       
       // Конвертируем пиксели свайпа в прогресс
-      // Свайп влево (dragDelta > 0) = увеличение прогресса
-      // Свайп вправо (dragDelta < 0) = уменьшение прогресса
-      const swipeProgress = -dragDelta / Math.abs(maxTranslateX);
+      // Свайп вверх (dragDelta > 0) = увеличение прогресса (следующий слайд)
+      // Свайп вниз (dragDelta < 0) = уменьшение прогресса (предыдущий слайд)
+      // Используем высоту экрана как базу для конвертации
+      const swipeProgress = dragDelta / (windowHeight * 2); // 2 экрана = полный прогресс
       const newProgress = Math.max(0, Math.min(1, touchProgress + swipeProgress));
       
-      updateSliderPosition(newProgress);
+      updateSlidesPosition(newProgress);
     }
   }
   
@@ -1899,7 +1920,7 @@ async function initOurCapabilitiesSlider() {
       const easeOut = 1 - Math.pow(1 - t, 3);
       const progress = startProgress + (snapProgress - startProgress) * easeOut;
       
-      updateSliderPosition(progress);
+      updateSlidesPosition(progress);
       
       if (t < 1) {
         requestAnimationFrame(animateSnap);
