@@ -51,17 +51,29 @@ async function uploadImage(file, imageUrlInputId, previewId) {
             if (preview) {
                 preview.src = fullUrl;
                 preview.style.display = 'block';
-                }
+                preview.alt = 'Загружено';
             }
-            
-            return fullUrl;
-        } else {
-            const errorData = await response.json().catch(() => ({ error: 'Ошибка загрузки' }));
-            alert('Ошибка при загрузке изображения: ' + (errorData.error || 'Неизвестная ошибка'));
-            return null;
         }
+        
+        return fullUrl;
     } catch (error) {
-        alert('Ошибка при загрузке изображения: ' + error.message);
+        console.error('❌ Upload error:', error);
+        const errorMessage = error.message || 'Ошибка загрузки';
+        alert('Ошибка при загрузке изображения: ' + errorMessage);
+        
+        // Сбрасываем превью при ошибке
+        if (previewId) {
+            const preview = document.getElementById(previewId);
+            const container = document.getElementById(previewId + 'Container');
+            if (preview) {
+                preview.style.display = 'none';
+                preview.src = '';
+            }
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+        
         return null;
     }
 }
