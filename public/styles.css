@@ -1303,6 +1303,7 @@ input[type='number'] {
   align-items: center;
   justify-content: center;
   overflow: visible;
+  perspective: 1200px;
 }
 
 .our-capabilities-slider-wrapper {
@@ -1315,23 +1316,24 @@ input[type='number'] {
   position: absolute;
   left: 50%;
   width: 100%;
-  height: 80vh;
-  max-height: 850px;
-  min-height: 700px;
-  border-radius: 32px;
+  height: 75vh;
+  max-height: 800px;
+  min-height: 600px;
+  border-radius: 24px;
   overflow: hidden;
   pointer-events: none;
   will-change: transform, opacity;
   top: 50%;
-  transform: translateX(-50%) translateY(calc(-50% + 20%)) scale(0.95);
-  opacity: 0.3; /* Начальная видимость - слайды видны сразу */
-  transition: none; /* Убираем transition, управляем через JS */
-  /* Убираем размытие и улучшаем четкость */
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+  opacity: 0;
+  /* Оптимизация для четкости и производительности */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform-style: preserve-3d;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Плавные тени для глубины */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .our-capabilities-slide-bg {
@@ -1341,19 +1343,33 @@ input[type='number'] {
   height: 100%;
 }
 
+.our-capabilities-slide-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(1.05); /* Легкое увеличение для эффекта параллакса */
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.our-capabilities-slide.active .our-capabilities-slide-bg {
+  transform: scale(1);
+}
+
 .our-capabilities-slide-bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  /* Улучшаем четкость изображений */
+  /* Максимальная четкость изображений */
   image-rendering: -webkit-optimize-contrast;
-  image-rendering: auto;
+  image-rendering: crisp-edges;
   -ms-interpolation-mode: bicubic;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+  will-change: transform;
 }
 
 .our-capabilities-slide-gradient {
@@ -1370,6 +1386,16 @@ input[type='number'] {
   right: 40px;
   max-width: 600px;
   z-index: 2;
+  /* Плавное появление контента */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.our-capabilities-slide.active .our-capabilities-slide-content {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .our-capabilities-slide-label {
