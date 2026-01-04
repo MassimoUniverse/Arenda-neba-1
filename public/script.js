@@ -1723,48 +1723,49 @@ async function initOurCapabilitiesSlider() {
     // Вычисляем текущий индекс слайда на основе прогресса
     // progress 0 = первый слайд (индекс 0)
     // progress 1 = последний слайд (индекс totalSlides - 1)
-    const slideIndex = progress * (totalSlides - 1);
+    const currentSlideIndex = progress * (totalSlides - 1);
     
     slides.forEach((slide, index) => {
-      const slideProgress = slideIndex - index;
+      // Вычисляем разницу между текущим слайдом и этим слайдом
+      const diff = currentSlideIndex - index;
       
       // Убираем класс active со всех слайдов
       slide.classList.remove('active');
       
-      // Упрощенная логика позиционирования
-      if (slideProgress < 0) {
-        // Слайд еще не достигнут - внизу
-        const offset = Math.abs(slideProgress);
-        const translateY = 25 + offset * 5; // От 25% и дальше вниз
-        const scale = Math.max(0.88, 0.92 - offset * 0.02);
-        const opacity = Math.max(0, 0.4 - offset * 0.2);
+      // Простая и надежная логика: только 3 состояния
+      if (diff < 0) {
+        // Слайд еще не достигнут - находится внизу
+        const offset = Math.abs(diff);
+        const translateY = 30 + offset * 3; // От 30% и дальше вниз
+        const scale = Math.max(0.9, 0.95 - offset * 0.02);
+        const opacity = Math.max(0.5, 0.7 - offset * 0.1);
         
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = String(opacity);
-        slide.style.zIndex = String(index + 1); // Меньший индекс = ниже
+        slide.style.zIndex = String(index + 1); // Чем меньше индекс, тем ниже
         slide.style.pointerEvents = 'none';
-      } else if (slideProgress >= 0 && slideProgress < 1) {
+      } else if (diff >= 0 && diff < 1) {
         // Текущий активный слайд - в центре
-        const t = slideProgress;
-        const translateY = 25 - t * 30; // От 25% до -5%
-        const scale = 0.92 + t * 0.08; // От 0.92 до 1.0
-        const opacity = 0.4 + t * 0.6; // От 0.4 до 1.0
+        const t = diff; // от 0 до 1
+        const translateY = 30 - t * 35; // От 30% до -5%
+        const scale = 0.95 + t * 0.05; // От 0.95 до 1.0
+        const opacity = 0.7 + t * 0.3; // От 0.7 до 1.0
         
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = String(opacity);
-        slide.style.zIndex = '100'; // Активный слайд всегда сверху
+        slide.style.zIndex = '1000'; // Активный слайд всегда сверху
         slide.style.pointerEvents = 'auto';
         slide.classList.add('active');
       } else {
         // Слайд уже пройден - уходит наверх
-        const offset = slideProgress - 1;
-        const translateY = -5 - offset * 8; // От -5% и дальше вверх
-        const scale = Math.max(0.85, 1.0 - offset * 0.05);
-        const opacity = Math.max(0, 1.0 - offset * 0.3);
+        const offset = diff - 1;
+        const translateY = -5 - offset * 5; // От -5% и дальше вверх
+        const scale = Math.max(0.88, 1.0 - offset * 0.03);
+        const opacity = Math.max(0, 1.0 - offset * 0.2);
         
         slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = String(opacity);
-        slide.style.zIndex = String(totalSlides - index); // Прошедшие слайды ниже
+        slide.style.zIndex = String(totalSlides - index); // Прошедшие слайды ниже активного
         slide.style.pointerEvents = 'none';
       }
     });
