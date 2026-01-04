@@ -1324,8 +1324,8 @@ input[type='number'] {
   pointer-events: none;
   will-change: transform, opacity;
   top: 50%;
-  transform: translateX(-50%) translateY(-50%) scale(0.9);
-  opacity: 0;
+  transform: translateX(-50%) translateY(calc(-50% + 25%)) scale(0.92);
+  opacity: 0.4;
   /* Оптимизация для четкости и производительности */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -1334,6 +1334,7 @@ input[type='number'] {
   -moz-osx-font-smoothing: grayscale;
   /* Плавные тени для глубины */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  /* Убираем rotateX из CSS, управляем только через JS */
 }
 
 .our-capabilities-slide-bg {
