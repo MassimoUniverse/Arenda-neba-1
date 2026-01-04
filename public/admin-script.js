@@ -78,22 +78,36 @@ document.addEventListener('DOMContentLoaded', () => {
 // Login Form Handler
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
+    console.log('✅ Login form found, attaching handler');
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('🔐 Login form submitted');
+        
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const errorDiv = document.getElementById('loginError');
+
+        if (!username || !password) {
+            console.error('❌ Username or password is empty');
+            errorDiv.textContent = 'Заполните все поля';
+            errorDiv.classList.add('show');
+            return;
+        }
 
         try {
             // Очищаем предыдущие ошибки
             errorDiv.textContent = '';
             errorDiv.classList.remove('show');
             
+            console.log('📤 Sending login request to:', `${API_URL}/api/admin/login`);
+            
             const response = await fetch(`${API_URL}/api/admin/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
+            
+            console.log('📥 Response status:', response.status, response.statusText);
 
             let data;
             try {
@@ -109,20 +123,24 @@ if (loginForm) {
                 authToken = data.token;
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('username', data.username || username);
-                console.log('Вход выполнен успешно');
+                console.log('✅ Вход выполнен успешно, токен получен');
                 showDashboard();
             } else {
                 const errorMessage = data.error || 'Неверное имя пользователя или пароль';
-                console.error('Ошибка входа:', errorMessage);
+                console.error('❌ Ошибка входа:', errorMessage);
+                console.error('Response data:', data);
                 errorDiv.textContent = errorMessage;
                 errorDiv.classList.add('show');
             }
         } catch (error) {
-            console.error('Ошибка подключения:', error);
+            console.error('❌ Ошибка подключения:', error);
+            console.error('Error details:', error.message, error.stack);
             errorDiv.textContent = 'Ошибка подключения к серверу: ' + error.message;
             errorDiv.classList.add('show');
         }
     });
+} else {
+    console.error('❌ Login form not found!');
 }
 
 // Verify Token
