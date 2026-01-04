@@ -5,6 +5,9 @@ const fs = require('fs');
 // Путь к текущей базе
 const currentDbPath = path.join(__dirname, 'database.db');
 
+// Если путь к бэкапу указан в аргументах
+let backupDbPath = process.argv[2];
+
 // Если путь не указан, ищем бэкап "slightly done" в разных возможных местах
 if (!backupDbPath) {
   const possibleBackupPaths = [
@@ -57,7 +60,11 @@ if (!backupDbPath || !fs.existsSync(backupDbPath)) {
   console.log('\n💡 Укажите путь к бэкапу вручную:');
   console.log('   node restore-reach-diagrams.js /path/to/backup/database.db');
   console.log('\n   Или скопируйте бэкап в одно из мест:');
-  possibleBackupPaths.forEach(p => console.log(`   - ${p}`));
+  [
+    path.join(__dirname, '..', 'backups', 'slightly done', 'database.db'),
+    path.join('/opt', 'backups', 'slightly done', 'database.db'),
+    path.join('/root', 'backups', 'slightly done', 'database.db'),
+  ].forEach(p => console.log(`   - ${p}`));
   
   process.exit(1);
 }
