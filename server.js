@@ -873,10 +873,21 @@ app.use(express.static('public'));
 
 app.use('/uploads', express.static('uploads'));
 
+// Создаем папку uploads если её нет
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory');
+}
+
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Убеждаемся что папка существует
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -2118,13 +2129,35 @@ app.post('/api/admin/upload-video', authenticateToken, videoUpload.single('video
 // File upload endpoint (Protected)
 app.post('/api/admin/upload', authenticateToken, upload.single('image'), (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
+    console.error('❌ Upload error: No file received');
+    return res.status(400).json({ error: 'Файл не был загружен' });
   }
-  res.json({ 
-    success: true,
-    filename: req.file.filename,
-    url: `/uploads/${req.file.filename}`
-  });
+  
+  try {
+    console.log('✅ File uploaded successfully:', req.file.filename);
+    res.json({ 
+      success: true,
+      filename: req.file.filename,
+      url: `/uploads/${req.file.filename}`
+    });
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    res.status(500).json({ error: 'Ошибка при загрузке файла: ' + error.message });
+  }
+});
+
+// Error handler for multer
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'Файл слишком большой. Максимальный размер: 30MB' });
+    }
+    return res.status(400).json({ error: 'Ошибка загрузки: ' + error.message });
+  }
+  if (error) {
+    return res.status(400).json({ error: 'Ошибка загрузки: ' + error.message });
+  }
+  next();
 });
 
 // Function to ensure all equipment pages exist and are up to date

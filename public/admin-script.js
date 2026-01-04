@@ -13,7 +13,7 @@ function escapeHtml(text) {
 
 // Upload image function
 async function uploadImage(file, imageUrlInputId, previewId) {
-    if (!file) return;
+    if (!file) return null;
     
     const formData = new FormData();
     formData.append('image', file);
@@ -27,22 +27,30 @@ async function uploadImage(file, imageUrlInputId, previewId) {
             body: formData
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            const fullUrl = `${API_URL}${data.url}`;
-            
-            // Update image URL input
-            const imageUrlInput = document.getElementById(imageUrlInputId);
-            if (imageUrlInput) {
-                imageUrlInput.value = fullUrl;
-            }
-            
-            // Update preview
-            if (previewId) {
-                const preview = document.getElementById(previewId);
-                if (preview) {
-                    preview.src = fullUrl;
-                    preview.style.display = 'block';
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Ошибка загрузки' }));
+            throw new Error(errorData.error || `Ошибка ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (!data.url) {
+            throw new Error('Сервер не вернул URL изображения');
+        }
+        
+        const fullUrl = `${API_URL}${data.url}`;
+        
+        // Update image URL input
+        const imageUrlInput = document.getElementById(imageUrlInputId);
+        if (imageUrlInput) {
+            imageUrlInput.value = fullUrl;
+        }
+        
+        // Update preview
+        if (previewId) {
+            const preview = document.getElementById(previewId);
+            if (preview) {
+                preview.src = fullUrl;
+                preview.style.display = 'block';
                 }
             }
             
