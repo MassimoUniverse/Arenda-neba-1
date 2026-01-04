@@ -211,23 +211,25 @@
         <p>Выберите автовышку под вашу задачу. Для каждой машины есть отдельная страница с описанием и характеристиками.</p>
       </div>
 
-      <div class="container services-carousel">
-        <button class="carousel-btn prev" type="button" aria-label="Предыдущая техника">
-          <span>&#10094;</span>
-        </button>
+      <div class="autopark-sticky">
+        <div class="container services-carousel">
+          <button class="carousel-btn prev" type="button" aria-label="Предыдущая техника" style="display: none;">
+            <span>&#10094;</span>
+          </button>
 
-        <div class="services-viewport">
-          <div class="services-grid" id="services-grid">
-            <!-- Карточки техники будут подставляться скриптом -->
+          <div class="services-viewport">
+            <div class="services-grid" id="services-grid">
+              <!-- Карточки техники будут подставляться скриптом -->
+            </div>
           </div>
+
+          <button class="carousel-btn next" type="button" aria-label="Следующая техника" style="display: none;">
+            <span>&#10095;</span>
+          </button>
         </div>
 
-        <button class="carousel-btn next" type="button" aria-label="Следующая техника">
-          <span>&#10095;</span>
-        </button>
+        <div class="container carousel-dots" id="carousel-dots"></div>
       </div>
-
-      <div class="container carousel-dots" id="carousel-dots"></div>
     </section>
 
     <!-- REVIEWS -->

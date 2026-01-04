@@ -984,30 +984,50 @@ input[type='number'] {
    ============================================= */
 .autopark-section {
   background: var(--bg-light);
+  position: relative;
+  height: 300vh; /* Увеличенная высота для scroll-driven анимации */
+  width: 100%;
+}
+
+.autopark-section .section-header {
+  margin-bottom: 0;
+  padding-top: 10px;
+}
+
+/* Sticky контейнер для карусели */
+.autopark-sticky {
+  position: sticky;
+  top: 80px;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 .services-carousel {
   display: flex;
   align-items: center;
   gap: 20px;
+  width: 100%;
+  max-width: 1600px;
+  padding: 0 24px;
+  position: relative;
+}
+
+/* Скрываем кнопки для scroll-driven режима */
+.services-carousel .carousel-btn {
+  display: none;
 }
 
 .services-viewport {
   flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-top: 16px;
-  margin-top: -16px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  /* Оптимизация производительности прокрутки */
-  will-change: scroll-position;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-.services-viewport::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  overflow: hidden; /* Убираем scroll, используем transform */
+  width: 100%;
+  position: relative;
 }
 
 .services-grid {
@@ -1016,7 +1036,7 @@ input[type='number'] {
   padding-top: 0;
   padding-right: 20px;
   min-width: fit-content;
-  /* Оптимизация производительности */
+  /* Управляется через transform: translateX() в JavaScript */
   will-change: transform;
   transform: translateZ(0);
 }
@@ -1202,6 +1222,8 @@ input[type='number'] {
   justify-content: center;
   gap: 8px;
   margin-top: 32px;
+  position: relative;
+  z-index: 10;
 }
 
 .carousel-dot {
@@ -2305,8 +2327,19 @@ input[type='number'] {
   }
   
   /* Услуги */
+  .autopark-section {
+    height: 200vh; /* Меньшая высота на мобильных */
+  }
+  
+  .autopark-sticky {
+    top: 70px;
+    height: 100vh;
+    min-height: 100vh;
+  }
+  
   .services-carousel {
     flex-direction: column;
+    padding: 0 16px;
   }
   
   .carousel-btn {
@@ -2315,9 +2348,7 @@ input[type='number'] {
   
   .services-viewport {
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 16px;
+    overflow: hidden; /* Убираем scroll на мобильных, используем transform */
   }
   
   .service-card-link {
