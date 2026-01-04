@@ -5,26 +5,71 @@ const fs = require('fs');
 // Путь к текущей базе
 const currentDbPath = path.join(__dirname, 'database.db');
 
-// Путь к бэкапу "slightly done"
-const backupDbPath = path.join(__dirname, '..', 'backups', 'slightly done', 'database.db');
+// Если путь не указан, ищем бэкап "slightly done" в разных возможных местах
+if (!backupDbPath) {
+  const possibleBackupPaths = [
+    path.join(__dirname, '..', 'backups', 'slightly done', 'database.db'),
+    path.join(__dirname, '..', '..', 'backups', 'slightly done', 'database.db'),
+    path.join('/opt', 'backups', 'slightly done', 'database.db'),
+    path.join('/root', 'backups', 'slightly done', 'database.db'),
+    path.join(__dirname, '..', 'slightly done', 'database.db'),
+  ];
 
-if (!fs.existsSync(backupDbPath)) {
-  console.error('❌ Бэкап не найден:', backupDbPath);
-  console.log('\n📋 Доступные бэкапы:');
-  const backupsDir = path.join(__dirname, '..', 'backups');
-  if (fs.existsSync(backupsDir)) {
-    const dirs = fs.readdirSync(backupsDir);
-    dirs.forEach(dir => {
-      const dbPath = path.join(backupsDir, dir, 'database.db');
-      if (fs.existsSync(dbPath)) {
-        console.log(`   - ${dir}`);
-      }
-    });
+  for (const possiblePath of possibleBackupPaths) {
+    if (fs.existsSync(possiblePath)) {
+      backupDbPath = possiblePath;
+      console.log('✅ Бэкап найден:', backupDbPath);
+      break;
+    }
   }
+}
+
+if (!backupDbPath || !fs.existsSync(backupDbPath)) {
+  console.error('❌ Бэкап "slightly done" не найден в стандартных местах');
+  console.log('\n📋 Ищем доступные бэкапы...');
+  
+  const possibleBackupDirs = [
+    path.join(__dirname, '..', 'backups'),
+    path.join(__dirname, '..', '..', 'backups'),
+    '/opt/backups',
+    '/root/backups',
+  ];
+  
+  let foundAny = false;
+  for (const backupDir of possibleBackupDirs) {
+    if (fs.existsSync(backupDir)) {
+      console.log(`\n📁 Проверяем: ${backupDir}`);
+      const dirs = fs.readdirSync(backupDir);
+      dirs.forEach(dir => {
+        const dbPath = path.join(backupDir, dir, 'database.db');
+        if (fs.existsSync(dbPath)) {
+          console.log(`   ✅ ${dir}`);
+          foundAny = true;
+        }
+      });
+    }
+  }
+  
+  if (!foundAny) {
+    console.log('\n❌ Бэкапы не найдены.');
+  }
+  
+  console.log('\n💡 Укажите путь к бэкапу вручную:');
+  console.log('   node restore-reach-diagrams.js /path/to/backup/database.db');
+  console.log('\n   Или скопируйте бэкап в одно из мест:');
+  possibleBackupPaths.forEach(p => console.log(`   - ${p}`));
+  
   process.exit(1);
 }
 
-console.log('📦 Восстановление схем вылета стрелы из бэкапа "slightly done"...\n');
+// Проверяем, что указанный путь существует
+if (!fs.existsSync(backupDbPath)) {
+  console.error('❌ Указанный бэкап не найден:', backupDbPath);
+  process.exit(1);
+}
+
+console.log('📦 Восстановление схем вылета стрелы из бэкапа...\n');
+console.log('📂 Используем бэкап:', backupDbPath);
 
 // Открываем бэкап
 const backupDb = new sqlite3.Database(backupDbPath, sqlite3.OPEN_READONLY, (err) => {
