@@ -1341,11 +1341,13 @@ input[type='number'] {
   transform-style: preserve-3d;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Плавные тени для глубины */
+  /* Плавные тени для глубины - эффект карточки */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
   /* Все слайды в одной позиции - фиксированная позиция */
   transform: translate(-50%, -50%);
-  will-change: opacity, transform;
+  will-change: opacity, transform, y;
+  /* Плавные переходы для эффекта карточки */
+  transition: none; /* Управляем через GSAP */
 }
 
 .vslide .our-capabilities-slide-bg {
