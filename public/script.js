@@ -1754,7 +1754,7 @@ async function initOurCapabilitiesSlider() {
       scrollTrigger: {
         id: 'vslider-st',
         trigger: slider,
-        start: 'top top', // Начинается когда верх секции достигает верха экрана
+        start: 'top+=100 top', // Отступ от верха, чтобы не заезжало на главную
         end: () => `+=${window.innerHeight * (slides.length - 1)}`,
         pin: pin,
         scrub: true,
