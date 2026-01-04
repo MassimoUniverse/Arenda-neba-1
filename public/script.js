@@ -1798,8 +1798,8 @@ async function initOurCapabilitiesSlider() {
     const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
     // Задержка для первого слайда - он должен показываться дольше
-    // Пользователь должен увидеть слайды, прежде чем они начнут листаться
-    const delayOffset = windowHeight * 0.8; // 80% высоты экрана задержки
+    // Задержка для первого слайда - он должен показываться дольше
+    const delayOffset = windowHeight * 0.5; // 50% высоты экрана задержки
     const adjustedStartPoint = startPoint - delayOffset;
     
     // Нормализуем прогресс от 0 до 1
