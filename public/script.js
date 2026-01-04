@@ -907,20 +907,6 @@ function initServicesCarousel() {
   if (grid.style.transform) {
     grid.style.transform = '';
   }
-  
-  // Отключаем любую прокрутку карусели при прокрутке страницы
-  // Предотвращаем случайную прокрутку карусели при вертикальной прокрутке страницы
-  // Блокируем wheel события на карусели, если это не горизонтальная прокрутка
-  viewport.addEventListener('wheel', (e) => {
-    // Если это вертикальная прокрутка (deltaY), блокируем её на карусели
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      // Это вертикальная прокрутка - не обрабатываем её на карусели
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    // Горизонтальная прокрутка - разрешаем
-  }, { passive: false });
 
   prevBtn.addEventListener('click', () => {
     if (currentIndex > 0) {
