@@ -1735,8 +1735,17 @@ async function initOurCapabilitiesSlider() {
     // Выставляем высоту трека = N * 100vh
     track.style.height = `${slides.length * 100}vh`;
 
-    // Сбрасываем позицию
+    // Сбрасываем позицию и настраиваем начальное состояние слайдов
     gsap.set(track, { y: 0 });
+    
+    // Начальное состояние: все слайды скрыты, кроме первого
+    slides.forEach((slide, index) => {
+      if (index === 0) {
+        gsap.set(slide, { opacity: 1, scale: 1, y: 0 });
+      } else {
+        gsap.set(slide, { opacity: 0, scale: 0.95, y: 50 });
+      }
+    });
 
     // Анимация трека
     gsap.to(track, {
@@ -1745,7 +1754,7 @@ async function initOurCapabilitiesSlider() {
       scrollTrigger: {
         id: 'vslider-st',
         trigger: slider,
-        start: 'top top',
+        start: 'top top', // Начинается когда верх секции достигает верха экрана
         end: () => `+=${window.innerHeight * (slides.length - 1)}`,
         pin: pin,
         scrub: true,
@@ -1756,11 +1765,51 @@ async function initOurCapabilitiesSlider() {
           ease: 'power1.inOut',
         },
         onUpdate: (self) => {
+          const progress = self.progress;
+          const currentIndex = Math.round(progress * (slides.length - 1));
+          
+          // Обновляем видимость слайдов
+          slides.forEach((slide, index) => {
+            const slideProgress = progress * (slides.length - 1) - index;
+            
+            if (slideProgress < 0) {
+              // Слайд еще не достигнут - скрыт
+              gsap.to(slide, {
+                opacity: 0,
+                scale: 0.95,
+                y: 50,
+                duration: 0.3,
+                ease: 'power2.out'
+              });
+            } else if (slideProgress >= 0 && slideProgress < 1) {
+              // Текущий активный слайд - показываем
+              const t = slideProgress;
+              gsap.to(slide, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.3,
+                ease: 'power2.out'
+              });
+            } else {
+              // Слайд уже пройден - плавно скрываем
+              const offset = slideProgress - 1;
+              const fadeOut = Math.max(0, 1 - offset * 2); // Быстро исчезает
+              gsap.to(slide, {
+                opacity: fadeOut,
+                scale: 0.9,
+                y: -30,
+                duration: 0.3,
+                ease: 'power2.out'
+              });
+            }
+          });
+          
           // Показываем кнопку на последнем слайде
           if (buttonContainer) {
-            if (self.progress >= 0.9) {
+            if (progress >= 0.9) {
               buttonContainer.classList.add('visible');
-            } else if (self.progress < 0.8) {
+            } else if (progress < 0.8) {
               buttonContainer.classList.remove('visible');
             }
           }
