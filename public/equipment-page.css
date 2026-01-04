@@ -1323,7 +1323,35 @@ body {
   }
 
   .mobile-menu-btn {
-    display: flex;
+    display: flex !important;
+  }
+  
+  .site-header .main-nav,
+  .nav-menu:not(.open) {
+    display: none !important;
+  }
+  
+  .equipment-calculator {
+    padding: 20px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .equipment-calculator-form {
+    gap: 16px;
+  }
+  
+  .calc-field-group {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  
+  .calc-field {
+    width: 100%;
+    min-width: 0;
   }
 }
 
