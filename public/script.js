@@ -1732,89 +1732,101 @@ async function initOurCapabilitiesSlider() {
 
     if (slides.length === 0) return;
 
-    // Выставляем высоту трека = N * 100vh
-    track.style.height = `${slides.length * 100}vh`;
+    // Убираем высоту трека - слайды будут в одной позиции
+    track.style.height = '100vh';
 
-    // Сбрасываем позицию и настраиваем начальное состояние слайдов
+    // Сбрасываем позицию трека
     gsap.set(track, { y: 0 });
-    
-    // Начальное состояние: все слайды скрыты, кроме первого
+
+    // Настраиваем начальное состояние слайдов - все в одной позиции
     slides.forEach((slide, index) => {
-      if (index === 0) {
-        gsap.set(slide, { opacity: 1, scale: 1, y: 0 });
-      } else {
-        gsap.set(slide, { opacity: 0, scale: 0.95, y: 50 });
-      }
+      gsap.set(slide, {
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        x: '-50%',
+        y: '-50%',
+        opacity: index === 0 ? 1 : 0,
+        scale: index === 0 ? 1 : 0.95,
+        zIndex: slides.length - index // Первый слайд сверху
+      });
     });
 
-    // Анимация трека
-    gsap.to(track, {
-      y: () => -(window.innerHeight * (slides.length - 1)),
-      ease: 'none',
-      scrollTrigger: {
-        id: 'vslider-st',
-        trigger: slider,
-        start: 'top+=100 top', // Отступ от верха, чтобы не заезжало на главную
-        end: () => `+=${window.innerHeight * (slides.length - 1)}`,
-        pin: pin,
-        scrub: true,
-        snap: {
-          snapTo: 1 / (slides.length - 1),
-          duration: { min: 0.1, max: 0.3 },
-          delay: 0.05,
-          ease: 'power1.inOut',
-        },
-        onUpdate: (self) => {
-          const progress = self.progress;
-          const currentIndex = Math.round(progress * (slides.length - 1));
+    // Создаем ScrollTrigger для управления слайдами
+    ScrollTrigger.create({
+      id: 'vslider-st',
+      trigger: slider,
+      start: 'top+=100 top',
+      end: () => `+=${window.innerHeight * (slides.length - 1)}`,
+      pin: pin,
+      scrub: 0.5, // Плавный scrub для непрерывного движения
+      onUpdate: (self) => {
+        const progress = self.progress; // 0 до 1
+        const totalSlides = slides.length;
+        
+        // Вычисляем текущий индекс слайда (может быть дробным)
+        const currentSlideIndex = progress * (totalSlides - 1);
+        
+        slides.forEach((slide, index) => {
+          // Вычисляем разницу между текущей позицией и этим слайдом
+          const diff = currentSlideIndex - index;
           
-          // Обновляем видимость слайдов
-          slides.forEach((slide, index) => {
-            const slideProgress = progress * (slides.length - 1) - index;
-            
-            if (slideProgress < 0) {
-              // Слайд еще не достигнут - скрыт
-              gsap.to(slide, {
-                opacity: 0,
-                scale: 0.95,
-                y: 50,
-                duration: 0.3,
-                ease: 'power2.out'
-              });
-            } else if (slideProgress >= 0 && slideProgress < 1) {
-              // Текущий активный слайд - показываем
-              const t = slideProgress;
-              gsap.to(slide, {
-                opacity: 1,
-                scale: 1,
-                y: 0,
-                duration: 0.3,
-                ease: 'power2.out'
-              });
-            } else {
-              // Слайд уже пройден - плавно скрываем
-              const offset = slideProgress - 1;
-              const fadeOut = Math.max(0, 1 - offset * 2); // Быстро исчезает
-              gsap.to(slide, {
-                opacity: fadeOut,
-                scale: 0.9,
-                y: -30,
-                duration: 0.3,
-                ease: 'power2.out'
-              });
-            }
-          });
-          
-          // Показываем кнопку на последнем слайде
-          if (buttonContainer) {
-            if (progress >= 0.9) {
-              buttonContainer.classList.add('visible');
-            } else if (progress < 0.8) {
-              buttonContainer.classList.remove('visible');
-            }
+          if (diff < -0.5) {
+            // Слайд еще не достигнут - внизу, невидим
+            gsap.set(slide, {
+              opacity: 0,
+              scale: 0.9,
+              y: '-50%',
+              zIndex: totalSlides - index
+            });
+          } else if (diff >= -0.5 && diff < 0) {
+            // Слайд приближается снизу
+            const t = (diff + 0.5) * 2; // от 0 до 1
+            gsap.set(slide, {
+              opacity: t * 0.5, // Начинает появляться
+              scale: 0.9 + t * 0.1,
+              y: '-50%',
+              zIndex: totalSlides - index + 10
+            });
+          } else if (diff >= 0 && diff < 1) {
+            // Текущий активный слайд
+            const t = diff; // от 0 до 1
+            // Плавный переход от предыдущего к следующему
+            gsap.set(slide, {
+              opacity: 1 - t * 0.3, // Плавно исчезает когда уходит
+              scale: 1 - t * 0.05,
+              y: '-50%',
+              zIndex: totalSlides - index + 20
+            });
+          } else if (diff >= 1 && diff < 1.5) {
+            // Слайд уходит наверх
+            const t = diff - 1; // от 0 до 0.5
+            gsap.set(slide, {
+              opacity: 0.7 - t * 1.4, // Быстро исчезает
+              scale: 0.95 - t * 0.1,
+              y: '-50%',
+              zIndex: totalSlides - index
+            });
+          } else {
+            // Слайд далеко наверху - невидим
+            gsap.set(slide, {
+              opacity: 0,
+              scale: 0.85,
+              y: '-50%',
+              zIndex: totalSlides - index
+            });
+          }
+        });
+        
+        // Показываем кнопку на последнем слайде
+        if (buttonContainer) {
+          if (progress >= 0.9) {
+            buttonContainer.classList.add('visible');
+          } else if (progress < 0.8) {
+            buttonContainer.classList.remove('visible');
           }
         }
-      },
+      }
     });
 
     ScrollTrigger.refresh();
