@@ -750,6 +750,8 @@ a.logo:hover {
   gap: 20px;
   box-shadow: var(--shadow-sm);
   align-items: start;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .field {
