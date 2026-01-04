@@ -1228,6 +1228,10 @@ input[type='number'] {
    ============================================= */
 .our-capabilities-section {
   position: relative;
+  overflow: hidden;
+  /* Отступ перед секцией, чтобы слайды не заезжали на главную */
+  padding-top: 100px;
+  position: relative;
   height: 300vh; /* Увеличена высота для большего пространства прокрутки */
   width: 100%;
   margin: 0;
