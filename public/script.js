@@ -1732,23 +1732,25 @@ async function initOurCapabilitiesSlider() {
 
     if (slides.length === 0) return;
 
-    // Убираем высоту трека - слайды будут в одной позиции
-    track.style.height = '100vh';
+    // Выставляем высоту трека для прокрутки
+    track.style.height = `${slides.length * 100}vh`;
 
     // Сбрасываем позицию трека
     gsap.set(track, { y: 0 });
 
     // Настраиваем начальное состояние слайдов - все в одной позиции
     slides.forEach((slide, index) => {
+      // Устанавливаем CSS свойства напрямую
+      slide.style.position = 'absolute';
+      slide.style.left = '50%';
+      slide.style.top = '50%';
+      slide.style.transform = 'translate(-50%, -50%)';
+      slide.style.zIndex = String(slides.length - index);
+      
+      // Начальное состояние через GSAP
       gsap.set(slide, {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        x: '-50%',
-        y: '-50%',
         opacity: index === 0 ? 1 : 0,
-        scale: index === 0 ? 1 : 0.95,
-        zIndex: slides.length - index // Первый слайд сверху
+        scale: index === 0 ? 1 : 0.95
       });
     });
 
@@ -1771,50 +1773,47 @@ async function initOurCapabilitiesSlider() {
           // Вычисляем разницу между текущей позицией и этим слайдом
           const diff = currentSlideIndex - index;
           
+          // Обновляем z-index для правильного наложения
+          slide.style.zIndex = String(totalSlides - index);
+          
           if (diff < -0.5) {
             // Слайд еще не достигнут - внизу, невидим
             gsap.set(slide, {
               opacity: 0,
-              scale: 0.9,
-              y: '-50%',
-              zIndex: totalSlides - index
+              scale: 0.9
             });
           } else if (diff >= -0.5 && diff < 0) {
             // Слайд приближается снизу
             const t = (diff + 0.5) * 2; // от 0 до 1
             gsap.set(slide, {
               opacity: t * 0.5, // Начинает появляться
-              scale: 0.9 + t * 0.1,
-              y: '-50%',
-              zIndex: totalSlides - index + 10
+              scale: 0.9 + t * 0.1
             });
+            slide.style.zIndex = String(totalSlides - index + 10);
           } else if (diff >= 0 && diff < 1) {
             // Текущий активный слайд
             const t = diff; // от 0 до 1
             // Плавный переход от предыдущего к следующему
             gsap.set(slide, {
               opacity: 1 - t * 0.3, // Плавно исчезает когда уходит
-              scale: 1 - t * 0.05,
-              y: '-50%',
-              zIndex: totalSlides - index + 20
+              scale: 1 - t * 0.05
             });
+            slide.style.zIndex = String(totalSlides - index + 20);
           } else if (diff >= 1 && diff < 1.5) {
             // Слайд уходит наверх
             const t = diff - 1; // от 0 до 0.5
             gsap.set(slide, {
-              opacity: 0.7 - t * 1.4, // Быстро исчезает
-              scale: 0.95 - t * 0.1,
-              y: '-50%',
-              zIndex: totalSlides - index
+              opacity: Math.max(0, 0.7 - t * 1.4), // Быстро исчезает
+              scale: Math.max(0.85, 0.95 - t * 0.1)
             });
+            slide.style.zIndex = String(totalSlides - index);
           } else {
             // Слайд далеко наверху - невидим
             gsap.set(slide, {
               opacity: 0,
-              scale: 0.85,
-              y: '-50%',
-              zIndex: totalSlides - index
+              scale: 0.85
             });
+            slide.style.zIndex = String(totalSlides - index);
           }
         });
         
