@@ -127,7 +127,9 @@
       </div>
       <div class="our-capabilities-sticky">
         <div class="our-capabilities-slider" id="our-capabilities-slider">
-          <!-- Слайды будут добавлены через JavaScript -->
+          <div class="our-capabilities-slider-wrapper" id="our-capabilities-slider-wrapper">
+            <!-- Слайды будут добавлены через JavaScript -->
+          </div>
         </div>
         <div class="container popular-equipment-button">
           <a href="#autopark" class="btn btn-primary">Посмотреть весь автопарк</a>
@@ -211,25 +213,23 @@
         <p>Выберите автовышку под вашу задачу. Для каждой машины есть отдельная страница с описанием и характеристиками.</p>
       </div>
 
-      <div class="autopark-sticky">
-        <div class="container services-carousel">
-          <button class="carousel-btn prev" type="button" aria-label="Предыдущая техника" style="display: none;">
-            <span>&#10094;</span>
-          </button>
+      <div class="container services-carousel">
+        <button class="carousel-btn prev" type="button" aria-label="Предыдущая техника">
+          <span>&#10094;</span>
+        </button>
 
-          <div class="services-viewport">
-            <div class="services-grid" id="services-grid">
-              <!-- Карточки техники будут подставляться скриптом -->
-            </div>
+        <div class="services-viewport">
+          <div class="services-grid" id="services-grid">
+            <!-- Карточки техники будут подставляться скриптом -->
           </div>
-
-          <button class="carousel-btn next" type="button" aria-label="Следующая техника" style="display: none;">
-            <span>&#10095;</span>
-          </button>
         </div>
 
-        <div class="container carousel-dots" id="carousel-dots"></div>
+        <button class="carousel-btn next" type="button" aria-label="Следующая техника">
+          <span>&#10095;</span>
+        </button>
       </div>
+
+      <div class="container carousel-dots" id="carousel-dots"></div>
     </section>
 
     <!-- REVIEWS -->

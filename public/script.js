@@ -1557,8 +1557,9 @@ const POPULAR_EQUIPMENT_SLIDES = [
 async function initOurCapabilitiesSlider() {
   const section = document.getElementById('popular-equipment');
   const sliderContainer = document.getElementById('our-capabilities-slider');
+  const sliderWrapper = document.getElementById('our-capabilities-slider-wrapper');
   
-  if (!section || !sliderContainer) return;
+  if (!section || !sliderContainer || !sliderWrapper) return;
   
   // Определяем URL популярных машин
   const popularUrls = [
@@ -1708,55 +1709,23 @@ async function initOurCapabilitiesSlider() {
       </div>
     `;
     
-    sliderContainer.appendChild(slideEl);
+    sliderWrapper.appendChild(slideEl);
   });
   
-  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+  const slides = sliderWrapper.querySelectorAll('.our-capabilities-slide');
   const totalSlides = slides.length;
-  let previousIndex = 0;
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-  // Функция обновления активного слайда с эффектом колоды карт
-  function updateActiveSlide(activeIndex) {
-    if (activeIndex < 0 || activeIndex >= totalSlides) return;
-    
-    // Если индекс не изменился, не обновляем
-    if (activeIndex === previousIndex) return;
-    
-    // Плавное переключение без задержек для более быстрого отклика
-    slides.forEach((slide, index) => {
-      slide.classList.remove('active', 'prev');
-      
-      if (index === activeIndex) {
-        // Текущий активный слайд - появляется снизу
-        slide.classList.add('active');
-      } else if (index < activeIndex) {
-        // Прошедшие слайды уходят наверх и исчезают
-        slide.classList.add('prev');
-      }
-      // Будущие слайды остаются внизу (translateY(100%))
-    });
-    
-    // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
-    if (buttonContainer) {
-      if (activeIndex >= totalSlides - 1) {
-        // Последний слайд - показываем кнопку
-        buttonContainer.classList.add('visible');
-      } else if (activeIndex < totalSlides - 2) {
-        // Не предпоследний и не последний слайд - скрываем кнопку
-        buttonContainer.classList.remove('visible');
-      }
-    }
-    
-    // Обновляем счётчики на слайдах (они уже есть в HTML каждого слайда)
-    // Счётчики обновляются автоматически, так как они встроены в каждый слайд
-    
-    previousIndex = activeIndex;
+  // Вычисляем максимальное смещение для translateX
+  function getMaxTranslateX() {
+    const sliderWidth = sliderContainer.offsetWidth;
+    const wrapperWidth = sliderWrapper.scrollWidth;
+    return Math.min(0, sliderWidth - wrapperWidth);
   }
   
-  // Функция вычисления прогресса прокрутки
+  // Функция вычисления прогресса прокрутки секции
   function calculateProgress() {
     const rect = section.getBoundingClientRect();
     const windowHeight = window.innerHeight;
@@ -1768,22 +1737,21 @@ async function initOurCapabilitiesSlider() {
       return 0;
     }
     
-    // Вычисляем прогресс: когда секция входит в viewport (top < windowHeight)
-    // и прокручивается до конца (top < -sectionHeight + windowHeight)
+    // Вычисляем прогресс: когда секция входит в viewport
+    // и прокручивается до конца
     const startPoint = windowHeight; // когда верх секции достигает верха экрана
     const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
-    // Добавляем большую задержку для первого слайда - он должен показываться дольше
-    // Вычитаем 80% высоты окна из начала, чтобы можно было прокрутить ниже перед началом слайдов
-    const delayOffset = windowHeight * 0.8; // 80% высоты экрана задержки - можно прокрутить ниже
+    // Добавляем небольшую задержку для первого слайда
+    const delayOffset = windowHeight * 0.2; // 20% высоты экрана задержки
     const adjustedStartPoint = startPoint - delayOffset;
     
-    // Нормализуем прогресс от 0 до 1 с учетом задержки
+    // Нормализуем прогресс от 0 до 1
     const scrolled = adjustedStartPoint - sectionTop;
     const totalScroll = adjustedStartPoint - endPoint;
     let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
     
-    // Если прогресс еще в зоне задержки, возвращаем 0 (первый слайд)
+    // Если прогресс еще в зоне задержки, возвращаем 0
     if (sectionTop > adjustedStartPoint) {
       progress = 0;
     }
@@ -1791,39 +1759,43 @@ async function initOurCapabilitiesSlider() {
     return progress;
   }
   
-  // Функция обновления слайда на основе прогресса
+  // Функция обновления позиции слайдера на основе прогресса
+  function updateSliderPosition(progress) {
+    const maxTranslateX = getMaxTranslateX();
+    
+    // Применяем прогресс к translateX
+    // progress 0 = translateX 0 (начало, первый слайд)
+    // progress 1 = translateX maxTranslateX (конец, последний слайд)
+    const translateX = progress * maxTranslateX;
+    
+    // Применяем transform
+    sliderWrapper.style.transform = `translateX(${translateX}px)`;
+    
+    // Показываем кнопку когда показывается последний слайд
+    if (buttonContainer) {
+      if (progress >= 0.85) {
+        buttonContainer.classList.add('visible');
+      } else if (progress < 0.7) {
+        buttonContainer.classList.remove('visible');
+      }
+    }
+  }
+  
+  // Функция обновления слайдера при прокрутке
   function updateSlideFromScroll() {
     const progress = calculateProgress();
-    
-    // Вычисляем индекс слайда на основе прогресса
-    // Первый слайд должен показываться дольше - добавляем задержку
-    // Для 4 слайдов: первые 30% прогресса = слайд 0, затем равномерно распределяем остальные
-    const firstSlideDelay = 0.3; // 30% прогресса для первого слайда - больше времени на чтение
-    let slideProgress;
-    
-    if (progress < firstSlideDelay) {
-      // Первый слайд - показываем его дольше
-      slideProgress = 0;
-    } else {
-      // Остальные слайды - распределяем равномерно по оставшемуся прогрессу
-      const remainingProgress = progress - firstSlideDelay;
-      const remainingSlides = totalSlides - 1;
-      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
-    }
-    
-    // Используем плавное округление для более естественного переключения
-    const activeIndex = Math.min(
-      totalSlides - 1,
-      Math.max(0, Math.floor(slideProgress + 0.1)) // Небольшое смещение для более раннего переключения
-    );
-    
-    updateActiveSlide(activeIndex);
+    updateSliderPosition(progress);
   }
   
   // Обработчик прокрутки - используем Lenis, если доступен
   let ticking = false;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragCurrentX = 0;
+  let dragProgress = 0;
+  
   function handleScroll() {
-    if (!ticking) {
+    if (!ticking && !isDragging) {
       window.requestAnimationFrame(() => {
         updateSlideFromScroll();
         ticking = false;
@@ -1835,10 +1807,8 @@ async function initOurCapabilitiesSlider() {
   // Подключаем обработчик прокрутки
   function setupScrollHandler() {
     if (window.lenis) {
-      // Используем Lenis события
       window.lenis.on('scroll', handleScroll);
     } else {
-      // Fallback на нативный scroll
       window.addEventListener('scroll', handleScroll, { passive: true });
     }
   }
@@ -1854,23 +1824,100 @@ async function initOurCapabilitiesSlider() {
     }
   }, 100);
   
-  // Инициализация при загрузке
-  updateSlideFromScroll();
+  // Поддержка свайпа на мобильных устройствах
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchCurrentX = 0;
+  let isTouching = false;
+  let touchProgress = 0;
+  let snapTimeout = null;
   
-  // Дополнительная проверка: если секция уже прокручена, показываем кнопку
-  if (buttonContainer) {
-    const rect = section.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    // Если секция уже прошла (верх секции выше верха экрана), показываем кнопку
-    if (rect.top < windowHeight * 0.5) {
-      const progress = calculateProgress();
-      if (progress >= 0.7) {
-        buttonContainer.classList.add('visible');
-      }
+  function handleTouchStart(e) {
+    if (e.touches.length !== 1) return;
+    isTouching = true;
+    isDragging = true;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchCurrentX = touchStartX;
+    touchProgress = calculateProgress();
+    
+    // Отменяем snap, если он был запланирован
+    if (snapTimeout) {
+      clearTimeout(snapTimeout);
+      snapTimeout = null;
     }
   }
   
-  // Также обновляем при изменении размера окна
+  function handleTouchMove(e) {
+    if (!isTouching || e.touches.length !== 1) return;
+    
+    touchCurrentX = e.touches[0].clientX;
+    const touchCurrentY = e.touches[0].clientY;
+    
+    // Определяем, это горизонтальный или вертикальный свайп
+    const deltaX = Math.abs(touchCurrentX - touchStartX);
+    const deltaY = Math.abs(touchCurrentY - touchStartY);
+    
+    // Если горизонтальный свайп больше вертикального, обрабатываем его
+    if (deltaX > deltaY && deltaX > 10) {
+      e.preventDefault();
+      
+      const maxTranslateX = getMaxTranslateX();
+      const sliderWidth = sliderContainer.offsetWidth;
+      const dragDelta = touchStartX - touchCurrentX; // Отрицательное значение = свайп вправо
+      
+      // Конвертируем пиксели свайпа в прогресс
+      // Свайп влево (dragDelta > 0) = увеличение прогресса
+      // Свайп вправо (dragDelta < 0) = уменьшение прогресса
+      const swipeProgress = -dragDelta / Math.abs(maxTranslateX);
+      const newProgress = Math.max(0, Math.min(1, touchProgress + swipeProgress));
+      
+      updateSliderPosition(newProgress);
+    }
+  }
+  
+  function handleTouchEnd(e) {
+    if (!isTouching) return;
+    isTouching = false;
+    isDragging = false;
+    
+    // Опционально: snap к ближайшему слайду после паузы
+    const currentProgress = calculateProgress();
+    const slideIndex = Math.round(currentProgress * (totalSlides - 1));
+    const snapProgress = slideIndex / (totalSlides - 1);
+    
+    // Плавная анимация к ближайшему слайду
+    const startProgress = currentProgress;
+    const duration = 300; // 300ms
+    const startTime = performance.now();
+    
+    function animateSnap(currentTime) {
+      const elapsed = currentTime - startTime;
+      const t = Math.min(1, elapsed / duration);
+      
+      // Easing функция для плавности
+      const easeOut = 1 - Math.pow(1 - t, 3);
+      const progress = startProgress + (snapProgress - startProgress) * easeOut;
+      
+      updateSliderPosition(progress);
+      
+      if (t < 1) {
+        requestAnimationFrame(animateSnap);
+      }
+    }
+    
+    requestAnimationFrame(animateSnap);
+  }
+  
+  // Добавляем обработчики для свайпа
+  sliderContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+  sliderContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+  sliderContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+  
+  // Инициализация при загрузке
+  updateSlideFromScroll();
+  
+  // Обновление при изменении размера окна
   window.addEventListener('resize', () => {
     updateSlideFromScroll();
   }, { passive: true });
