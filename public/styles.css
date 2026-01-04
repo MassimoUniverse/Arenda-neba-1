@@ -1,0 +1,2712 @@
+/* =============================================
+   ПРЕМИАЛЬНЫЙ СВЕТЛЫЙ ДИЗАЙН — Аренда Неба
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-light: #f8f9fc;
+  --bg-white: #ffffff;
+  --bg-card: #ffffff;
+  --accent: #ff6b35;
+  --accent-hover: #ff8c5a;
+  --accent-soft: rgba(255, 107, 53, 0.1);
+  --text-dark: #1a1f36;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --border: #e2e8f0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --radius: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* scroll-behavior: smooth; - отключено, используется Lenis для плавной прокрутки */
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-dark);
+  background: var(--bg-light);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* =============================================
+   SCROLL PROGRESS BAR
+   ============================================= */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 107, 53, 0.1);
+  z-index: 1000;
+}
+
+.scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, #ff8c5a 100%);
+  width: 0%;
+  transition: width 0.1s ease;
+}
+
+/* =============================================
+   HEADER
+   ============================================= */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.site-header.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+.site-header.scrolled .main-nav a {
+  color: var(--text-muted);
+}
+
+.site-header.scrolled .main-nav a:hover {
+  color: var(--text-dark);
+}
+
+.site-header.scrolled .logo {
+  color: var(--accent);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+  transition: height 0.3s ease;
+}
+
+.site-header.scrolled .header-inner {
+  height: 70px;
+}
+
+.logo,
+a.logo {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+a.logo:hover {
+  opacity: 0.8;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.main-nav a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 8px 0;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.main-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-nav a:hover {
+  color: var(--text-dark);
+}
+
+.main-nav a:hover::after {
+  width: 100%;
+}
+
+/* Выпадающее меню для автопарка */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+/* Убираем стрелку, но оставляем оранжевую линию при наведении */
+.dropdown-trigger::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-dropdown:hover .dropdown-trigger::after {
+  width: 100%;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: #ffffff !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 160px;
+  max-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  padding: 6px;
+  border: 1px solid var(--border);
+}
+
+.nav-dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.dropdown-menu-item {
+  display: block;
+  padding: 8px 12px;
+  color: #1a1f36 !important;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.dropdown-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-dark) !important;
+}
+
+.dropdown-menu-item-title {
+  font-weight: 600;
+  display: block;
+  color: inherit !important;
+}
+
+.dropdown-menu-item-price {
+  display: none;
+}
+
+/* Мобильное меню */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.mobile-menu-btn span {
+  width: 24px;
+  height: 2px;
+  background: var(--text-dark);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
+  display: block;
+  position: relative;
+  transform-origin: center;
+}
+
+.site-header.scrolled .mobile-menu-btn span {
+  background: var(--text-dark);
+}
+
+.site-header:not(.scrolled) .mobile-menu-btn span {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mobile-menu-btn.active {
+  gap: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(1) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -1px;
+  margin-left: -12px;
+  transform: rotate(45deg);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -1px;
+  margin-left: -12px;
+  transform: rotate(-45deg);
+}
+
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 998;
+  padding: 24px;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-nav.active {
+  display: block;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.mobile-nav a {
+  display: block;
+  padding: 16px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border);
+  transition: color 0.2s ease;
+}
+
+.mobile-nav a:last-child {
+  border-bottom: none;
+}
+
+.mobile-nav a:hover {
+  color: var(--accent);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Мобильная версия выпадающего меню */
+@media (max-width: 768px) {
+  .nav-dropdown {
+    position: static;
+  }
+  
+  .dropdown-menu {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    transform: translateX(0) translateY(-10px);
+    max-width: none;
+    width: auto;
+  }
+  
+  .nav-dropdown:hover .dropdown-menu {
+    transform: translateX(0) translateY(0);
+  }
+  
+  .dropdown-trigger::after {
+    display: none;
+  }
+}
+
+/* На первом экране (до скролла) делаем текст темным для читаемости */
+.site-header:not(.scrolled) .main-nav a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.site-header:not(.scrolled) .main-nav a:hover {
+  color: #ffffff;
+}
+
+.site-header:not(.scrolled) .logo {
+  color: #ffffff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-contacts-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-contacts-mini > .header-messenger {
+  margin-right: 0;
+}
+
+.btn-header-call {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.header-messengers-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-messenger {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-messenger.wa {
+  background: linear-gradient(135deg, #25d366 0%, #059142 100%);
+}
+
+.header-messenger.tg {
+  background: linear-gradient(135deg, #1da1ff 0%, #0088cc 100%);
+}
+
+.header-messenger.vk {
+  background: linear-gradient(135deg, #5ba8ff 0%, #0077ff 100%);
+}
+
+.header-messenger.phone {
+  background: linear-gradient(135deg, #ff7a3f 0%, #ff5a2b 100%);
+}
+
+.header-messenger svg {
+  width: 20px;
+  height: 20px;
+  fill: #ffffff;
+  shape-rendering: geometricPrecision;
+  position: relative;
+  z-index: 1;
+}
+
+.header-messenger:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.header-messenger:active {
+  transform: scale(0.95) translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-messenger .ripple {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* =============================================
+   HERO SECTION
+   ============================================= */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1f36 0%, #0f1424 100%);
+}
+
+.hero-video-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  opacity: 1;
+}
+
+.hero::before {
+  /* затемнение отключено для чистого видео-фона */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 120px 0 80px;
+  max-width: 700px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.hero-title {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 20px;
+  color: #fff;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 40px;
+  max-width: 520px;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  margin-bottom: 40px;
+  padding: 28px 32px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+}
+
+.hero-stat {
+  text-align: left;
+}
+
+.stat-number {
+  font-size: 42px;
+  font-weight: 800;
+  color: #ff6b35 !important;
+  line-height: 1;
+  margin-bottom: 6px;
+  /* Обводка для лучшей читаемости на видео-фоне */
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.7),
+    0 0 8px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ripple эффект для всех кнопок */
+.btn .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(0);
+  animation: ripple-animation 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff7a3f 0%, #ff5a2b 50%, #ff9b5f 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.35), 0 2px 4px rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.45), 0 4px 8px rgba(255, 107, 53, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary .ripple {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-ghost:active {
+  transform: scale(0.98) translateY(0);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-ghost .ripple {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Кнопка калькулятора — компактнее и со своим стилем */
+.btn-calc {
+  padding: 0 24px;
+  font-size: 14px;
+  border-radius: 12px;
+  margin-top: 0;
+  align-self: flex-start;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* =============================================
+   SECTIONS
+   ============================================= */
+.section {
+  padding: 100px 0;
+  position: relative;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.section-header h2 {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: var(--text-dark);
+}
+
+.section-header p {
+  font-size: 17px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* =============================================
+   CALCULATOR
+   ============================================= */
+.calculator-section {
+  background: var(--bg-white);
+}
+
+.calculator-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+}
+
+.calculator-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+  align-items: start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.field-equipment {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top;
+}
+
+.field-equipment.is-open {
+  /* Для поля техники убираем дополнительную анимацию и подсветку —
+     анимация остаётся только у выпадающего списка */
+  transform: none;
+  box-shadow: none;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.calculator-form select,
+.calculator-form input {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+/* Убираем стандартные стрелки у input[type=number] */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.calculator-form select:focus,
+.calculator-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Красивый контрол расстояния с большими стрелками */
+.field-distance .number-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-distance .number-input input {
+  flex: 1;
+  text-align: center;
+}
+
+.field-km-price {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-left: 4px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* Выравнивание кнопки "Рассчитать" с кнопкой "+" */
+.calculator-form > .btn-calc {
+  align-self: start;
+  margin-top: 21px; /* Выравнивание: высота label (13px line-height + 8px gap) = 21px */
+}
+
+.number-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff7a3f 0%, #ff5a2b 100%);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4), 0 2px 4px rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.number-btn:hover {
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5), 0 4px 8px rgba(255, 107, 53, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Анимация применяется только через класс, добавленный JavaScript */
+.number-btn.number-btn--active {
+  transform: scale(0.95) translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* Отключаем стандартный :active, чтобы избежать конфликтов */
+.number-btn:active {
+  transform: scale(0.95) translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+/* Ripple эффект отключен для кнопок калькулятора - используется своя анимация */
+.number-btn .ripple {
+  display: none !important;
+}
+
+.calculator-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.calculator-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 24px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.calculator-preview-image {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: var(--bg-light);
+  width: 384px;
+  height: 239px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calculator-preview-image img {
+  width: 384px;
+  height: 239px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.calculator-preview-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: left;
+}
+
+.calculator-specs {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.calculator-specs li + li {
+  margin-top: 4px;
+}
+
+.calculator-sum-inline {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calculator-time {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: block;
+}
+
+.calculator-km-info {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: block;
+  line-height: 1.5;
+}
+
+.calculator-note-inline {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* =============================================
+   AUTOPARK
+   ============================================= */
+.autopark-section {
+  background: var(--bg-light);
+}
+
+.services-carousel {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.services-viewport {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: 16px;
+  margin-top: -16px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  /* Оптимизация производительности прокрутки */
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.services-viewport::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.services-grid {
+  display: flex;
+  gap: 20px;
+  padding-top: 0;
+  padding-right: 20px;
+  min-width: fit-content;
+  /* Оптимизация производительности */
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.service-card-link {
+  flex: 0 0 300px;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  display: flex;
+  /* Оптимизация производительности */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.service-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 480px;
+  /* Фиксированный размер для всех карточек */
+  max-height: 480px;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+
+.service-card-image {
+  height: 180px;
+  min-height: 180px;
+  max-height: 180px;
+  overflow: hidden;
+  background: var(--bg-light);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  /* Улучшение качества изображения - предотвращение размытия */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+  -ms-interpolation-mode: bicubic;
+  /* Предотвращение размытия при масштабировании и анимации */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Принудительное использование GPU для лучшего качества */
+  will-change: transform;
+}
+
+.service-card:hover .service-card-image img {
+  transform: scale(1.05);
+}
+
+.service-card-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  /* Фиксированная высота для единообразия карточек */
+  height: 300px;
+  overflow: hidden;
+}
+
+.service-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text-dark);
+  line-height: 1.3;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-card-meta {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  line-height: 1.5;
+  flex: 1;
+  min-height: 60px;
+}
+
+.service-card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.price-vat {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.carousel-btn {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: linear-gradient(135deg, #ffffff 0%, #f6f7fb 100%);
+  color: var(--text-dark);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Убираем все CSS transitions - используем GSAP */
+  transition: none;
+  /* Оптимизация для GSAP анимаций */
+  will-change: transform;
+  transform: translateY(0) scale(1);
+}
+
+.carousel-btn span,
+.carousel-btn svg {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  /* Убираем CSS transitions - используем GSAP */
+  transition: none;
+  will-change: transform;
+  line-height: 1;
+  font-size: inherit;
+  text-align: center;
+}
+
+.carousel-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.carousel-btn-hover {
+  border-color: #ff6b35 !important;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3), 0 4px 8px rgba(255, 107, 53, 0.2) !important;
+}
+
+.carousel-btn-active {
+  border-color: #ff6b35 !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25), 0 2px 4px rgba(255, 107, 53, 0.15) !important;
+}
+
+/* Ripple эффект отключен для кнопок карусели - используется GSAP анимация */
+.carousel-btn .ripple {
+  display: none !important;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  width: 32px;
+  border-radius: 5px;
+  background: var(--accent);
+}
+
+/* =============================================
+   OUR CAPABILITIES SLIDER (Scroll-driven)
+   ============================================= */
+.our-capabilities-section {
+  position: relative;
+  height: 300vh; /* Увеличена высота для большего пространства прокрутки */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.our-capabilities-section .section-header {
+  margin-bottom: 0;
+  padding-top: 10px;
+}
+
+.our-capabilities-section .section-header h2 {
+  margin-bottom: 2px;
+}
+
+.our-capabilities-description {
+  text-align: center;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.our-capabilities-description p {
+  font-size: 17px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.popular-equipment-button {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, visibility 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.popular-equipment-button.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+.our-capabilities-sticky {
+  position: sticky;
+  top: 80px;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.our-capabilities-slider {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  margin: 0 auto;
+  padding: 0 24px;
+  max-width: 1600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.our-capabilities-slide {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(-50% + 100%)) scale(0.95);
+  width: 100%;
+  height: 80vh;
+  max-height: 850px;
+  min-height: 700px;
+  border-radius: 32px;
+  overflow: hidden;
+  opacity: 0;
+  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+              scale 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+  top: 50%;
+}
+
+.our-capabilities-slide.active {
+  transform: translateX(-50%) translateY(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.our-capabilities-slide.prev {
+  transform: translateX(-50%) translateY(calc(-50% - 80vh)) scale(0.85);
+  opacity: 0;
+  z-index: 0;
+}
+
+.our-capabilities-slide-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.our-capabilities-slide-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.our-capabilities-slide-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+
+.our-capabilities-slide-content {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;
+  max-width: 600px;
+  z-index: 2;
+}
+
+.our-capabilities-slide-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+}
+
+.our-capabilities-slide-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.our-capabilities-slide-text {
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 20px;
+  max-width: 550px;
+}
+
+.our-capabilities-slide-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.our-capabilities-slide-bullets li {
+  font-size: clamp(14px, 1.8vw, 16px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  padding-left: 20px;
+  position: relative;
+}
+
+.our-capabilities-slide-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.our-capabilities-slide-price {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+.our-capabilities-slide-link {
+  display: inline-block;
+  font-size: clamp(14px, 1.8vw, 16px);
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.our-capabilities-slide-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.our-capabilities-slide-counter {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .our-capabilities-section {
+    height: 200vh;
+  }
+  
+  .our-capabilities-sticky {
+    top: 70px;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 0;
+    overflow: visible;
+  }
+  
+  .our-capabilities-slider {
+    padding: 0 16px;
+    height: 100vh;
+    overflow: visible;
+  }
+  
+  .popular-equipment-button {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .our-capabilities-slide {
+    height: 80vh;
+    max-height: 800px;
+    min-height: 650px;
+  }
+  
+  .our-capabilities-slide-content {
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    max-width: 100%;
+  }
+  
+  .our-capabilities-slide-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  
+  .our-capabilities-slide-text {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+  
+  .our-capabilities-slide-bullets li {
+    font-size: 14px;
+  }
+  
+  .our-capabilities-slide-counter {
+    top: 16px;
+    right: 16px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* =============================================
+   REVIEWS
+   ============================================= */
+.reviews-section {
+  background: var(--bg-white);
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  position: relative;
+  min-height: 300px;
+  margin-top: 40px;
+}
+
+@media (min-width: 1024px) {
+  .reviews-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .reviews-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.review-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px 32px 24px 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+.review-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  border-color: var(--accent);
+}
+
+.review-card::before {
+  content: '"';
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  opacity: 1;
+  font-family: Georgia, serif;
+}
+
+.review-text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-dark);
+  margin: 0 0 20px;
+  font-weight: 400;
+  padding-left: 0;
+  flex-grow: 1;
+}
+
+.review-meta {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: none;
+}
+
+/* Контролы карусели отзывов (скрыты, так как показываем все отзывы) */
+.reviews-controls {
+  display: none !important;
+}
+
+.reviews-nav-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: linear-gradient(135deg, #ffffff 0%, #f6f7fb 100%);
+  color: var(--text-dark);
+  font-size: 28px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Убираем все CSS transitions - используем GSAP */
+  transition: none;
+}
+
+.reviews-nav-btn span {
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  /* Убираем CSS transitions - используем GSAP */
+  transition: none;
+}
+
+.reviews-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.reviews-nav-btn .ripple {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.reviews-counter {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0 20px;
+  min-width: 80px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================
+   CONTACTS
+   ============================================= */
+.contacts-section {
+  background: var(--bg-light);
+}
+
+.contacts-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px;
+  box-shadow: var(--shadow-md);
+}
+
+.contacts-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.contacts-header h2 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.contacts-header p {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.contacts-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.contacts-form-wrapper {
+  width: 100%;
+}
+
+.contacts-form-wrapper h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 24px;
+  color: var(--text-dark);
+}
+
+.quick-contact-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-contact-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.quick-contact-form .field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-contact-form input,
+.quick-contact-form textarea {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-contact-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.quick-contact-form input:focus,
+.quick-contact-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.quick-contact-form .btn-submit {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.form-message {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: center;
+  display: none;
+  margin-top: 8px;
+}
+
+.form-message.show {
+  display: block;
+}
+
+.form-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.form-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.contacts-messengers h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: var(--text-dark);
+}
+
+.messenger-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.messenger-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messenger-btn.whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #059142 100%);
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.35), 0 2px 4px rgba(37, 211, 102, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.messenger-btn.telegram {
+  background: linear-gradient(135deg, #1da1ff 0%, #0088cc 100%);
+  box-shadow: 0 4px 16px rgba(29, 161, 255, 0.35), 0 2px 4px rgba(29, 161, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.messenger-btn.email {
+  background: linear-gradient(135deg, #ea4335 0%, #c5221f 100%);
+  box-shadow: 0 4px 16px rgba(234, 67, 53, 0.35), 0 2px 4px rgba(234, 67, 53, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.messenger-btn.vk {
+  background: linear-gradient(135deg, #5ba8ff 0%, #0077ff 100%);
+  box-shadow: 0 4px 16px rgba(91, 168, 255, 0.35), 0 2px 4px rgba(91, 168, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.messenger-btn:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.messenger-btn:active {
+  transform: scale(0.98) translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.messenger-btn .ripple {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.contacts-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-top: 16px;
+  gap: 16px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.contact-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+  border: 1px solid rgba(255, 107, 53, 0.15);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.contact-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent) 0%, #ff8c5a 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-card:hover {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.contact-card:hover::before {
+  transform: scaleX(1);
+}
+
+.contact-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+}
+
+.contact-card-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contact-card:hover .contact-card-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35);
+}
+
+.contact-card h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.2;
+  transition: color 0.3s ease;
+}
+
+.contact-card:hover h3 {
+  color: var(--accent);
+}
+
+.contact-card p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-dark);
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.contact-card a {
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.contact-card a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-card a:hover {
+  color: var(--accent);
+}
+
+.contact-card a:hover::after {
+  width: 100%;
+}
+
+.contact-card p br {
+  line-height: 1.6;
+}
+
+/* Специфичные стили для разных типов карточек */
+.contact-card-phone .contact-card-icon {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+}
+
+.contact-card-phone:hover .contact-card-icon {
+  box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35);
+}
+
+.contact-card-email .contact-card-icon {
+  background: linear-gradient(135deg, #1da1ff 0%, #0088cc 100%);
+  box-shadow: 0 4px 12px rgba(29, 161, 255, 0.25);
+}
+
+.contact-card-email:hover .contact-card-icon {
+  box-shadow: 0 6px 16px rgba(29, 161, 255, 0.35);
+}
+
+.contact-card-address .contact-card-icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.contact-card-address:hover .contact-card-icon {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+}
+
+/* =============================================
+   FOOTER
+   ============================================= */
+.site-footer {
+  background: var(--text-dark);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 64px 0 0;
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-brand .logo {
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.footer-brand p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-col h4 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fff;
+  margin: 0 0 20px;
+}
+
+.footer-col ul {
+  list-style: none;
+}
+
+.footer-col ul li {
+  margin-bottom: 12px;
+}
+
+.footer-col ul a {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s ease;
+}
+
+.footer-col ul a:hover {
+  color: var(--accent);
+}
+
+.footer-col p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 8px;
+}
+
+.footer-col p a:hover {
+  color: var(--accent);
+}
+
+.footer-social-row {
+  display: flex;
+  gap: 12px;
+}
+
+.footer-social-row a {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.footer-social-row a:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.footer-bottom {
+  padding: 24px 0;
+}
+
+.footer-bottom-inner {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1024px) {
+  .calculator-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .reviews-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .contacts-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .header-inner {
+    height: 64px;
+    padding: 0 16px;
+  }
+  
+  .site-header.scrolled .header-inner {
+    height: 60px;
+  }
+  
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  .main-nav {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    padding: 6px;
+    margin-left: 8px;
+    width: 38px;
+    height: 38px;
+  }
+  
+  .mobile-menu-btn span {
+    width: 22px;
+    height: 2px;
+  }
+  
+  .mobile-menu-btn.active span:nth-child(1),
+  .mobile-menu-btn.active span:nth-child(3) {
+    margin-left: -11px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .header-contacts-mini {
+    gap: 6px;
+    margin-right: 4px;
+  }
+  
+  .header-messenger {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+  
+  .header-messenger svg {
+    width: 17px;
+    height: 17px;
+  }
+  
+  .header-messengers-mini {
+    gap: 6px;
+    display: flex;
+  }
+  
+  .mobile-nav {
+    top: 64px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .site-header.scrolled .mobile-nav {
+    top: 60px;
+  }
+  
+  /* Hero секция */
+  .hero-content {
+    padding: 100px 0 60px;
+  }
+  
+  .hero-title {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+  
+  .hero-subtitle {
+    font-size: 16px;
+  }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .stat-number {
+    font-size: 32px;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .hero-actions .btn {
+    width: 100%;
+  }
+  
+  /* Секции */
+  .section {
+    padding: 40px 0;
+  }
+  
+  .section-header h2 {
+    font-size: 28px;
+  }
+  
+  /* Калькулятор */
+  .calculator-form {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  
+  .calculator-preview {
+    display: none;
+  }
+  
+  .field {
+    margin-bottom: 16px;
+  }
+  
+  /* Услуги */
+  .services-carousel {
+    flex-direction: column;
+  }
+  
+  .carousel-btn {
+    display: none;
+  }
+  
+  .services-viewport {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 16px;
+  }
+  
+  .service-card-link {
+    flex: 0 0 280px;
+  }
+  
+  .service-card-body {
+    min-height: auto;
+    height: auto;
+  }
+  
+  /* Отзывы */
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  /* Контакты */
+  .contacts-panel {
+    padding: 24px 16px;
+  }
+  
+  .contacts-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .contact-card {
+    padding: 20px;
+  }
+  
+  /* Футер */
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .footer-bottom-inner {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  /* Кнопки */
+  .btn {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+}
+
+/* Очень маленькие экраны (480px и меньше) */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .header-inner {
+    height: 60px;
+    padding: 0 12px;
+  }
+  
+  .site-header.scrolled .header-inner {
+    height: 56px;
+  }
+  
+  .logo {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .mobile-menu-btn {
+    padding: 5px;
+    margin-left: 6px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .mobile-menu-btn span {
+    width: 20px;
+    height: 2px;
+  }
+  
+  .mobile-menu-btn.active span:nth-child(1),
+  .mobile-menu-btn.active span:nth-child(3) {
+    margin-left: -10px;
+  }
+  
+  .header-right {
+    gap: 4px;
+  }
+  
+  .header-contacts-mini {
+    gap: 4px;
+    margin-right: 2px;
+  }
+  
+  .header-messenger {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .header-messenger svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .header-messengers-mini {
+    gap: 4px;
+    display: flex;
+  }
+  
+  .mobile-nav {
+    top: 60px;
+    padding: 16px;
+  }
+  
+  .site-header.scrolled .mobile-nav {
+    top: 56px;
+  }
+  
+  .mobile-nav a {
+    padding: 14px 0;
+    font-size: 15px;
+  }
+  
+  /* Hero секция */
+  .hero-content {
+    padding: 70px 0 40px;
+  }
+  
+  .hero-title {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  
+  .hero-subtitle {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  
+  .hero-badge {
+    font-size: 11px;
+    padding: 8px 16px;
+  }
+  
+  .hero-stats {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .stat-number {
+    font-size: 28px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+  }
+  
+  .hero-actions {
+    gap: 10px;
+  }
+  
+  /* Секции */
+  .section {
+    padding: 32px 0;
+  }
+  
+  .section-header {
+    margin-bottom: 32px;
+  }
+  
+  .section-header h2 {
+    font-size: 24px;
+  }
+  
+  .section-header p {
+    font-size: 14px;
+  }
+  
+  /* Калькулятор */
+  .calculator-form {
+    padding: 20px;
+    gap: 16px;
+  }
+  
+  .field-label {
+    font-size: 12px;
+  }
+  
+  .calculator-sum-inline {
+    font-size: 18px;
+  }
+  
+  .calculator-note-inline {
+    font-size: 12px;
+  }
+  
+  /* Услуги */
+  .service-card-link {
+    flex: 0 0 260px;
+  }
+  
+  .service-card-body {
+    padding: 16px;
+  }
+  
+  .service-card-title {
+    font-size: 16px;
+  }
+  
+  .service-card-meta {
+    font-size: 13px;
+  }
+  
+  .service-card-price {
+    font-size: 14px;
+  }
+  
+  /* Отзывы */
+  .reviews-grid {
+    gap: 16px;
+  }
+  
+  /* Контакты */
+  .contacts-panel {
+    padding: 20px 12px;
+  }
+  
+  .contact-card {
+    padding: 16px;
+    font-size: 14px;
+  }
+  
+  /* Мобильное меню */
+  .mobile-nav {
+    padding: 20px;
+  }
+  
+  .mobile-nav a {
+    padding: 14px 0;
+    font-size: 15px;
+  }
+  
+  /* Футер */
+  .footer {
+    padding: 40px 0 24px;
+  }
+  
+  .footer-inner {
+    gap: 24px;
+  }
+  
+  .footer-col h4 {
+    font-size: 14px;
+  }
+  
+  .footer-col ul a,
+  .footer-col p {
+    font-size: 13px;
+  }
+}
+
+/* =============================================
+   CUSTOM CALC SELECT
+   ============================================= */
+
+/* Прячем нативный select техники визуально, оставляя его для формы */
+#calc-equipment {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.calc-select {
+  position: relative;
+}
+
+.calc-select-current {
+  width: 100%;
+  min-width: 150px;
+  min-height: 48px;
+  height: 48px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  font: inherit;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.calc-select-current::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--text-dark);
+  transform: translateY(0);
+  transition: transform 0.25s ease, border-top-color 0.25s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.calc-select.open .calc-select-current {
+  border-color: var(--accent);
+  background: #fff;
+}
+
+.calc-select.open .calc-select-current::after {
+  transform: rotate(180deg) translateY(0);
+  border-top-color: var(--accent);
+}
+
+.calc-select-options {
+  position: relative;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: max-height 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.3s ease, transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  z-index: 20;
+}
+
+.calc-select.open .calc-select-options {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.calc-select-options-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+/* Стилизация скроллбара для списка */
+.calc-select-options::-webkit-scrollbar {
+  width: 10px;
+}
+
+.calc-select-options::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+  margin: 4px;
+}
+
+.calc-select-options::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  transition: background 0.2s ease;
+  border: 2px solid #f1f5f9;
+}
+
+.calc-select-options::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Для Firefox */
+.calc-select-options {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* =============================================
+   FADE IN ON SCROLL - универсальный компонент
+   ============================================= */
+[data-fade-in] {
+  will-change: transform, opacity;
+}
+
+.fade-in-complete {
+  /* Элемент уже анимирован, можно использовать для дополнительных стилей */
+}
+
+.calc-select-option {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.calc-select-option:hover {
+  background: rgba(248, 249, 252, 0.9);
+}
+
+.calc-select-option.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}

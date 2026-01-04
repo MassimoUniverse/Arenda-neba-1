@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Аренда Неба — Аренда автовышек в Санкт‑Петербурге</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="new-features.css" />
+  
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+     (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+     m[i].l=1*new Date();
+     for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+     k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+     (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+     ym(40444210, "init", {
+          clickmap:true,
+          trackLinks:true,
+          accurateTrackBounce:true,
+          webvisor:true
+     });
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/40444210" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  <!-- /Yandex.Metrika counter -->
+  
+  <!-- calltouch -->
+  <script>
+  (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","k2vlrfd9");
+  </script>
+  <!-- calltouch -->
+</head>
+<body>
+  <!-- Индикатор прогресса скролла -->
+  <div class="scroll-progress">
+    <div class="scroll-progress-bar" id="scroll-progress-bar"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo">Аренда Неба</a>
+      <div class="header-right">
+        <nav class="main-nav" id="main-nav">
+          <a href="#calculator">Калькулятор</a>
+          <div class="nav-dropdown">
+            <a href="#autopark" class="dropdown-trigger">Наш автопарк</a>
+            <div class="dropdown-menu" id="equipment-dropdown">
+              <!-- Список техники будет добавлен через JavaScript -->
+            </div>
+          </div>
+          <a href="#reviews">Отзывы</a>
+          <a href="#contacts">Контакты</a>
+        </nav>
+        <div class="header-contacts-mini">
+          <a href="tel:+79910009111" class="header-messenger phone" data-ct="phone" aria-label="Позвонить">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+            <span style="display:none;">+7 (991) 000-91-11</span>
+          </a>
+          <div class="header-messengers-mini">
+            <a href="https://t.me/" class="header-messenger tg" target="_blank" rel="noopener" aria-label="Telegram">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.5 4.4 4.3 10.8c-.8.3-.8 1.1-.1 1.3l3.5 1.1 1.4 4.5c.1.4.5.6.9.3l2-1.6 3.3 2.4c.6.4 1.1.2 1.3-.6l2.2-12c.2-.8-.2-1.2-.8-1zM9.3 13.2l7.2-4.7c.2-.1.4 0 .2.2l-5.9 5.4-.2 2.6-1.3-3.5z" />
+              </svg>
+            </a>
+            <a href="https://wa.me/79910009111" class="header-messenger wa" target="_blank" rel="noopener" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4a8 8 0 0 0-6.8 12.1L4 20l4-1.1A8 8 0 1 0 12 4zm0 2a6 6 0 1 1-3.1 11.1l-.2-.1-2 .6.6-2-.1-.2A6 6 0 0 1 12 6zm-2.2 2.8c-.2 0-.4 0-.5.2-.3.3-.6.8-.6 1.4 0 .8.5 1.5.6 1.6.1.2 1.1 1.8 2.8 2.6 1.4.6 1.8.6 2.1.5.4-.1.9-.4 1-.8.1-.3.1-.6.1-.7 0-.1-.1-.2-.3-.3l-1-.5c-.2-.1-.3-.1-.4.1l-.4.5c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.4-.9-.5-.4-.8-1-1-1.2-.1-.2 0-.3.1-.4l.3-.3c.2-.2.2-.3.3-.5l-.3-1c-.1-.4-.2-.5-.5-.6h-.6z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Меню">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobile-nav">
+      <a href="#calculator">Калькулятор</a>
+      <a href="#autopark">Наш автопарк</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#contacts">Контакты</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-video-wrapper">
+        <video class="hero-video" src="video.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="hero-content container">
+        <p class="hero-badge">Аренда автовышек в Санкт‑Петербурге и ЛО</p>
+        <h1 class="hero-title">Поднимем ваши задачи на нужную высоту</h1>
+        <p class="hero-subtitle">
+          Современный автопарк, опытные операторы и быстрый выезд на объект.
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="stat-number">10+ лет</div>
+            <div class="stat-label">на рынке</div>
+          </div>
+          <div class="hero-stat">
+            <div class="stat-number">10000+</div>
+            <div class="stat-label">выполненных заказов</div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a href="#contacts" class="btn btn-primary">Оставить заявку</a>
+          <a href="#autopark" class="btn btn-ghost">Посмотреть автопарк</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- POPULAR EQUIPMENT SLIDER -->
+    <section id="popular-equipment" class="section our-capabilities-section">
+      <div class="container section-header" data-fade-in>
+        <h2>Популярная техника</h2>
+      </div>
+      <div class="container our-capabilities-description" data-fade-in>
+        <p>Самые востребованные автовышки нашего автопарка для различных задач.</p>
+      </div>
+      <div class="our-capabilities-sticky">
+        <div class="our-capabilities-slider" id="our-capabilities-slider">
+          <!-- Слайды будут добавлены через JavaScript -->
+        </div>
+        <div class="container popular-equipment-button">
+          <a href="#autopark" class="btn btn-primary">Посмотреть весь автопарк</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULATOR (выше автопарка) -->
+    <section id="calculator" class="section calculator-section">
+      <div class="container section-header" data-fade-in>
+        <h2>Онлайн‑калькулятор аренды</h2>
+        <p>Прикиньте ориентировочную стоимость аренды автовышки. Точную цену менеджер подтвердит после уточнения задачи и адреса.</p>
+      </div>
+      <div class="container calculator-layout">
+        <div class="calculator-side">
+          <div class="calculator-preview" id="calculator-preview">
+            <div class="calculator-preview-image">
+              <img id="calculator-image" src="images/avtovyshka-13m.png" alt="Выбранная техника" />
+            </div>
+            <p class="calculator-preview-title" id="calculator-title">Автовышка-платформа 13 метров</p>
+            <ul class="calculator-specs" id="calculator-specs">
+              <!-- Характеристики выбранной техники будут подставляться скриптом -->
+            </ul>
+          </div>
+        </div>
+
+        <form class="calculator-form" id="calculator-form">
+          <label class="field field-equipment">
+            <span class="field-label">Техника</span>
+            <select id="calc-equipment" required>
+              <option value="13" selected>Автовышка-платформа 13 метров</option>
+              <option value="15">Автовышка 15 метров</option>
+              <option value="16">Автовышка 16 метров</option>
+              <option value="17">Автовышка 17 метров</option>
+              <option value="18">Автовышка 18 метров</option>
+              <option value="21">Автовышка 21 метр</option>
+              <option value="25">Автовышка 25 метров</option>
+              <option value="29">Автовышка 29 метров</option>
+              <option value="45">Автовышка 45 метров</option>
+              <option value="30offroad">Автовышка‑вездеход 30 метров</option>
+              <option value="self">Самоходная автовышка</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Количество смен</span>
+            <select id="calc-shifts" required>
+              <option value="0.5">Полсмены</option>
+              <option value="1" selected>1 смена</option>
+              <option value="2">2 смены</option>
+              <option value="3">3 смены</option>
+              <option value="more">Более 3 смен</option>
+            </select>
+            <input type="number" id="calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+          </label>
+
+          <label class="field field-distance">
+            <span class="field-label">Расстояние от КАД, км (в одну сторону)</span>
+            <div class="number-input">
+              <button type="button" class="number-btn number-btn--minus" data-target="calc-distance">−</button>
+              <input id="calc-distance" type="number" min="0" step="1" value="0" />
+              <button type="button" class="number-btn number-btn--plus" data-target="calc-distance">+</button>
+              <span class="field-km-price">85 ₽/км × 2 (в каждую сторону)</span>
+            </div>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-calc">Рассчитать</button>
+
+          <p class="calculator-sum-inline" id="calculator-sum">Выберите параметры и нажмите «Рассчитать»</p>
+          <p class="calculator-note-inline">
+            Цена примерная и не является публичной офертой. Позвоните нам или оставьте заявку, чтобы получить точный расчёт под вашу задачу.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- AUTOPARK -->
+    <section id="autopark" class="section autopark-section">
+      <div class="container section-header" data-fade-in>
+        <h2>Наш автопарк</h2>
+        <p>Выберите автовышку под вашу задачу. Для каждой машины есть отдельная страница с описанием и характеристиками.</p>
+      </div>
+
+      <div class="container services-carousel">
+        <button class="carousel-btn prev" type="button" aria-label="Предыдущая техника">
+          <span>&#10094;</span>
+        </button>
+
+        <div class="services-viewport">
+          <div class="services-grid" id="services-grid">
+            <!-- Карточки техники будут подставляться скриптом -->
+          </div>
+        </div>
+
+        <button class="carousel-btn next" type="button" aria-label="Следующая техника">
+          <span>&#10095;</span>
+        </button>
+      </div>
+
+      <div class="container carousel-dots" id="carousel-dots"></div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="reviews" class="section reviews-section">
+      <div class="container section-header" data-fade-in>
+        <h2>Отзывы клиентов</h2>
+        <p>Часть отзывов мы перенесли со старого сайта, чтобы вы могли оценить наш подход к работе.</p>
+      </div>
+      <div class="container reviews-grid" id="reviews-grid">
+        <!-- Отзывы подставляются скриптом -->
+      </div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section id="contacts" class="section contacts-section">
+      <div class="container">
+        <div class="contacts-panel">
+          <div class="contacts-header">
+            <h2>Контакты</h2>
+            <p>Свяжитесь с нами удобным для вас способом.</p>
+          </div>
+          <div class="contacts-layout">
+            <div class="contacts-form-wrapper">
+              <h3>Быстрая заявка</h3>
+              <form class="quick-contact-form" id="quick-contact-form">
+                <label class="field">
+                  <span class="field-label">Ваше имя *</span>
+                  <input type="text" name="name" required placeholder="Иван Иванов" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Телефон *</span>
+                  <input type="tel" name="phone" required placeholder="+7 (999) 123-45-67" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Email</span>
+                  <input type="email" name="email" placeholder="example@mail.ru" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Сообщение</span>
+                  <textarea name="message" rows="4" placeholder="Опишите вашу задачу или задайте вопрос"></textarea>
+                </label>
+                <button type="submit" class="btn btn-primary btn-submit">Отправить заявку</button>
+                <div class="form-message" id="form-message"></div>
+              </form>
+            </div>
+
+            <div class="contacts-messengers">
+              <h3>Способы связи</h3>
+              <div class="messenger-buttons">
+                <a href="https://wa.me/79910009111" class="messenger-btn whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+                <a href="https://t.me/" class="messenger-btn telegram" target="_blank" rel="noopener">Telegram</a>
+              </div>
+              
+              <div class="contacts-cards">
+                <div class="contact-card contact-card-phone">
+                  <div class="contact-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </div>
+                  <h3>Телефон</h3>
+                  <p><a href="tel:+79910009111" data-ct="phone">+7 (991) 000-91-11</a></p>
+                </div>
+                <div class="contact-card contact-card-email">
+                  <div class="contact-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <h3>Email</h3>
+                  <p><a href="mailto:suedima@rambler.ru">suedima@rambler.ru</a></p>
+                </div>
+                <div class="contact-card contact-card-address">
+                  <div class="contact-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  </div>
+                  <h3>Адрес</h3>
+                  <p>ООО «Аренда Неба»<br>Санкт-Петербург,<br>ул. Кораблестроителей,<br>д. 33, кв. 2</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col footer-brand">
+        <div class="logo">Аренда Неба</div>
+        <p>Современный автопарк автовышек и надёжная работа на высоте в Санкт‑Петербурге и Ленинградской области.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Навигация</h4>
+        <ul>
+          <li><a href="#calculator">Калькулятор</a></li>
+          <li><a href="#autopark">Наш автопарк</a></li>
+          <li><a href="#reviews">Отзывы</a></li>
+          <li><a href="#contacts">Контакты</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Контакты</h4>
+        <p><a href="tel:+79910009111" data-ct="phone">+7 (991) 000-91-11</a></p>
+        <p><a href="mailto:suedima@rambler.ru">suedima@rambler.ru</a></p>
+        <p>ООО «Аренда Неба»<br>Санкт-Петербург,<br>ул. Кораблестроителей, д. 33, кв. 2</p>
+      </div>
+      <div class="footer-col footer-social">
+        <h4>Мы на связи</h4>
+        <div class="footer-social-row">
+          <a href="https://wa.me/79910009111" target="_blank" rel="noopener">WA</a>
+          <a href="https://t.me/" target="_blank" rel="noopener">TG</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner" style="position: relative;">
+        <span>2016-2025 © ООО «Аренда Неба»</span>
+        <!-- Скрытая ссылка на админ-панель - кликните по копирайту -->
+        <a href="/admin.html" style="position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; cursor: pointer;" aria-hidden="true" title="Админ-панель"></a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="script.js"></script>
+  <script src="animations.js"></script>
+  
+  <!-- calltouch -->
+  <script>
+  (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","k2vlrfd9");
+  </script>
+  <!-- calltouch -->
+</body>
+</html>
+ 

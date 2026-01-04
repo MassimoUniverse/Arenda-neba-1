@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Аренда Неба</title>
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo">
+                    <span class="logo-icon">☁️</span>
+                    <span class="logo-text">Аренда Неба</span>
+                </div>
+                <h2>Панель администратора</h2>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+            <div class="login-footer">
+                <a href="index.html">← Вернуться на главную</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">☁️</span>
+                    <span class="logo-text">Аренда Неба</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="homepage">
+                    <span class="nav-icon">🏠</span>
+                    <span>Главная страница</span>
+                </a>
+                <a href="#" class="nav-item" data-section="services">
+                    <span class="nav-icon">🚜</span>
+                    <span>Услуги</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reviews">
+                    <span class="nav-icon">💬</span>
+                    <span>Отзывы</span>
+                </a>
+                <a href="#" class="nav-item" data-section="requests">
+                    <span class="nav-icon">📩</span>
+                    <span>Заявки</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-secondary btn-block">Выйти</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 id="sectionTitle">Главная страница</h1>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <!-- Homepage Section -->
+                <div id="homepageSection" class="admin-section">
+                    <div id="homepageForm" class="content-form">
+                        <!-- Form will be populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Services Section -->
+                <div id="servicesSection" class="admin-section" style="display: none;">
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showServiceModal()">+ Добавить услугу</button>
+                    </div>
+                    <div id="servicesList" class="items-list">
+                        <!-- Services will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div id="reviewsSection" class="admin-section" style="display: none;">
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showReviewModal()">+ Добавить отзыв</button>
+                    </div>
+                    <div id="reviewsList" class="items-list">
+                        <!-- Reviews will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Requests Section -->
+                <div id="requestsSection" class="admin-section" style="display: none;">
+                    <div id="requestsList" class="items-list">
+                        <!-- Requests will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for adding/editing items -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Добавить</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Form will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>
+
+
