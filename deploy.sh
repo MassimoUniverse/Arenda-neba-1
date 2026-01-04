@@ -32,3 +32,4 @@ echo ""
 echo "Последние логи:"
 pm2 logs arenda-neba --lines 10 --nostream
 
+

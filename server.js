@@ -542,6 +542,122 @@ function createEquipmentPage(service) {
   }
 }
 
+// Function to ensure all equipment pages exist
+function ensureAllEquipmentPages() {
+  console.log('🔄 Checking and creating equipment pages...');
+  
+  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
+    if (err) {
+      console.error('❌ Error loading services for page generation:', err);
+      return;
+    }
+    
+    if (!services || services.length === 0) {
+      console.log('⚠️  No active services found');
+      return;
+    }
+    
+    const equipmentDir = path.join(__dirname, 'public', 'equipment');
+    if (!fs.existsSync(equipmentDir)) {
+      fs.mkdirSync(equipmentDir, { recursive: true });
+      console.log('📁 Created equipment directory');
+    }
+    
+    let created = 0;
+    let updated = 0;
+    let errors = 0;
+    
+    services.forEach((service, index) => {
+      try {
+        // Генерируем URL если его нет
+        let serviceUrl = service.url;
+        if (!serviceUrl || serviceUrl.trim() === '') {
+          serviceUrl = generateUrlFromTitle(service.title);
+        }
+        
+        // Убираем начальный слэш и /equipment/ если есть
+        let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
+        if (!filename.endsWith('.html')) {
+          filename += '.html';
+        }
+        
+        const filePath = path.join(equipmentDir, filename);
+        const fileExists = fs.existsSync(filePath);
+        
+        // Создаем объект услуги для генерации страницы
+        let reachDiagramsArray = [];
+        let imagesArray = [];
+        
+        try {
+          if (service.reach_diagrams && service.reach_diagrams.trim()) {
+            reachDiagramsArray = JSON.parse(service.reach_diagrams);
+          }
+        } catch (e) {
+          // Игнорируем ошибки парсинга
+        }
+        
+        try {
+          if (service.images && service.images.trim()) {
+            imagesArray = JSON.parse(service.images);
+          }
+        } catch (e) {
+          // Игнорируем ошибки парсинга
+        }
+        
+        const serviceData = {
+          title: service.title,
+          description: service.description || '',
+          price: service.price || '',
+          specifications: service.specifications || '',
+          image_url: service.image_url || '',
+          url: serviceUrl,
+          reach_diagram_url: service.reach_diagram_url || '',
+          reach_diagrams: reachDiagramsArray,
+          images: imagesArray,
+          height_lift: service.height_lift || '',
+          max_reach: service.max_reach || '',
+          max_capacity: service.max_capacity || '',
+          lift_type: service.lift_type || '',
+          transport_length: service.transport_length || '',
+          transport_height: service.transport_height || '',
+          width: service.width || '',
+          boom_rotation_angle: service.boom_rotation_angle || '',
+          basket_rotation_angle: service.basket_rotation_angle || '',
+          delivery_per_km: service.delivery_per_km || 85
+        };
+        
+        // Всегда создаем/обновляем страницу
+        const createdUrl = createEquipmentPage(serviceData);
+        
+        if (createdUrl) {
+          if (fileExists) {
+            updated++;
+          } else {
+            created++;
+          }
+          
+          // Обновляем URL в базе если его не было
+          if (!service.url || service.url.trim() === '') {
+            db.run('UPDATE services SET url = ? WHERE id = ?', [createdUrl, service.id], (err) => {
+              if (err) {
+                console.error(`⚠️  Error updating URL for ${service.title}:`, err);
+              }
+            });
+          }
+        } else {
+          errors++;
+          console.error(`❌ Failed to create page for: ${service.title}`);
+        }
+      } catch (error) {
+        errors++;
+        console.error(`❌ Error processing ${service.title}:`, error.message);
+      }
+    });
+    
+    console.log(`✅ Equipment pages check complete: ${created} created, ${updated} updated, ${errors} errors`);
+  });
+}
+
 // Database connection
 const db = new sqlite3.Database('./database.db', (err) => {
   if (err) {
@@ -991,6 +1107,71 @@ app.get('/api/services', (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
+    
+    // Автоматически проверяем и создаем страницы для всех услуг (асинхронно)
+    setTimeout(() => {
+      rows.forEach((service) => {
+        try {
+          let serviceUrl = service.url;
+          if (!serviceUrl || serviceUrl.trim() === '') {
+            serviceUrl = generateUrlFromTitle(service.title);
+          }
+          
+          let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
+          if (!filename.endsWith('.html')) {
+            filename += '.html';
+          }
+          
+          const equipmentDir = path.join(__dirname, 'public', 'equipment');
+          const filePath = path.join(equipmentDir, filename);
+          
+          // Если файл не существует, создаем его
+          if (!fs.existsSync(filePath)) {
+            let reachDiagramsArray = [];
+            let imagesArray = [];
+            
+            try {
+              if (service.reach_diagrams && service.reach_diagrams.trim()) {
+                reachDiagramsArray = JSON.parse(service.reach_diagrams);
+              }
+            } catch (e) {}
+            
+            try {
+              if (service.images && service.images.trim()) {
+                imagesArray = JSON.parse(service.images);
+              }
+            } catch (e) {}
+            
+            const serviceData = {
+              title: service.title,
+              description: service.description || '',
+              price: service.price || '',
+              specifications: service.specifications || '',
+              image_url: service.image_url || '',
+              url: serviceUrl,
+              reach_diagram_url: service.reach_diagram_url || '',
+              reach_diagrams: reachDiagramsArray,
+              images: imagesArray,
+              height_lift: service.height_lift || '',
+              max_reach: service.max_reach || '',
+              max_capacity: service.max_capacity || '',
+              lift_type: service.lift_type || '',
+              transport_length: service.transport_length || '',
+              transport_height: service.transport_height || '',
+              width: service.width || '',
+              boom_rotation_angle: service.boom_rotation_angle || '',
+              basket_rotation_angle: service.basket_rotation_angle || '',
+              delivery_per_km: service.delivery_per_km || 85
+            };
+            
+            createEquipmentPage(serviceData);
+          }
+        } catch (error) {
+          // Игнорируем ошибки при автоматической проверке
+        }
+      });
+    }, 100);
+    
     // Apply fixEncoding to text fields and parse images JSON
     const fixedRows = rows.map(row => {
       let images = [];
@@ -1946,10 +2127,131 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), (req, r
   });
 });
 
+// Function to ensure all equipment pages exist and are up to date
+function ensureAllEquipmentPages() {
+  console.log('🔄 Checking and creating/updating equipment pages...');
+  
+  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
+    if (err) {
+      console.error('❌ Error loading services for page generation:', err);
+      return;
+    }
+    
+    if (!services || services.length === 0) {
+      console.log('⚠️  No active services found');
+      return;
+    }
+    
+    const equipmentDir = path.join(__dirname, 'public', 'equipment');
+    if (!fs.existsSync(equipmentDir)) {
+      fs.mkdirSync(equipmentDir, { recursive: true });
+      console.log('📁 Created equipment directory');
+    }
+    
+    let created = 0;
+    let updated = 0;
+    let errors = 0;
+    
+    services.forEach((service) => {
+      try {
+        // Генерируем URL если его нет
+        let serviceUrl = service.url;
+        if (!serviceUrl || serviceUrl.trim() === '') {
+          serviceUrl = generateUrlFromTitle(service.title);
+        }
+        
+        // Убираем начальный слэш и /equipment/ если есть
+        let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
+        if (!filename.endsWith('.html')) {
+          filename += '.html';
+        }
+        
+        const filePath = path.join(equipmentDir, filename);
+        const fileExists = fs.existsSync(filePath);
+        
+        // Создаем объект услуги для генерации страницы
+        let reachDiagramsArray = [];
+        let imagesArray = [];
+        
+        try {
+          if (service.reach_diagrams && service.reach_diagrams.trim()) {
+            reachDiagramsArray = JSON.parse(service.reach_diagrams);
+          }
+        } catch (e) {
+          // Игнорируем ошибки парсинга
+        }
+        
+        try {
+          if (service.images && service.images.trim()) {
+            imagesArray = JSON.parse(service.images);
+          }
+        } catch (e) {
+          // Игнорируем ошибки парсинга
+        }
+        
+        const serviceData = {
+          title: service.title,
+          description: service.description || '',
+          price: service.price || '',
+          specifications: service.specifications || '',
+          image_url: service.image_url || '',
+          url: serviceUrl,
+          reach_diagram_url: service.reach_diagram_url || '',
+          reach_diagrams: reachDiagramsArray,
+          images: imagesArray,
+          height_lift: service.height_lift || '',
+          max_reach: service.max_reach || '',
+          max_capacity: service.max_capacity || '',
+          lift_type: service.lift_type || '',
+          transport_length: service.transport_length || '',
+          transport_height: service.transport_height || '',
+          width: service.width || '',
+          boom_rotation_angle: service.boom_rotation_angle || '',
+          basket_rotation_angle: service.basket_rotation_angle || '',
+          delivery_per_km: service.delivery_per_km || 85
+        };
+        
+        // Всегда создаем/обновляем страницу
+        const createdUrl = createEquipmentPage(serviceData);
+        
+        if (createdUrl) {
+          if (fileExists) {
+            updated++;
+          } else {
+            created++;
+          }
+          
+          // Обновляем URL в базе если его не было
+          if (!service.url || service.url.trim() === '') {
+            db.run('UPDATE services SET url = ? WHERE id = ?', [createdUrl, service.id], (err) => {
+              if (err) {
+                console.error(`⚠️  Error updating URL for ${service.title}:`, err);
+              }
+            });
+          }
+        } else {
+          errors++;
+          console.error(`❌ Failed to create page for: ${service.title}`);
+        }
+      } catch (error) {
+        errors++;
+        console.error(`❌ Error processing ${service.title}:`, error.message);
+      }
+    });
+    
+    console.log(`✅ Equipment pages: ${created} created, ${updated} updated, ${errors} errors`);
+  });
+}
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`📊 Admin panel: http://localhost:${PORT}/admin.html`);
+  
+  // Автоматически проверяем и создаем страницы при запуске
+  setTimeout(() => {
+    ensureAllEquipmentPages();
+  }, 1000); // Небольшая задержка, чтобы база точно была готова
 });
 
 
