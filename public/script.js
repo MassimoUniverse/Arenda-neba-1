@@ -1732,14 +1732,15 @@ async function initOurCapabilitiesSlider() {
       if (slideProgress < 0) {
         // Слайд еще не достигнут - внизу
         const offset = Math.abs(slideProgress);
-        const translateY = 100 + offset * 20; // Дополнительное смещение для будущих слайдов
-        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${0.95 - offset * 0.1})`;
+        const translateY = 50 + offset * 10; // Уменьшили расстояние - было 100 + offset * 20
+        const scale = Math.max(0.9, 0.95 - offset * 0.02); // Меньше изменение scale для четкости
+        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = '0';
         slide.style.zIndex = '1';
       } else if (slideProgress >= 0 && slideProgress < 1) {
         // Текущий активный слайд - плавно появляется
         const t = slideProgress;
-        const translateY = 100 - t * 200; // От 100% до -100%
+        const translateY = 50 - t * 100; // Уменьшили расстояние - было 100 - t * 200
         const scale = 0.95 + t * 0.05; // От 0.95 до 1
         const opacity = t;
         
@@ -1750,8 +1751,9 @@ async function initOurCapabilitiesSlider() {
       } else {
         // Слайд уже пройден - уходит наверх
         const offset = slideProgress - 1;
-        const translateY = -100 - offset * 20; // Дополнительное смещение для прошедших слайдов
-        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${0.85 - offset * 0.1})`;
+        const translateY = -50 - offset * 10; // Уменьшили расстояние - было -100 - offset * 20
+        const scale = Math.max(0.85, 0.9 - offset * 0.02); // Меньше изменение scale для четкости
+        slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}%)) scale(${scale})`;
         slide.style.opacity = '0';
         slide.style.zIndex = '0';
         slide.style.pointerEvents = 'none';
@@ -1785,8 +1787,8 @@ async function initOurCapabilitiesSlider() {
     const startPoint = windowHeight; // когда верх секции достигает верха экрана
     const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
-    // Добавляем небольшую задержку для первого слайда
-    const delayOffset = windowHeight * 0.2; // 20% высоты экрана задержки
+    // Увеличиваем задержку для первого слайда - он должен показываться дольше
+    const delayOffset = windowHeight * 1.5; // 1.5 высоты экрана задержки - слайды начнут листаться позже
     const adjustedStartPoint = startPoint - delayOffset;
     
     // Нормализуем прогресс от 0 до 1
