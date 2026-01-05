@@ -1781,9 +1781,11 @@ async function initOurCapabilitiesSlider() {
     const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
     const sectionHeight = rect.height;
+    const stickyElement = section.querySelector('.our-capabilities-sticky');
+    const stickyRect = stickyElement?.getBoundingClientRect();
     
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,windowHeight,rectTop:rect.top,rectHeight:rect.height,rectBottom:rect.bottom},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,windowHeight,rectTop:rect.top,rectHeight:rect.height,rectBottom:rect.bottom,stickyTop:stickyRect?.top,stickyHeight:stickyRect?.height,stickyBottom:stickyRect?.bottom,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     
     // Если секция еще не достигла верха экрана, прогресс = 0
@@ -1888,8 +1890,12 @@ async function initOurCapabilitiesSlider() {
   }, 100);
   
   // Инициализация при загрузке
+  const stickyElement = section.querySelector('.our-capabilities-sticky');
+  
   // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1852',message:'initOurCapabilitiesSlider initialization',data:{totalSlides,sectionExists:!!section,sliderContainerExists:!!sliderContainer,sectionRect:section?.getBoundingClientRect(),windowHeight:window.innerHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+  const sectionRect = section?.getBoundingClientRect();
+  const stickyRect = stickyElement?.getBoundingClientRect();
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1852',message:'initOurCapabilitiesSlider initialization',data:{totalSlides,sectionExists:!!section,sliderContainerExists:!!sliderContainer,stickyExists:!!stickyElement,sectionRect:{top:sectionRect?.top,height:sectionRect?.height,bottom:sectionRect?.bottom},stickyRect:{top:stickyRect?.top,height:stickyRect?.height,bottom:stickyRect?.bottom},windowHeight:window.innerHeight,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
   // #endregion
   
   updateSlideFromScroll();
