@@ -1555,20 +1555,10 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
-  // Регистрируем ScrollTrigger плагин
-  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger);
-  } else {
-    console.warn('GSAP или ScrollTrigger не загружены');
-    return;
-  }
-
-  const slider = document.getElementById('vslider');
-  if (!slider) return;
-
-  const pin = slider.querySelector('.vslider__pin');
-  const track = slider.querySelector('.vslider__track');
-  if (!pin || !track) return;
+  const section = document.getElementById('popular-equipment');
+  const sliderContainer = document.getElementById('our-capabilities-slider');
+  
+  if (!section || !sliderContainer) return;
   
   // Определяем URL популярных машин
   const popularUrls = [

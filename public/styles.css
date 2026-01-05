@@ -1296,90 +1296,74 @@ input[type='number'] {
   padding: 0;
 }
 
-/* GSAP ScrollTrigger Vertical Slider */
-#vslider {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  /* Убеждаемся, что слайдер не виден до начала прокрутки */
-  overflow: hidden;
-}
-
-.vslider__pin {
+.our-capabilities-slider {
   position: relative;
   width: 100%;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.vslider__track {
-  position: relative;
-  width: 100%;
-  height: 100vh; /* Фиксированная высота */
-  will-change: transform;
-}
-
-.vslide {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0 auto;
   padding: 0 24px;
   max-width: 1600px;
-  border-radius: 24px;
-  overflow: hidden;
-  /* Оптимизация для четкости и производительности */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform-style: preserve-3d;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Плавные тени для глубины - эффект карточки */
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  /* Все слайды в одной позиции - фиксированная позиция */
-  transform: translate(-50%, -50%);
-  will-change: opacity, transform, y;
-  /* Плавные переходы для эффекта карточки */
-  transition: none; /* Управляем через GSAP */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
 }
 
-.vslide .our-capabilities-slide-bg {
+.our-capabilities-slide {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(-50% + 100%)) scale(0.95);
+  width: 100%;
+  height: 80vh;
+  max-height: 850px;
+  min-height: 700px;
+  border-radius: 32px;
+  overflow: hidden;
+  opacity: 0;
+  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+              scale 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+  top: 50%;
+}
+
+.our-capabilities-slide.active {
+  transform: translateX(-50%) translateY(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.our-capabilities-slide.prev {
+  transform: translateX(-50%) translateY(calc(-50% - 80vh)) scale(0.85);
+  opacity: 0;
+  z-index: 0;
+}
+
+.our-capabilities-slide-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.vslide .our-capabilities-slide-bg img {
+.our-capabilities-slide-bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  /* Максимальная четкость изображений */
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: auto;
-  -ms-interpolation-mode: bicubic;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
-.vslide .our-capabilities-slide-gradient {
+.our-capabilities-slide-gradient {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
   pointer-events: none;
 }
 
-.vslide .our-capabilities-slide-content {
+.our-capabilities-slide-content {
   position: absolute;
   bottom: 40px;
   left: 40px;
@@ -1388,7 +1372,7 @@ input[type='number'] {
   z-index: 2;
 }
 
-.vslide .our-capabilities-slide-label {
+.our-capabilities-slide-label {
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1397,7 +1381,7 @@ input[type='number'] {
   margin-bottom: 12px;
 }
 
-.vslide .our-capabilities-slide-title {
+.our-capabilities-slide-title {
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 800;
   line-height: 1.2;
@@ -1405,7 +1389,7 @@ input[type='number'] {
   margin-bottom: 16px;
 }
 
-.vslide .our-capabilities-slide-text {
+.our-capabilities-slide-text {
   font-size: clamp(15px, 2vw, 18px);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
@@ -1413,7 +1397,7 @@ input[type='number'] {
   max-width: 550px;
 }
 
-.vslide .our-capabilities-slide-bullets {
+.our-capabilities-slide-bullets {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -1422,7 +1406,7 @@ input[type='number'] {
   gap: 10px;
 }
 
-.vslide .our-capabilities-slide-bullets li {
+.our-capabilities-slide-bullets li {
   font-size: clamp(14px, 1.8vw, 16px);
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.85);
@@ -1441,7 +1425,7 @@ input[type='number'] {
   background: var(--accent);
 }
 
-.vslide .our-capabilities-slide-price {
+.our-capabilities-slide-price {
   font-size: clamp(18px, 2.2vw, 24px);
   font-weight: 700;
   color: var(--accent);
@@ -1449,7 +1433,7 @@ input[type='number'] {
   margin-bottom: 12px;
 }
 
-.vslide .our-capabilities-slide-link {
+.our-capabilities-slide-link {
   display: inline-block;
   font-size: clamp(14px, 1.8vw, 16px);
   font-weight: 600;
@@ -1469,7 +1453,7 @@ input[type='number'] {
   transform: translateY(-2px);
 }
 
-.vslide .our-capabilities-slide-counter {
+.our-capabilities-slide-counter {
   position: absolute;
   top: 24px;
   right: 24px;
@@ -1524,7 +1508,7 @@ input[type='number'] {
     font-size: 14px;
   }
   
-  .vslide .our-capabilities-slide-counter {
+  .our-capabilities-slide-counter {
     top: 16px;
     right: 16px;
     font-size: 12px;
