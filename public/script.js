@@ -1715,13 +1715,17 @@ async function initOurCapabilitiesSlider() {
     sliderContainer.appendChild(slideEl);
     
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect()},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect(),opacity:window.getComputedStyle(slideEl).opacity},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
     // #endregion
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
   const totalSlides = slides.length;
   let previousIndex = 0;
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1720',message:'Slides initialized',data:{totalSlides,sliderContainerHeight:sliderContainer.offsetHeight,sliderContainerRect:sliderContainer.getBoundingClientRect(),firstSlideRect:slides[0]?.getBoundingClientRect(),firstSlideHasActive:slides[0]?.classList.contains('active'),firstSlideOpacity:slides[0]?window.getComputedStyle(slides[0]).opacity:null},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
