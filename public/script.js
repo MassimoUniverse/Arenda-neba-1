@@ -1676,6 +1676,10 @@ async function initOurCapabilitiesSlider() {
   }
   
   // Создаём слайды
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1678',message:'Creating slides',data:{slidesDataLength:slidesData.length,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+  
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
     slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
@@ -1709,6 +1713,10 @@ async function initOurCapabilitiesSlider() {
     `;
     
     sliderContainer.appendChild(slideEl);
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect()},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
