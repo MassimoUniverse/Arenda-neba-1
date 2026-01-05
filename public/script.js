@@ -1678,7 +1678,8 @@ async function initOurCapabilitiesSlider() {
   // Создаём слайды
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
-    slideEl.className = 'vslide';
+    slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
+    slideEl.dataset.index = index;
     
     const bulletsHtml = slide.bullets ? `
       <ul class="our-capabilities-slide-bullets">
@@ -1707,129 +1708,147 @@ async function initOurCapabilitiesSlider() {
       </div>
     `;
     
-    track.appendChild(slideEl);
+    sliderContainer.appendChild(slideEl);
   });
-
-  const slides = gsap.utils.toArray(track.querySelectorAll('.vslide'));
-  const buttonContainer = slider.querySelector('.popular-equipment-button');
-
-  // Функция построения вертикального слайдера
-  function buildVerticalSlider() {
-    // Удаляем старый ScrollTrigger, если есть
-    ScrollTrigger.getAll().forEach(st => {
-      if (st.vars && st.vars.id === 'vslider-st') st.kill();
-    });
-
-    if (slides.length === 0) return;
-
-    // Выставляем высоту трека для прокрутки
-    track.style.height = `${slides.length * 100}vh`;
-
-    // Сбрасываем позицию трека
-    gsap.set(track, { y: 0 });
-
-    // Настраиваем начальное состояние слайдов - все в одной позиции (центр)
+  
+  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+  const totalSlides = slides.length;
+  let previousIndex = 0;
+  
+  // Находим кнопку "Посмотреть весь автопарк"
+  const buttonContainer = section.querySelector('.popular-equipment-button');
+  
+  // Функция обновления активного слайда с эффектом колоды карт
+  function updateActiveSlide(activeIndex) {
+    if (activeIndex < 0 || activeIndex >= totalSlides) return;
+    
+    // Если индекс не изменился, не обновляем
+    if (activeIndex === previousIndex) return;
+    
+    // Плавное переключение без задержек для более быстрого отклика
     slides.forEach((slide, index) => {
-      // Устанавливаем CSS свойства напрямую
-      slide.style.position = 'absolute';
-      slide.style.left = '50%';
-      slide.style.top = '50%';
-      slide.style.transform = 'translate(-50%, -50%)';
-      slide.style.zIndex = String(slides.length - index);
+      slide.classList.remove('active', 'prev');
       
-      // Начальное состояние через GSAP
-      gsap.set(slide, {
-        opacity: index === 0 ? 1 : 0,
-        scale: index === 0 ? 1 : 0.95,
-        y: index === 0 ? 0 : 50 // Будущие слайды внизу
-      });
-    });
-
-    // Создаем ScrollTrigger для управления слайдами
-    ScrollTrigger.create({
-      id: 'vslider-st',
-      trigger: slider,
-      start: 'top+=100 top',
-      end: () => `+=${window.innerHeight * (slides.length - 1)}`,
-      pin: pin,
-      scrub: 0.5, // Плавный scrub для непрерывного движения
-      onUpdate: (self) => {
-        const progress = self.progress; // 0 до 1
-        const totalSlides = slides.length;
-        
-        // Вычисляем текущий индекс слайда (может быть дробным)
-        const currentSlideIndex = progress * (totalSlides - 1);
-        
-        slides.forEach((slide, index) => {
-          // Вычисляем разницу между текущей позицией и этим слайдом
-          const diff = currentSlideIndex - index;
-          
-          // Обновляем z-index для правильного наложения (активный сверху)
-          if (diff >= 0 && diff < 1) {
-            slide.style.zIndex = String(totalSlides + 100); // Активный слайд всегда сверху
-          } else {
-            slide.style.zIndex = String(totalSlides - index);
-          }
-          
-          if (diff < -0.3) {
-            // Слайд еще не достигнут - внизу, невидим
-            gsap.set(slide, {
-              opacity: 0,
-              scale: 0.92,
-              y: 80 // Далеко внизу
-            });
-          } else if (diff >= -0.3 && diff < 0) {
-            // Слайд приближается снизу - появляется
-            const t = (diff + 0.3) / 0.3; // от 0 до 1
-            gsap.set(slide, {
-              opacity: t, // Плавно появляется
-              scale: 0.92 + t * 0.08, // От 0.92 до 1.0
-              y: 80 - t * 80 // Поднимается снизу в центр
-            });
-          } else if (diff >= 0 && diff < 1) {
-            // Текущий активный слайд - уходит вверх
-            const t = diff; // от 0 до 1
-            gsap.set(slide, {
-              opacity: 1 - t, // Плавно исчезает
-              scale: 1 - t * 0.08, // Немного уменьшается
-              y: 0 - t * 100 // Уходит вверх
-            });
-          } else {
-            // Слайд уже пройден - далеко наверху, невидим
-            gsap.set(slide, {
-              opacity: 0,
-              scale: 0.85,
-              y: -100 // Далеко наверху
-            });
-          }
-        });
-        
-        // Показываем кнопку на последнем слайде
-        if (buttonContainer) {
-          if (progress >= 0.9) {
-            buttonContainer.classList.add('visible');
-          } else if (progress < 0.8) {
-            buttonContainer.classList.remove('visible');
-          }
-        }
+      if (index === activeIndex) {
+        // Текущий активный слайд - появляется снизу
+        slide.classList.add('active');
+      } else if (index < activeIndex) {
+        // Прошедшие слайды уходят наверх и исчезают
+        slide.classList.add('prev');
       }
+      // Будущие слайды остаются внизу (translateY(100%))
     });
-
-    ScrollTrigger.refresh();
+    
+    // Показываем кнопку когда показывается последний слайд
+    if (buttonContainer) {
+      if (activeIndex >= totalSlides - 1) {
+        // Последний слайд - показываем кнопку
+        buttonContainer.classList.add('visible');
+      } else if (activeIndex < totalSlides - 2) {
+        // Не предпоследний и не последний слайд - скрываем кнопку
+        buttonContainer.classList.remove('visible');
+      }
+    }
+    
+    previousIndex = activeIndex;
   }
-
-  // Инициализация после загрузки
-  buildVerticalSlider();
+  
+  // Функция вычисления прогресса прокрутки
+  function calculateProgress() {
+    const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const sectionTop = rect.top;
+    const sectionHeight = rect.height;
+    
+    // Если секция еще не достигла верха экрана, прогресс = 0
+    if (sectionTop > windowHeight) {
+      return 0;
+    }
+    
+    // Вычисляем прогресс: когда секция входит в viewport
+    const startPoint = windowHeight;
+    const endPoint = -sectionHeight + windowHeight;
+    
+    // Добавляем большую задержку для первого слайда
+    const delayOffset = windowHeight * 0.8;
+    const adjustedStartPoint = startPoint - delayOffset;
+    
+    // Нормализуем прогресс от 0 до 1
+    const scrolled = adjustedStartPoint - sectionTop;
+    const totalScroll = adjustedStartPoint - endPoint;
+    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
+    
+    // Если прогресс еще в зоне задержки, возвращаем 0
+    if (sectionTop > adjustedStartPoint) {
+      progress = 0;
+    }
+    
+    return progress;
+  }
+  
+  // Функция обновления слайда на основе прогресса
+  function updateSlideFromScroll() {
+    const progress = calculateProgress();
+    
+    // Вычисляем индекс слайда на основе прогресса
+    const firstSlideDelay = 0.3;
+    let slideProgress;
+    
+    if (progress < firstSlideDelay) {
+      slideProgress = 0;
+    } else {
+      const remainingProgress = progress - firstSlideDelay;
+      const remainingSlides = totalSlides - 1;
+      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
+    }
+    
+    const activeIndex = Math.min(
+      totalSlides - 1,
+      Math.max(0, Math.floor(slideProgress + 0.1))
+    );
+    
+    updateActiveSlide(activeIndex);
+  }
+  
+  // Обработчик прокрутки - используем Lenis, если доступен
+  let ticking = false;
+  function handleScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateSlideFromScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  
+  // Подключаем обработчик прокрутки
+  function setupScrollHandler() {
+    if (window.lenis) {
+      window.lenis.on('scroll', handleScroll);
+    } else {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+  }
+  
+  setupScrollHandler();
+  
+  // Переключимся на Lenis, когда он загрузится
+  const checkLenisSlider = setInterval(() => {
+    if (window.lenis) {
+      window.removeEventListener('scroll', handleScroll);
+      window.lenis.on('scroll', handleScroll);
+      clearInterval(checkLenisSlider);
+    }
+  }, 100);
+  
+  // Инициализация при загрузке
+  updateSlideFromScroll();
   
   // Обновление при изменении размера окна
-  let resizeTimeout;
   window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      ScrollTrigger.refresh();
-      buildVerticalSlider();
-    }, 250);
-  });
+    updateSlideFromScroll();
+  }, { passive: true });
 }
 
 // Обработчик формы быстрой заявки
