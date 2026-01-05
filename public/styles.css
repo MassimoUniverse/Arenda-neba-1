@@ -1299,6 +1299,9 @@ input[type='number'] {
   padding: 0 24px;
   max-width: 1600px;
   margin-top: -40px;
+  /* Убеждаемся, что контейнер виден и имеет правильное позиционирование */
+  overflow: visible;
+  min-height: 500px;
 }
 
 .our-capabilities-slide {
