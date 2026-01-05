@@ -1555,10 +1555,23 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
+  // #region agent log
+  console.log('🔍 initOurCapabilitiesSlider called');
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1557',message:'initOurCapabilitiesSlider called',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+  
   const section = document.getElementById('popular-equipment');
   const sliderContainer = document.getElementById('our-capabilities-slider');
   
-  if (!section || !sliderContainer) return;
+  // #region agent log
+  console.log('🔍 Section found:', !!section, 'Container found:', !!sliderContainer);
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1561',message:'Elements check',data:{sectionExists:!!section,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+  
+  if (!section || !sliderContainer) {
+    console.error('❌ Section or container not found!');
+    return;
+  }
   
   // Определяем URL популярных машин
   const popularUrls = [
@@ -1677,8 +1690,12 @@ async function initOurCapabilitiesSlider() {
   
   // Создаём слайды
   // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1678',message:'Creating slides',data:{slidesDataLength:slidesData.length,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+  console.log('🔍 Creating slides, count:', slidesData.length);
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1678',message:'Creating slides',data:{slidesDataLength:slidesData.length,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
   // #endregion
+  
+  // Очищаем контейнер перед созданием слайдов
+  sliderContainer.innerHTML = '';
   
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
@@ -1715,7 +1732,9 @@ async function initOurCapabilitiesSlider() {
     sliderContainer.appendChild(slideEl);
     
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect(),opacity:window.getComputedStyle(slideEl).opacity},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+    const computedStyle = window.getComputedStyle(slideEl);
+    console.log(`🔍 Slide ${index} created, active:`, slideEl.classList.contains('active'), 'opacity:', computedStyle.opacity);
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect(),opacity:computedStyle.opacity,visibility:computedStyle.visibility,display:computedStyle.display},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
     // #endregion
   });
   
