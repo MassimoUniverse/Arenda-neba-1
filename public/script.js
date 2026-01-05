@@ -1774,24 +1774,25 @@ async function initOurCapabilitiesSlider() {
   // Функция вычисления прогресса прокрутки
   function calculateProgress() {
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1757',message:'calculateProgress entry',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1757',message:'calculateProgress entry',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
     // #endregion
     
     const rect = section.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
-    const sectionHeight = rect.height;
+    // Используем scrollHeight вместо height для правильного расчета с учетом sticky
+    const sectionHeight = section.scrollHeight || rect.height;
     const stickyElement = section.querySelector('.our-capabilities-sticky');
     const stickyRect = stickyElement?.getBoundingClientRect();
     
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,windowHeight,rectTop:rect.top,rectHeight:rect.height,rectBottom:rect.bottom,stickyTop:stickyRect?.top,stickyHeight:stickyRect?.height,stickyBottom:stickyRect?.bottom,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,sectionScrollHeight:section.scrollHeight,rectHeight:rect.height,windowHeight,rectTop:rect.top,rectBottom:rect.bottom,stickyTop:stickyRect?.top,stickyHeight:stickyRect?.height,stickyBottom:stickyRect?.bottom,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     
     // Если секция еще не достигла верха экрана, прогресс = 0
     if (sectionTop > windowHeight) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1765',message:'calculateProgress early return 0',data:{sectionTop,windowHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1765',message:'calculateProgress early return 0',data:{sectionTop,windowHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
       // #endregion
       return 0;
     }
@@ -1815,7 +1816,7 @@ async function initOurCapabilitiesSlider() {
     }
     
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1786',message:'calculateProgress result',data:{progress,startPoint,endPoint,delayOffset,adjustedStartPoint,scrolled,totalScroll,sectionTop},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1786',message:'calculateProgress result',data:{progress,startPoint,endPoint,delayOffset,adjustedStartPoint,scrolled,totalScroll,sectionTop,sectionHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
     // #endregion
     
     return progress;
