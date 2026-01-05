@@ -1743,7 +1743,25 @@ async function initOurCapabilitiesSlider() {
   let previousIndex = 0;
   
   // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1720',message:'Slides initialized',data:{totalSlides,sliderContainerHeight:sliderContainer.offsetHeight,sliderContainerRect:sliderContainer.getBoundingClientRect(),firstSlideRect:slides[0]?.getBoundingClientRect(),firstSlideHasActive:slides[0]?.classList.contains('active'),firstSlideOpacity:slides[0]?window.getComputedStyle(slides[0]).opacity:null},timestamp:Date.now()},sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+  console.log('🔍 Total slides:', totalSlides);
+  if (slides.length > 0) {
+    const firstSlide = slides[0];
+    const firstStyle = window.getComputedStyle(firstSlide);
+    console.log('🔍 First slide state:', {
+      hasActive: firstSlide.classList.contains('active'),
+      opacity: firstStyle.opacity,
+      visibility: firstStyle.visibility,
+      display: firstStyle.display,
+      transform: firstStyle.transform,
+      rect: firstSlide.getBoundingClientRect()
+    });
+    // Убеждаемся, что первый слайд активен
+    if (!firstSlide.classList.contains('active')) {
+      console.log('⚠️ Fixing: adding active class to first slide');
+      firstSlide.classList.add('active');
+    }
+  }
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1745',message:'Slides initialized',data:{totalSlides,sliderContainerHeight:sliderContainer.offsetHeight,firstSlideHasActive:slides[0]?.classList.contains('active'),firstSlideOpacity:slides[0]?window.getComputedStyle(slides[0]).opacity:null},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
   // #endregion
   
   // Находим кнопку "Посмотреть весь автопарк"
