@@ -1720,10 +1720,24 @@ async function initOurCapabilitiesSlider() {
   
   // Функция обновления активного слайда с эффектом колоды карт
   function updateActiveSlide(activeIndex) {
-    if (activeIndex < 0 || activeIndex >= totalSlides) return;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1722',message:'updateActiveSlide entry',data:{activeIndex,previousIndex,totalSlides,slidesLength:slides.length},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
+    if (activeIndex < 0 || activeIndex >= totalSlides) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1724',message:'updateActiveSlide invalid index',data:{activeIndex,totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      return;
+    }
     
     // Если индекс не изменился, не обновляем
-    if (activeIndex === previousIndex) return;
+    if (activeIndex === previousIndex) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1727',message:'updateActiveSlide same index skip',data:{activeIndex,previousIndex},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      return;
+    }
     
     // Плавное переключение без задержек для более быстрого отклика
     slides.forEach((slide, index) => {
@@ -1750,18 +1764,33 @@ async function initOurCapabilitiesSlider() {
       }
     }
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1754',message:'updateActiveSlide completed',data:{activeIndex,previousIndex,buttonVisible:buttonContainer?.classList.contains('visible')},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     previousIndex = activeIndex;
   }
   
   // Функция вычисления прогресса прокрутки
   function calculateProgress() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1757',message:'calculateProgress entry',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     const rect = section.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
     const sectionHeight = rect.height;
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,windowHeight,rectTop:rect.top,rectHeight:rect.height,rectBottom:rect.bottom},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
     // Если секция еще не достигла верха экрана, прогресс = 0
     if (sectionTop > windowHeight) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1765',message:'calculateProgress early return 0',data:{sectionTop,windowHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       return 0;
     }
     
@@ -1783,11 +1812,19 @@ async function initOurCapabilitiesSlider() {
       progress = 0;
     }
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1786',message:'calculateProgress result',data:{progress,startPoint,endPoint,delayOffset,adjustedStartPoint,scrolled,totalScroll,sectionTop},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     return progress;
   }
   
   // Функция обновления слайда на основе прогресса
   function updateSlideFromScroll() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1790',message:'updateSlideFromScroll entry',data:{totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     const progress = calculateProgress();
     
     // Вычисляем индекс слайда на основе прогресса
@@ -1807,12 +1844,20 @@ async function initOurCapabilitiesSlider() {
       Math.max(0, Math.floor(slideProgress + 0.1))
     );
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1810',message:'updateSlideFromScroll computed index',data:{progress,firstSlideDelay,slideProgress,activeIndex,totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     updateActiveSlide(activeIndex);
   }
   
   // Обработчик прокрутки - используем Lenis, если доступен
   let ticking = false;
   function handleScroll() {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1815',message:'handleScroll called',data:{ticking,windowScrollY:window.scrollY,hasLenis:!!window.lenis},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    
     if (!ticking) {
       window.requestAnimationFrame(() => {
         updateSlideFromScroll();
@@ -1843,6 +1888,10 @@ async function initOurCapabilitiesSlider() {
   }, 100);
   
   // Инициализация при загрузке
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1852',message:'initOurCapabilitiesSlider initialization',data:{totalSlides,sectionExists:!!section,sliderContainerExists:!!sliderContainer,sectionRect:section?.getBoundingClientRect(),windowHeight:window.innerHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+  
   updateSlideFromScroll();
   
   // Обновление при изменении размера окна
