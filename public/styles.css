@@ -1471,20 +1471,33 @@ input[type='number'] {
 
 /* Мобильная версия */
 @media (max-width: 768px) {
-  .vslide {
-    padding: 0 16px;
-    height: 100vh;
+  .our-capabilities-section {
+    height: 200vh;
   }
   
-  .vslide .our-capabilities-slide-content {
-    bottom: 30px;
-    left: 20px;
-    right: 20px;
+  .our-capabilities-sticky {
+    top: 70px;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 0;
+    overflow: visible;
+  }
+  
+  .our-capabilities-slider {
+    padding: 0 16px;
+    height: 100vh;
+    overflow: hidden;
   }
   
   .popular-equipment-button {
     margin-top: 10px;
     margin-bottom: 20px;
+  }
+  
+  .our-capabilities-slide {
+    height: 80vh;
+    max-height: 800px;
+    min-height: 650px;
   }
   
   .our-capabilities-slide-content {
