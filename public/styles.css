@@ -1281,12 +1281,14 @@ input[type='number'] {
 
 .our-capabilities-sticky {
   position: sticky;
-  top: 0;
+  top: 80px;
   width: 100%;
   height: 100vh;
   min-height: 100vh;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 0;
 }
@@ -1294,14 +1296,14 @@ input[type='number'] {
 .our-capabilities-slider {
   position: relative;
   width: 100%;
-  height: calc(100vh - 160px);
+  height: 100vh;
   margin: 0 auto;
   padding: 0 24px;
   max-width: 1600px;
-  margin-top: -40px;
-  /* Убеждаемся, что контейнер виден и имеет правильное позиционирование */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: visible;
-  min-height: 500px;
 }
 
 .our-capabilities-slide {
