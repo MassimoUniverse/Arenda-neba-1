@@ -1549,10 +1549,21 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
+  console.log('🔍 initOurCapabilitiesSlider: Starting...');
   const section = document.getElementById('popular-equipment');
   const sliderContainer = document.getElementById('our-capabilities-slider');
   
-  if (!section || !sliderContainer) return;
+  if (!section) {
+    console.error('❌ initOurCapabilitiesSlider: Section not found');
+    return;
+  }
+  
+  if (!sliderContainer) {
+    console.error('❌ initOurCapabilitiesSlider: Slider container not found');
+    return;
+  }
+  
+  console.log('✅ initOurCapabilitiesSlider: Elements found');
   
   // Определяем URL популярных машин
   const popularUrls = [
@@ -1562,7 +1573,14 @@ async function initOurCapabilitiesSlider() {
     '/equipment/avtovyshka-29m.html'
   ];
   
+  // Проверяем наличие fallback данных
+  if (!POPULAR_EQUIPMENT_SLIDES || POPULAR_EQUIPMENT_SLIDES.length === 0) {
+    console.error('❌ initOurCapabilitiesSlider: POPULAR_EQUIPMENT_SLIDES is empty or undefined');
+    return;
+  }
+  
   let slidesData = POPULAR_EQUIPMENT_SLIDES;
+  console.log('📊 initOurCapabilitiesSlider: Using fallback data, slides count:', slidesData.length);
   
   try {
     const response = await fetch('/api/services');
@@ -1665,12 +1683,29 @@ async function initOurCapabilitiesSlider() {
       }
     }
   } catch (error) {
-    console.error('Error loading popular equipment:', error);
+    console.error('❌ Error loading popular equipment:', error);
     // Используем FALLBACK данные
   }
   
+  // Проверяем, что есть данные для слайдов
+  if (!slidesData || slidesData.length === 0) {
+    console.error('❌ initOurCapabilitiesSlider: No slides data available');
+    return;
+  }
+  
+  console.log('✅ initOurCapabilitiesSlider: Slides data ready, count:', slidesData.length);
+  
+  // Очищаем контейнер перед созданием слайдов
+  sliderContainer.innerHTML = '';
+  
   // Создаём слайды
   slidesData.forEach((slide, index) => {
+    if (!slide || !slide.title) {
+      console.warn('⚠️ Skipping invalid slide at index:', index);
+      return;
+    }
+    
+    console.log(`📝 Creating slide ${index + 1}:`, slide.title);
     const slideEl = document.createElement('div');
     slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
     slideEl.dataset.index = index;
@@ -1703,12 +1738,20 @@ async function initOurCapabilitiesSlider() {
     `;
     
     sliderContainer.appendChild(slideEl);
+    console.log(`✅ Slide ${index + 1} created and appended`);
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
   const totalSlides = slides.length;
   
-  if (totalSlides === 0) return;
+  console.log(`📊 Total slides created: ${totalSlides}`);
+  
+  if (totalSlides === 0) {
+    console.error('❌ No slides were created!');
+    return;
+  }
+  
+  console.log('✅ All slides created successfully');
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
@@ -1855,6 +1898,7 @@ async function initOurCapabilitiesSlider() {
   }
   
   // Инициализация
+  console.log('🔧 Setting up scroll handler and initial positions...');
   setupScrollHandler();
   
   // Устанавливаем начальные позиции слайдов сразу
@@ -1863,6 +1907,9 @@ async function initOurCapabilitiesSlider() {
     // Убеждаемся, что слайды видны
     slide.style.visibility = 'visible';
     slide.style.display = 'block';
+    slide.style.position = 'absolute';
+    slide.style.left = '50%';
+    slide.style.top = '50%';
     
     if (index === 0) {
       // Первый слайд - в центре, видимый
@@ -1870,6 +1917,7 @@ async function initOurCapabilitiesSlider() {
       slide.style.opacity = '1';
       slide.style.zIndex = '10';
       slide.style.pointerEvents = 'auto';
+      console.log(`✅ Slide ${index + 1} (first) positioned at center`);
     } else {
       // Остальные слайды - внизу, невидимые
       slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${slideHeight}px)) scale(0.95)`;
@@ -1879,16 +1927,22 @@ async function initOurCapabilitiesSlider() {
     }
   });
   
+  console.log('✅ Initial positions set for all slides');
+  
   // Обновляем позиции на основе текущего скролла
   // Используем небольшую задержку, чтобы убедиться, что DOM готов
   setTimeout(() => {
+    console.log('🔄 Updating slides from scroll...');
     updateSlidesFromScroll();
+    console.log('✅ Slides updated from scroll');
   }, 100);
   
   // Также обновляем при изменении размера окна
   window.addEventListener('resize', () => {
     updateSlidesFromScroll();
   });
+  
+  console.log('✅ initOurCapabilitiesSlider: Complete');
   
   // Переключимся на Lenis, когда он загрузится
   const checkLenisSlider = setInterval(() => {
