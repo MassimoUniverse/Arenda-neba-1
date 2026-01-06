@@ -2062,12 +2062,47 @@ async function initEquipmentDropdown() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🚀 DOMContentLoaded: Starting initialization...');
   displayServices();
   displayReviews();
   // Загружаем данные для калькулятора из API перед инициализацией
   await loadCalculatorEquipmentFromAPI();
   initCalculator();
-  initOurCapabilitiesSlider();
+  
+  // Инициализируем слайдер с небольшой задержкой для гарантии готовности DOM
+  console.log('⏳ Waiting for DOM to be fully ready...');
+  setTimeout(async () => {
+    console.log('🎯 Calling initOurCapabilitiesSlider...');
+    await initOurCapabilitiesSlider();
+    
+    // Проверяем результат через небольшую задержку
+    setTimeout(() => {
+      const sliderContainer = document.getElementById('our-capabilities-slider');
+      const slides = sliderContainer ? sliderContainer.querySelectorAll('.our-capabilities-slide') : [];
+      console.log(`📊 Final check: ${slides.length} slides found in container`);
+      
+      if (slides.length === 0) {
+        console.error('❌ CRITICAL: No slides found after initialization!');
+        console.log('Container HTML:', sliderContainer ? sliderContainer.innerHTML.substring(0, 200) : 'Container not found');
+      } else {
+        slides.forEach((slide, index) => {
+          const rect = slide.getBoundingClientRect();
+          const styles = window.getComputedStyle(slide);
+          console.log(`Slide ${index + 1}:`, {
+            visible: styles.visibility,
+            opacity: styles.opacity,
+            display: styles.display,
+            position: styles.position,
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            left: rect.left
+          });
+        });
+      }
+    }, 500);
+  }, 100);
+  
   initQuickContactForm();
   initEquipmentDropdown();
 });
