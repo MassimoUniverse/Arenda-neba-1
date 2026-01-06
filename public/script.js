@@ -1,5 +1,5 @@
-// Мобильное меню
-document.addEventListener('DOMContentLoaded', () => {
+// Мобильное меню - функция инициализации
+function initMobileMenu() {
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
   
@@ -28,10 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
-  // Load homepage data
-  loadHomepageData();
-});
+}
 
 // Load homepage data from API
 async function loadHomepageData() {
