@@ -1767,7 +1767,12 @@ async function initOurCapabilitiesSlider() {
       
       if (progress < slideStartProgress) {
         // Слайд еще не начал появляться - он внизу
-        localProgress = -1;
+        // Для первого слайда (index === 0) при progress = 0, показываем его в центре
+        if (index === 0) {
+          localProgress = 0; // Первый слайд в центре при загрузке
+        } else {
+          localProgress = -1;
+        }
       } else if (progress > slideEndProgress) {
         // Слайд уже прошел - он вверху
         localProgress = 1;
@@ -1788,27 +1793,28 @@ async function initOurCapabilitiesSlider() {
       // Вычисляем opacity на основе позиции
       // Слайд видим когда он близок к центру (localProgress около 0)
       let opacity = 1;
-      if (localProgress < -0.5 || localProgress > 0.5) {
+      if (Math.abs(localProgress) > 0.5) {
         // Слайд далеко от центра - уменьшаем opacity
-        opacity = Math.max(0, 1 - Math.abs(localProgress) * 1.5);
+        opacity = Math.max(0, 1 - (Math.abs(localProgress) - 0.5) * 2);
       }
       
       // Вычисляем scale на основе позиции
       // Слайд в полном размере когда он в центре
       let scale = 1;
-      if (localProgress < -0.5 || localProgress > 0.5) {
+      if (Math.abs(localProgress) > 0.5) {
         // Слайд далеко от центра - уменьшаем scale
-        scale = Math.max(0.85, 1 - Math.abs(localProgress) * 0.3);
+        scale = Math.max(0.85, 1 - (Math.abs(localProgress) - 0.5) * 0.3);
       }
       
       // Вычисляем z-index
       // Слайды ближе к центру должны быть выше
-      const zIndex = Math.round(10 - Math.abs(localProgress) * 5);
+      const zIndex = Math.max(1, Math.round(10 - Math.abs(localProgress) * 5));
       
       // Применяем трансформации напрямую через style
       slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}px)) scale(${scale})`;
       slide.style.opacity = opacity;
       slide.style.zIndex = zIndex;
+      slide.style.visibility = opacity > 0.01 ? 'visible' : 'hidden';
       
       // Включаем pointer-events только для слайда в центре
       slide.style.pointerEvents = Math.abs(localProgress) < 0.3 ? 'auto' : 'none';
@@ -1851,9 +1857,13 @@ async function initOurCapabilitiesSlider() {
   // Инициализация
   setupScrollHandler();
   
-  // Устанавливаем начальные позиции слайдов
-  // Первый слайд должен быть виден сразу
+  // Устанавливаем начальные позиции слайдов сразу
+  // Первый слайд должен быть виден сразу при загрузке страницы
   slides.forEach((slide, index) => {
+    // Убеждаемся, что слайды видны
+    slide.style.visibility = 'visible';
+    slide.style.display = 'block';
+    
     if (index === 0) {
       // Первый слайд - в центре, видимый
       slide.style.transform = `translateX(-50%) translateY(-50%) scale(1)`;
@@ -1864,13 +1874,21 @@ async function initOurCapabilitiesSlider() {
       // Остальные слайды - внизу, невидимые
       slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${slideHeight}px)) scale(0.95)`;
       slide.style.opacity = '0';
-      slide.style.zIndex = String(10 - index);
+      slide.style.zIndex = String(Math.max(1, 10 - index));
       slide.style.pointerEvents = 'none';
     }
   });
   
   // Обновляем позиции на основе текущего скролла
-  updateSlidesFromScroll();
+  // Используем небольшую задержку, чтобы убедиться, что DOM готов
+  setTimeout(() => {
+    updateSlidesFromScroll();
+  }, 100);
+  
+  // Также обновляем при изменении размера окна
+  window.addEventListener('resize', () => {
+    updateSlidesFromScroll();
+  });
   
   // Переключимся на Lenis, когда он загрузится
   const checkLenisSlider = setInterval(() => {
