@@ -1549,38 +1549,39 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
-  console.log('🔍 initOurCapabilitiesSlider: Starting...');
-  const section = document.getElementById('popular-equipment');
-  const sliderContainer = document.getElementById('our-capabilities-slider');
-  
-  if (!section) {
-    console.error('❌ initOurCapabilitiesSlider: Section not found');
-    return;
-  }
-  
-  if (!sliderContainer) {
-    console.error('❌ initOurCapabilitiesSlider: Slider container not found');
-    return;
-  }
-  
-  console.log('✅ initOurCapabilitiesSlider: Elements found');
-  
-  // Определяем URL популярных машин
-  const popularUrls = [
-    '/equipment/avtovyshka-13m.html',
-    '/equipment/avtovyshka-18m.html',
-    '/equipment/avtovyshka-21m.html',
-    '/equipment/avtovyshka-29m.html'
-  ];
-  
-  // Проверяем наличие fallback данных
-  if (!POPULAR_EQUIPMENT_SLIDES || POPULAR_EQUIPMENT_SLIDES.length === 0) {
-    console.error('❌ initOurCapabilitiesSlider: POPULAR_EQUIPMENT_SLIDES is empty or undefined');
-    return;
-  }
-  
-  let slidesData = POPULAR_EQUIPMENT_SLIDES;
-  console.log('📊 initOurCapabilitiesSlider: Using fallback data, slides count:', slidesData.length);
+  try {
+    console.log('🔍 initOurCapabilitiesSlider: Starting...');
+    const section = document.getElementById('popular-equipment');
+    const sliderContainer = document.getElementById('our-capabilities-slider');
+    
+    if (!section) {
+      console.warn('⚠️ initOurCapabilitiesSlider: Section not found, skipping');
+      return;
+    }
+    
+    if (!sliderContainer) {
+      console.warn('⚠️ initOurCapabilitiesSlider: Slider container not found, skipping');
+      return;
+    }
+    
+    console.log('✅ initOurCapabilitiesSlider: Elements found');
+    
+    // Определяем URL популярных машин
+    const popularUrls = [
+      '/equipment/avtovyshka-13m.html',
+      '/equipment/avtovyshka-18m.html',
+      '/equipment/avtovyshka-21m.html',
+      '/equipment/avtovyshka-29m.html'
+    ];
+    
+    // Проверяем наличие fallback данных
+    if (!POPULAR_EQUIPMENT_SLIDES || POPULAR_EQUIPMENT_SLIDES.length === 0) {
+      console.warn('⚠️ initOurCapabilitiesSlider: POPULAR_EQUIPMENT_SLIDES is empty or undefined, skipping');
+      return;
+    }
+    
+    let slidesData = POPULAR_EQUIPMENT_SLIDES;
+    console.log('📊 initOurCapabilitiesSlider: Using fallback data, slides count:', slidesData.length);
   
   try {
     const response = await fetch('/api/services');
@@ -1682,30 +1683,31 @@ async function initOurCapabilitiesSlider() {
         });
       }
     }
-  } catch (error) {
-    console.error('❌ Error loading popular equipment:', error);
-    // Используем FALLBACK данные
-  }
-  
-  // Проверяем, что есть данные для слайдов
-  if (!slidesData || slidesData.length === 0) {
-    console.error('❌ initOurCapabilitiesSlider: No slides data available');
-    return;
-  }
-  
-  console.log('✅ initOurCapabilitiesSlider: Slides data ready, count:', slidesData.length);
-  
-  // Очищаем контейнер перед созданием слайдов
-  sliderContainer.innerHTML = '';
-  
-  // Создаём слайды
-  slidesData.forEach((slide, index) => {
-    if (!slide || !slide.title) {
-      console.warn('⚠️ Skipping invalid slide at index:', index);
+    } catch (error) {
+      console.error('❌ Error loading popular equipment:', error);
+      // Используем FALLBACK данные
+    }
+    
+    // Проверяем, что есть данные для слайдов
+    if (!slidesData || slidesData.length === 0) {
+      console.warn('⚠️ initOurCapabilitiesSlider: No slides data available, skipping');
       return;
     }
     
-    console.log(`📝 Creating slide ${index + 1}:`, slide.title);
+    console.log('✅ initOurCapabilitiesSlider: Slides data ready, count:', slidesData.length);
+    
+    // Очищаем контейнер перед созданием слайдов
+    sliderContainer.innerHTML = '';
+    
+    // Создаём слайды
+    slidesData.forEach((slide, index) => {
+      try {
+        if (!slide || !slide.title) {
+          console.warn('⚠️ Skipping invalid slide at index:', index);
+          return;
+        }
+        
+        console.log(`📝 Creating slide ${index + 1}:`, slide.title);
     const slideEl = document.createElement('div');
     slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
     slideEl.dataset.index = index;
@@ -1737,28 +1739,31 @@ async function initOurCapabilitiesSlider() {
       </div>
     `;
     
-    sliderContainer.appendChild(slideEl);
-    console.log(`✅ Slide ${index + 1} created and appended`);
-  });
-  
-  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
-  const totalSlides = slides.length;
-  
-  console.log(`📊 Total slides created: ${totalSlides}`);
-  
-  if (totalSlides === 0) {
-    console.error('❌ No slides were created!');
-    return;
-  }
-  
-  console.log('✅ All slides created successfully');
+        sliderContainer.appendChild(slideEl);
+        console.log(`✅ Slide ${index + 1} created and appended`);
+      } catch (error) {
+        console.error(`❌ Error creating slide ${index + 1}:`, error);
+      }
+    });
+    
+    const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+    const totalSlides = slides.length;
+    
+    console.log(`📊 Total slides created: ${totalSlides}`);
+    
+    if (totalSlides === 0) {
+      console.warn('⚠️ No slides were created!');
+      return;
+    }
+    
+    console.log('✅ All slides created successfully');
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-  // Высота окна для расчетов
-  const windowHeight = window.innerHeight;
-  const slideHeight = windowHeight * 0.8; // Высота слайда (80vh)
+    // Высота окна для расчетов
+    const windowHeight = window.innerHeight;
+    const slideHeight = windowHeight * 0.8; // Высота слайда (80vh)
   
   // Функция вычисления прогресса прокрутки (от 0 до 1)
   function calculateProgress() {
@@ -1942,7 +1947,12 @@ async function initOurCapabilitiesSlider() {
     updateSlidesFromScroll();
   });
   
-  console.log('✅ initOurCapabilitiesSlider: Complete');
+    console.log('✅ initOurCapabilitiesSlider: Complete');
+  } catch (error) {
+    console.error('❌ CRITICAL ERROR in initOurCapabilitiesSlider:', error);
+    // Не пробрасываем ошибку дальше, чтобы не ломать остальной сайт
+  }
+}
   
   // Переключимся на Lenis, когда он загрузится
   const checkLenisSlider = setInterval(() => {
@@ -2063,48 +2073,80 @@ async function initEquipmentDropdown() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 DOMContentLoaded: Starting initialization...');
-  displayServices();
-  displayReviews();
-  // Загружаем данные для калькулятора из API перед инициализацией
-  await loadCalculatorEquipmentFromAPI();
-  initCalculator();
+  
+  // Инициализируем все функции независимо, чтобы ошибки в одной не ломали остальные
+  try {
+    displayServices();
+  } catch (error) {
+    console.error('❌ Error in displayServices:', error);
+  }
+  
+  try {
+    displayReviews();
+  } catch (error) {
+    console.error('❌ Error in displayReviews:', error);
+  }
+  
+  try {
+    // Загружаем данные для калькулятора из API перед инициализацией
+    await loadCalculatorEquipmentFromAPI();
+    initCalculator();
+  } catch (error) {
+    console.error('❌ Error in calculator initialization:', error);
+  }
+  
+  try {
+    initQuickContactForm();
+  } catch (error) {
+    console.error('❌ Error in initQuickContactForm:', error);
+  }
+  
+  try {
+    initEquipmentDropdown();
+  } catch (error) {
+    console.error('❌ Error in initEquipmentDropdown:', error);
+  }
   
   // Инициализируем слайдер с небольшой задержкой для гарантии готовности DOM
-  console.log('⏳ Waiting for DOM to be fully ready...');
   setTimeout(async () => {
-    console.log('🎯 Calling initOurCapabilitiesSlider...');
-    await initOurCapabilitiesSlider();
-    
-    // Проверяем результат через небольшую задержку
-    setTimeout(() => {
-      const sliderContainer = document.getElementById('our-capabilities-slider');
-      const slides = sliderContainer ? sliderContainer.querySelectorAll('.our-capabilities-slide') : [];
-      console.log(`📊 Final check: ${slides.length} slides found in container`);
+    try {
+      console.log('🎯 Calling initOurCapabilitiesSlider...');
+      await initOurCapabilitiesSlider();
       
-      if (slides.length === 0) {
-        console.error('❌ CRITICAL: No slides found after initialization!');
-        console.log('Container HTML:', sliderContainer ? sliderContainer.innerHTML.substring(0, 200) : 'Container not found');
-      } else {
-        slides.forEach((slide, index) => {
-          const rect = slide.getBoundingClientRect();
-          const styles = window.getComputedStyle(slide);
-          console.log(`Slide ${index + 1}:`, {
-            visible: styles.visibility,
-            opacity: styles.opacity,
-            display: styles.display,
-            position: styles.position,
-            width: rect.width,
-            height: rect.height,
-            top: rect.top,
-            left: rect.left
-          });
-        });
-      }
-    }, 500);
+      // Проверяем результат через небольшую задержку
+      setTimeout(() => {
+        try {
+          const sliderContainer = document.getElementById('our-capabilities-slider');
+          const slides = sliderContainer ? sliderContainer.querySelectorAll('.our-capabilities-slide') : [];
+          console.log(`📊 Final check: ${slides.length} slides found in container`);
+          
+          if (slides.length === 0) {
+            console.warn('⚠️ No slides found after initialization');
+            console.log('Container HTML:', sliderContainer ? sliderContainer.innerHTML.substring(0, 200) : 'Container not found');
+          } else {
+            slides.forEach((slide, index) => {
+              const rect = slide.getBoundingClientRect();
+              const styles = window.getComputedStyle(slide);
+              console.log(`Slide ${index + 1}:`, {
+                visible: styles.visibility,
+                opacity: styles.opacity,
+                display: styles.display,
+                position: styles.position,
+                width: rect.width,
+                height: rect.height,
+                top: rect.top,
+                left: rect.left
+              });
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error in slide check:', error);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('❌ Error in initOurCapabilitiesSlider:', error);
+    }
   }, 100);
-  
-  initQuickContactForm();
-  initEquipmentDropdown();
 });
 
  
