@@ -750,8 +750,6 @@ a.logo:hover {
   gap: 20px;
   box-shadow: var(--shadow-sm);
   align-items: start;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .field {
@@ -1202,8 +1200,6 @@ input[type='number'] {
   justify-content: center;
   gap: 8px;
   margin-top: 32px;
-  position: relative;
-  z-index: 10;
 }
 
 .carousel-dot {
@@ -1228,7 +1224,6 @@ input[type='number'] {
    ============================================= */
 .our-capabilities-section {
   position: relative;
-  overflow: hidden;
   height: 300vh; /* Увеличена высота для большего пространства прокрутки */
   width: 100%;
   margin: 0;
@@ -1309,6 +1304,7 @@ input[type='number'] {
 .our-capabilities-slide {
   position: absolute;
   left: 50%;
+  top: 50%;
   transform: translateX(-50%) translateY(calc(-50% + 100%)) scale(0.95);
   width: 100%;
   height: 80vh;
@@ -1317,26 +1313,10 @@ input[type='number'] {
   border-radius: 32px;
   overflow: hidden;
   opacity: 0;
-  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-              scale 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   z-index: 1;
   will-change: transform, opacity;
-  top: 50%;
-}
-
-.our-capabilities-slide.active {
-  transform: translateX(-50%) translateY(-50%) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  z-index: 10;
-}
-
-.our-capabilities-slide.prev {
-  transform: translateX(-50%) translateY(calc(-50% - 80vh)) scale(0.85);
-  opacity: 0;
-  z-index: 0;
+  /* Убираем transition - позиция управляется напрямую через JavaScript */
 }
 
 .our-capabilities-slide-bg {
@@ -1483,7 +1463,7 @@ input[type='number'] {
   .our-capabilities-slider {
     padding: 0 16px;
     height: 100vh;
-    overflow: hidden;
+    overflow: visible;
   }
   
   .popular-equipment-button {
@@ -2280,17 +2260,9 @@ input[type='number'] {
   }
   
   /* Калькулятор */
-  .calculator-layout {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  
   .calculator-form {
     grid-template-columns: 1fr;
-    padding: 20px;
-    max-width: 100%;
-    box-sizing: border-box;
-    width: 100%;
+    padding: 24px;
   }
   
   .calculator-preview {
@@ -2299,12 +2271,6 @@ input[type='number'] {
   
   .field {
     margin-bottom: 16px;
-    width: 100%;
-  }
-  
-  .calc-select-current {
-    min-width: auto;
-    width: 100%;
   }
   
   /* Услуги */
@@ -2501,34 +2467,9 @@ input[type='number'] {
   }
   
   /* Калькулятор */
-  .calculator-layout {
-    gap: 20px;
-  }
-  
   .calculator-form {
-    padding: 16px;
-    gap: 14px;
-    max-width: 100%;
-    box-sizing: border-box;
-    width: 100%;
-    overflow-x: hidden;
-  }
-  
-  .field {
-    width: 100%;
-    min-width: 0;
-  }
-  
-  .calc-field-group {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  
-  .calc-select-current {
-    min-width: auto;
-    width: 100%;
-    font-size: 14px;
-    padding: 10px 14px;
+    padding: 20px;
+    gap: 16px;
   }
   
   .field-label {
@@ -2536,21 +2477,11 @@ input[type='number'] {
   }
   
   .calculator-sum-inline {
-    font-size: 16px;
+    font-size: 18px;
   }
   
   .calculator-note-inline {
-    font-size: 11px;
-  }
-  
-  .number-input {
-    width: 100%;
-  }
-  
-  .number-btn {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    font-size: 12px;
   }
   
   /* Услуги */

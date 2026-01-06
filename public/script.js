@@ -900,13 +900,7 @@ function initServicesCarousel() {
   }
 
   // Обновляем currentIndex при прокрутке с оптимизацией
-  // ВАЖНО: слушаем только прокрутку viewport (горизонтальную), НЕ прокрутку страницы
   viewport.addEventListener('scroll', handleScroll, { passive: true });
-  
-  // Убеждаемся, что нет inline стилей transform от предыдущей scroll-driven версии
-  if (grid.style.transform) {
-    grid.style.transform = '';
-  }
 
   prevBtn.addEventListener('click', () => {
     if (currentIndex > 0) {
@@ -1555,23 +1549,10 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
-  // #region agent log
-  console.log('🔍 initOurCapabilitiesSlider called');
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1557',message:'initOurCapabilitiesSlider called',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-  
   const section = document.getElementById('popular-equipment');
   const sliderContainer = document.getElementById('our-capabilities-slider');
   
-  // #region agent log
-  console.log('🔍 Section found:', !!section, 'Container found:', !!sliderContainer);
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1561',message:'Elements check',data:{sectionExists:!!section,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-  
-  if (!section || !sliderContainer) {
-    console.error('❌ Section or container not found!');
-    return;
-  }
+  if (!section || !sliderContainer) return;
   
   // Определяем URL популярных машин
   const popularUrls = [
@@ -1689,14 +1670,6 @@ async function initOurCapabilitiesSlider() {
   }
   
   // Создаём слайды
-  // #region agent log
-  console.log('🔍 Creating slides, count:', slidesData.length);
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1678',message:'Creating slides',data:{slidesDataLength:slidesData.length,sliderContainerExists:!!sliderContainer},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-  
-  // Очищаем контейнер перед созданием слайдов
-  sliderContainer.innerHTML = '';
-  
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
     slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
@@ -1730,189 +1703,134 @@ async function initOurCapabilitiesSlider() {
     `;
     
     sliderContainer.appendChild(slideEl);
-    
-    // #region agent log
-    const computedStyle = window.getComputedStyle(slideEl);
-    console.log(`🔍 Slide ${index} created, active:`, slideEl.classList.contains('active'), 'opacity:', computedStyle.opacity);
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1710',message:'Slide created',data:{index,hasActiveClass:slideEl.classList.contains('active'),slideRect:slideEl.getBoundingClientRect(),opacity:computedStyle.opacity,visibility:computedStyle.visibility,display:computedStyle.display},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
   const totalSlides = slides.length;
-  let previousIndex = 0;
   
-  // #region agent log
-  console.log('🔍 Total slides:', totalSlides);
-  if (slides.length > 0) {
-    const firstSlide = slides[0];
-    const firstStyle = window.getComputedStyle(firstSlide);
-    console.log('🔍 First slide state:', {
-      hasActive: firstSlide.classList.contains('active'),
-      opacity: firstStyle.opacity,
-      visibility: firstStyle.visibility,
-      display: firstStyle.display,
-      transform: firstStyle.transform,
-      rect: firstSlide.getBoundingClientRect()
-    });
-    // Убеждаемся, что первый слайд активен
-    if (!firstSlide.classList.contains('active')) {
-      console.log('⚠️ Fixing: adding active class to first slide');
-      firstSlide.classList.add('active');
-    }
-  }
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1745',message:'Slides initialized',data:{totalSlides,sliderContainerHeight:sliderContainer.offsetHeight,firstSlideHasActive:slides[0]?.classList.contains('active'),firstSlideOpacity:slides[0]?window.getComputedStyle(slides[0]).opacity:null},timestamp:Date.now()},sessionId:'debug-session',runId:'run4',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
+  if (totalSlides === 0) return;
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-  // Функция обновления активного слайда с эффектом колоды карт
-  function updateActiveSlide(activeIndex) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1722',message:'updateActiveSlide entry',data:{activeIndex,previousIndex,totalSlides,slidesLength:slides.length},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
-    if (activeIndex < 0 || activeIndex >= totalSlides) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1724',message:'updateActiveSlide invalid index',data:{activeIndex,totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-      return;
-    }
-    
-    // Если индекс не изменился, не обновляем
-    if (activeIndex === previousIndex) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1727',message:'updateActiveSlide same index skip',data:{activeIndex,previousIndex},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-      return;
-    }
-    
-    // Плавное переключение без задержек для более быстрого отклика
-    slides.forEach((slide, index) => {
-      slide.classList.remove('active', 'prev');
-      
-      if (index === activeIndex) {
-        // Текущий активный слайд - появляется снизу
-        slide.classList.add('active');
-      } else if (index < activeIndex) {
-        // Прошедшие слайды уходят наверх и исчезают
-        slide.classList.add('prev');
-      }
-      // Будущие слайды остаются внизу (translateY(100%))
-    });
-    
-    // Показываем кнопку когда показывается последний слайд
-    if (buttonContainer) {
-      if (activeIndex >= totalSlides - 1) {
-        // Последний слайд - показываем кнопку
-        buttonContainer.classList.add('visible');
-      } else if (activeIndex < totalSlides - 2) {
-        // Не предпоследний и не последний слайд - скрываем кнопку
-        buttonContainer.classList.remove('visible');
-      }
-    }
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1754',message:'updateActiveSlide completed',data:{activeIndex,previousIndex,buttonVisible:buttonContainer?.classList.contains('visible')},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
-    previousIndex = activeIndex;
-  }
+  // Высота окна для расчетов
+  const windowHeight = window.innerHeight;
+  const slideHeight = windowHeight * 0.8; // Высота слайда (80vh)
   
-  // Функция вычисления прогресса прокрутки
+  // Функция вычисления прогресса прокрутки (от 0 до 1)
   function calculateProgress() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1757',message:'calculateProgress entry',data:{timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
     const rect = section.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
-    // Используем scrollHeight вместо height для правильного расчета с учетом sticky
-    const sectionHeight = section.scrollHeight || rect.height;
-    const stickyElement = section.querySelector('.our-capabilities-sticky');
-    const stickyRect = stickyElement?.getBoundingClientRect();
+    const sectionHeight = rect.height;
+    const viewportHeight = window.innerHeight;
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1762',message:'calculateProgress rect data',data:{sectionTop,sectionHeight,sectionScrollHeight:section.scrollHeight,rectHeight:rect.height,windowHeight,rectTop:rect.top,rectBottom:rect.bottom,stickyTop:stickyRect?.top,stickyHeight:stickyRect?.height,stickyBottom:stickyRect?.bottom,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
+    // Когда верх секции достигает верха экрана - начинаем отсчет
+    const startPoint = viewportHeight;
+    // Когда низ секции достигает верха экрана - заканчиваем отсчет
+    const endPoint = -sectionHeight + viewportHeight;
     
-    // Если секция еще не достигла верха экрана, прогресс = 0
-    if (sectionTop > windowHeight) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1765',message:'calculateProgress early return 0',data:{sectionTop,windowHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+    // Если секция еще не достигла начала прокрутки
+    if (sectionTop > startPoint) {
       return 0;
     }
     
-    // Вычисляем прогресс: когда секция входит в viewport
-    const startPoint = windowHeight;
-    const endPoint = -sectionHeight + windowHeight;
-    
-    // Добавляем большую задержку для первого слайда
-    const delayOffset = windowHeight * 0.8;
-    const adjustedStartPoint = startPoint - delayOffset;
-    
-    // Нормализуем прогресс от 0 до 1
-    const scrolled = adjustedStartPoint - sectionTop;
-    const totalScroll = adjustedStartPoint - endPoint;
-    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
-    
-    // Если прогресс еще в зоне задержки, возвращаем 0
-    if (sectionTop > adjustedStartPoint) {
-      progress = 0;
+    // Если секция уже прошла конец прокрутки
+    if (sectionTop < endPoint) {
+      return 1;
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1786',message:'calculateProgress result',data:{progress,startPoint,endPoint,delayOffset,adjustedStartPoint,scrolled,totalScroll,sectionTop,sectionHeight},timestamp:Date.now()},sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
+    // Вычисляем прогресс от 0 до 1
+    const scrolled = startPoint - sectionTop;
+    const totalScroll = startPoint - endPoint;
+    const progress = Math.max(0, Math.min(1, scrolled / totalScroll));
     
     return progress;
   }
   
-  // Функция обновления слайда на основе прогресса
-  function updateSlideFromScroll() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1790',message:'updateSlideFromScroll entry',data:{totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
+  // Функция обновления позиций слайдов на основе прогресса скролла
+  function updateSlidesFromScroll() {
     const progress = calculateProgress();
     
-    // Вычисляем индекс слайда на основе прогресса
-    const firstSlideDelay = 0.3;
-    let slideProgress;
+    // Распределяем прогресс между слайдами
+    // Каждый слайд занимает 1/totalSlides часть прогресса
+    const progressPerSlide = 1 / totalSlides;
     
-    if (progress < firstSlideDelay) {
-      slideProgress = 0;
-    } else {
-      const remainingProgress = progress - firstSlideDelay;
-      const remainingSlides = totalSlides - 1;
-      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
+    slides.forEach((slide, index) => {
+      // Вычисляем локальный прогресс для этого слайда (от -1 до 1)
+      // -1 = слайд полностью ниже экрана
+      // 0 = слайд в центре экрана (активная позиция)
+      // 1 = слайд полностью выше экрана
+      const slideStartProgress = index * progressPerSlide;
+      const slideEndProgress = (index + 1) * progressPerSlide;
+      
+      let localProgress;
+      
+      if (progress < slideStartProgress) {
+        // Слайд еще не начал появляться - он внизу
+        localProgress = -1;
+      } else if (progress > slideEndProgress) {
+        // Слайд уже прошел - он вверху
+        localProgress = 1;
+      } else {
+        // Слайд в процессе перехода
+        // Нормализуем прогресс от 0 до 1 для этого слайда
+        const normalizedProgress = (progress - slideStartProgress) / progressPerSlide;
+        // Преобразуем в диапазон от -1 до 1 (где 0 = центр)
+        localProgress = (normalizedProgress - 0.5) * 2;
+      }
+      
+      // Вычисляем translateY на основе локального прогресса
+      // Когда localProgress = -1: translateY = slideHeight (снизу)
+      // Когда localProgress = 0: translateY = 0 (центр)
+      // Когда localProgress = 1: translateY = -slideHeight (сверху)
+      const translateY = localProgress * slideHeight;
+      
+      // Вычисляем opacity на основе позиции
+      // Слайд видим когда он близок к центру (localProgress около 0)
+      let opacity = 1;
+      if (localProgress < -0.5 || localProgress > 0.5) {
+        // Слайд далеко от центра - уменьшаем opacity
+        opacity = Math.max(0, 1 - Math.abs(localProgress) * 1.5);
+      }
+      
+      // Вычисляем scale на основе позиции
+      // Слайд в полном размере когда он в центре
+      let scale = 1;
+      if (localProgress < -0.5 || localProgress > 0.5) {
+        // Слайд далеко от центра - уменьшаем scale
+        scale = Math.max(0.85, 1 - Math.abs(localProgress) * 0.3);
+      }
+      
+      // Вычисляем z-index
+      // Слайды ближе к центру должны быть выше
+      const zIndex = Math.round(10 - Math.abs(localProgress) * 5);
+      
+      // Применяем трансформации напрямую через style
+      slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}px)) scale(${scale})`;
+      slide.style.opacity = opacity;
+      slide.style.zIndex = zIndex;
+      
+      // Включаем pointer-events только для слайда в центре
+      slide.style.pointerEvents = Math.abs(localProgress) < 0.3 ? 'auto' : 'none';
+    });
+    
+    // Показываем кнопку когда показывается последний слайд
+    if (buttonContainer) {
+      const lastSlideStartProgress = (totalSlides - 1) * progressPerSlide;
+      if (progress >= lastSlideStartProgress) {
+        buttonContainer.classList.add('visible');
+      } else {
+        buttonContainer.classList.remove('visible');
+      }
     }
-    
-    const activeIndex = Math.min(
-      totalSlides - 1,
-      Math.max(0, Math.floor(slideProgress + 0.1))
-    );
-    
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1810',message:'updateSlideFromScroll computed index',data:{progress,firstSlideDelay,slideProgress,activeIndex,totalSlides},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
-    updateActiveSlide(activeIndex);
   }
   
-  // Обработчик прокрутки - используем Lenis, если доступен
+  // Обработчик прокрутки с оптимизацией через requestAnimationFrame
   let ticking = false;
   function handleScroll() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1815',message:'handleScroll called',data:{ticking,windowScrollY:window.scrollY,hasLenis:!!window.lenis},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        updateSlideFromScroll();
+        updateSlidesFromScroll();
         ticking = false;
       });
       ticking = true;
@@ -1922,13 +1840,37 @@ async function initOurCapabilitiesSlider() {
   // Подключаем обработчик прокрутки
   function setupScrollHandler() {
     if (window.lenis) {
+      // Используем Lenis события для плавной прокрутки
       window.lenis.on('scroll', handleScroll);
     } else {
+      // Fallback на нативный scroll
       window.addEventListener('scroll', handleScroll, { passive: true });
     }
   }
   
+  // Инициализация
   setupScrollHandler();
+  
+  // Устанавливаем начальные позиции слайдов
+  // Первый слайд должен быть виден сразу
+  slides.forEach((slide, index) => {
+    if (index === 0) {
+      // Первый слайд - в центре, видимый
+      slide.style.transform = `translateX(-50%) translateY(-50%) scale(1)`;
+      slide.style.opacity = '1';
+      slide.style.zIndex = '10';
+      slide.style.pointerEvents = 'auto';
+    } else {
+      // Остальные слайды - внизу, невидимые
+      slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${slideHeight}px)) scale(0.95)`;
+      slide.style.opacity = '0';
+      slide.style.zIndex = String(10 - index);
+      slide.style.pointerEvents = 'none';
+    }
+  });
+  
+  // Обновляем позиции на основе текущего скролла
+  updateSlidesFromScroll();
   
   // Переключимся на Lenis, когда он загрузится
   const checkLenisSlider = setInterval(() => {
@@ -1940,17 +1882,22 @@ async function initOurCapabilitiesSlider() {
   }, 100);
   
   // Инициализация при загрузке
-  const stickyElement = section.querySelector('.our-capabilities-sticky');
-  
-  // #region agent log
-  const sectionRect = section?.getBoundingClientRect();
-  const stickyRect = stickyElement?.getBoundingClientRect();
-  fetch('http://127.0.0.1:7242/ingest/49be1b02-d5ae-4b50-af2c-257f5ea883de',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1852',message:'initOurCapabilitiesSlider initialization',data:{totalSlides,sectionExists:!!section,sliderContainerExists:!!sliderContainer,stickyExists:!!stickyElement,sectionRect:{top:sectionRect?.top,height:sectionRect?.height,bottom:sectionRect?.bottom},stickyRect:{top:stickyRect?.top,height:stickyRect?.height,bottom:stickyRect?.bottom},windowHeight:window.innerHeight,windowScrollY:window.scrollY},timestamp:Date.now()},sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  
   updateSlideFromScroll();
   
-  // Обновление при изменении размера окна
+  // Дополнительная проверка: если секция уже прокручена, показываем кнопку
+  if (buttonContainer) {
+    const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    // Если секция уже прошла (верх секции выше верха экрана), показываем кнопку
+    if (rect.top < windowHeight * 0.5) {
+      const progress = calculateProgress();
+      if (progress >= 0.7) {
+        buttonContainer.classList.add('visible');
+      }
+    }
+  }
+  
+  // Также обновляем при изменении размера окна
   window.addEventListener('resize', () => {
     updateSlideFromScroll();
   }, { passive: true });
