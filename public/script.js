@@ -2071,38 +2071,76 @@ async function initEquipmentDropdown() {
   `).join('');
 }
 
+// Единый обработчик DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 DOMContentLoaded: Starting initialization...');
   
+  // Инициализируем мобильное меню
+  try {
+    initMobileMenu();
+  } catch (error) {
+    console.error('❌ Error in initMobileMenu:', error);
+  }
+  
+  // Load homepage data
+  try {
+    await loadHomepageData();
+  } catch (error) {
+    console.error('❌ Error in loadHomepageData:', error);
+  }
+  
   // Инициализируем все функции независимо, чтобы ошибки в одной не ломали остальные
   try {
-    displayServices();
+    console.log('📦 Initializing displayServices...');
+    await displayServices();
+    console.log('✅ displayServices completed');
   } catch (error) {
     console.error('❌ Error in displayServices:', error);
+    // Пробуем использовать fallback
+    try {
+      const grid = document.getElementById('services-grid');
+      if (grid && FALLBACK_SERVICES) {
+        grid.innerHTML = '';
+        FALLBACK_SERVICES.forEach((service) => {
+          grid.appendChild(createServiceCard(service));
+        });
+        initServicesCarousel();
+      }
+    } catch (fallbackError) {
+      console.error('❌ Error in fallback services:', fallbackError);
+    }
   }
   
   try {
-    displayReviews();
+    console.log('📝 Initializing displayReviews...');
+    await displayReviews();
+    console.log('✅ displayReviews completed');
   } catch (error) {
     console.error('❌ Error in displayReviews:', error);
   }
   
   try {
+    console.log('🧮 Initializing calculator...');
     // Загружаем данные для калькулятора из API перед инициализацией
     await loadCalculatorEquipmentFromAPI();
     initCalculator();
+    console.log('✅ Calculator initialized');
   } catch (error) {
     console.error('❌ Error in calculator initialization:', error);
   }
   
   try {
+    console.log('📧 Initializing quick contact form...');
     initQuickContactForm();
+    console.log('✅ Quick contact form initialized');
   } catch (error) {
     console.error('❌ Error in initQuickContactForm:', error);
   }
   
   try {
+    console.log('📋 Initializing equipment dropdown...');
     initEquipmentDropdown();
+    console.log('✅ Equipment dropdown initialized');
   } catch (error) {
     console.error('❌ Error in initEquipmentDropdown:', error);
   }
@@ -2112,41 +2150,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       console.log('🎯 Calling initOurCapabilitiesSlider...');
       await initOurCapabilitiesSlider();
-      
-      // Проверяем результат через небольшую задержку
-      setTimeout(() => {
-        try {
-          const sliderContainer = document.getElementById('our-capabilities-slider');
-          const slides = sliderContainer ? sliderContainer.querySelectorAll('.our-capabilities-slide') : [];
-          console.log(`📊 Final check: ${slides.length} slides found in container`);
-          
-          if (slides.length === 0) {
-            console.warn('⚠️ No slides found after initialization');
-            console.log('Container HTML:', sliderContainer ? sliderContainer.innerHTML.substring(0, 200) : 'Container not found');
-          } else {
-            slides.forEach((slide, index) => {
-              const rect = slide.getBoundingClientRect();
-              const styles = window.getComputedStyle(slide);
-              console.log(`Slide ${index + 1}:`, {
-                visible: styles.visibility,
-                opacity: styles.opacity,
-                display: styles.display,
-                position: styles.position,
-                width: rect.width,
-                height: rect.height,
-                top: rect.top,
-                left: rect.left
-              });
-            });
-          }
-        } catch (error) {
-          console.error('❌ Error in slide check:', error);
-        }
-      }, 500);
+      console.log('✅ Slider initialization completed');
     } catch (error) {
       console.error('❌ Error in initOurCapabilitiesSlider:', error);
     }
-  }, 100);
+  }, 200);
+  
+  console.log('✅ All initialization started');
 });
 
  
