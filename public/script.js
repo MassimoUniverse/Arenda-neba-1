@@ -1606,15 +1606,25 @@ async function initOurCapabilitiesSlider() {
           const serviceUrl = (service.url || '').toLowerCase();
           
           if (!service.image_url) {
-            // Если нет изображения в базе, используем локальные файлы
+            // Если нет изображения в базе, используем локальные файлы по URL
             if (serviceUrl.includes('13m')) {
               slideImage = '/images/avtovyshka-13m.png';
+            } else if (serviceUrl.includes('15m')) {
+              slideImage = '/images/avtovyshka-15m.png';
+            } else if (serviceUrl.includes('16m')) {
+              slideImage = '/images/avtovyshka-15m.png'; // Используем 15м для 16м
             } else if (serviceUrl.includes('18m')) {
               slideImage = '/images/avtovyshka-18m.png';
             } else if (serviceUrl.includes('21m')) {
               slideImage = '/images/avtovyshka-21m.png';
+            } else if (serviceUrl.includes('25m')) {
+              slideImage = '/images/avtovyshka-25m.png';
             } else if (serviceUrl.includes('29m')) {
               slideImage = '/images/avtovyshka-29m.png';
+            } else if (serviceUrl.includes('45m')) {
+              slideImage = '/images/avtovyshka-29m.png'; // Используем 29м для 45м
+            } else if (serviceUrl.includes('vezdehod') || serviceUrl.includes('вездеход')) {
+              slideImage = '/images/avtovyshka-vezdehod-30m.png';
             } else {
               slideImage = '/images/avtovyshka-13m.png';
             }

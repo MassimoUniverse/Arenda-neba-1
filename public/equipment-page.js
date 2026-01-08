@@ -49,15 +49,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (pathLower.includes('13m')) {
       imagePath = '../images/avtovyshka-13m.png';
+    } else if (pathLower.includes('15m')) {
+      imagePath = '../images/avtovyshka-15m.png';
+    } else if (pathLower.includes('16m')) {
+      imagePath = '../images/avtovyshka-15m.png'; // Используем 15м для 16м
+    } else if (pathLower.includes('17m')) {
+      imagePath = '../images/avtovyshka-18m.png'; // Используем 18м для 17м
     } else if (pathLower.includes('18m')) {
       imagePath = '../images/avtovyshka-18m.png';
     } else if (pathLower.includes('21m')) {
       imagePath = '../images/avtovyshka-21m.png';
+    } else if (pathLower.includes('25m')) {
+      imagePath = '../images/avtovyshka-25m.png';
     } else if (pathLower.includes('29m')) {
       imagePath = '../images/avtovyshka-29m.png';
-    } else if (pathLower.includes('15m') || pathLower.includes('16m') || 
-               pathLower.includes('25m') || pathLower.includes('40m') || pathLower.includes('45m')) {
-      imagePath = '../images/avtovyshka-13m.png'; // Fallback для остальных
+    } else if (pathLower.includes('45m')) {
+      imagePath = '../images/avtovyshka-29m.png'; // Используем 29м для 45м
+    } else if (pathLower.includes('vezdehod') || pathLower.includes('вездеход')) {
+      imagePath = '../images/avtovyshka-vezdehod-30m.png';
+    } else if (pathLower.includes('samohodnaya') || pathLower.includes('самоходная')) {
+      imagePath = '../images/avtovyshka-13m.png';
+    } else {
+      imagePath = '../images/avtovyshka-13m.png'; // Fallback
     }
     
     defaultImage.src = imagePath;
@@ -480,19 +493,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           
           if (currentPath.includes('13m')) {
             defaultImage = '../images/avtovyshka-13m.png';
+          } else if (currentPath.includes('15m')) {
+            defaultImage = '../images/avtovyshka-15m.png';
+          } else if (currentPath.includes('16m')) {
+            defaultImage = '../images/avtovyshka-15m.png'; // Используем 15м как fallback для 16м
           } else if (currentPath.includes('18m')) {
             defaultImage = '../images/avtovyshka-18m.png';
           } else if (currentPath.includes('21m')) {
             defaultImage = '../images/avtovyshka-21m.png';
+          } else if (currentPath.includes('25m')) {
+            defaultImage = '../images/avtovyshka-25m.png';
           } else if (currentPath.includes('29m')) {
             defaultImage = '../images/avtovyshka-29m.png';
-          } else if (currentPath.includes('15m')) {
-            defaultImage = '../images/avtovyshka-13m.png'; // Используем 13м как fallback
-          } else if (currentPath.includes('16m')) {
-            defaultImage = '../images/avtovyshka-13m.png';
-          } else if (currentPath.includes('25m')) {
-            defaultImage = '../images/avtovyshka-13m.png';
-          } else if (currentPath.includes('40m')) {
+          } else if (currentPath.includes('45m')) {
+            defaultImage = '../images/avtovyshka-29m.png'; // Используем 29м как fallback для 45м
+          } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
+            defaultImage = '../images/avtovyshka-vezdehod-30m.png';
+          } else {
             defaultImage = '../images/avtovyshka-13m.png';
           }
           
