@@ -324,70 +324,174 @@ function parseSpecifications(specs) {
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service) {
-  // Если есть image_url в базе, используем его (приоритет 1)
-  if (service.image_url) {
-    // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
-    if (service.image_url.startsWith('http://localhost:3000/')) {
-      return service.image_url.replace('http://localhost:3000', '');
-    }
-    if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
-      return service.image_url;
-    }
-    // Если это относительный путь, добавляем префикс если нужно
-    if (service.image_url.startsWith('/')) {
-      return service.image_url;
-    }
-    return '/' + service.image_url;
-  }
+  console.log('🔍 getImageForService called for:', service.title, {
+    image_url: service.image_url,
+    url: service.url,
+    height_lift: service.height_lift,
+    images: service.images
+  });
   
-  // Если есть массив images, используем первое изображение (приоритет 2)
-  if (service.images && Array.isArray(service.images) && service.images.length > 0) {
-    const firstImage = service.images[0];
-    let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
+  // Если есть image_url в базе, используем его (приоритет 1)
+  if (service.image_url && service.image_url.trim() !== '') {
+    let imageUrl = service.image_url.trim();
     
-    // Преобразуем localhost URL в относительный путь
+    // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
     if (imageUrl.startsWith('http://localhost:3000/')) {
       imageUrl = imageUrl.replace('http://localhost:3000', '');
     }
-    
     if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+      console.log('   ✅ Using full URL:', imageUrl);
       return imageUrl;
     }
+    // Если это относительный путь, добавляем префикс если нужно
     if (imageUrl.startsWith('/')) {
+      console.log('   ✅ Using relative path:', imageUrl);
       return imageUrl;
     }
-    return '/' + imageUrl;
+    const finalUrl = '/' + imageUrl;
+    console.log('   ✅ Using normalized path:', finalUrl);
+    return finalUrl;
+  }
+  
+  // Если есть массив images, используем первое изображение (приоритет 2)
+  if (service.images) {
+    let imagesArray = [];
+    
+    // Парсим JSON если это строка
+    if (typeof service.images === 'string') {
+      try {
+        imagesArray = JSON.parse(service.images);
+      } catch (e) {
+        // Если не JSON, возможно это одна строка с URL
+        if (service.images.trim()) {
+          imagesArray = [service.images.trim()];
+        }
+      }
+    } else if (Array.isArray(service.images)) {
+      imagesArray = service.images;
+    }
+    
+    if (imagesArray.length > 0) {
+      const firstImage = imagesArray[0];
+      let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
+      
+      if (imageUrl && imageUrl.trim()) {
+        imageUrl = imageUrl.trim();
+        
+        // Преобразуем localhost URL в относительный путь
+        if (imageUrl.startsWith('http://localhost:3000/')) {
+          imageUrl = imageUrl.replace('http://localhost:3000', '');
+        }
+        
+        if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+          console.log('   ✅ Using image from images array (full URL):', imageUrl);
+          return imageUrl;
+        }
+        if (imageUrl.startsWith('/')) {
+          console.log('   ✅ Using image from images array:', imageUrl);
+          return imageUrl;
+        }
+        const finalUrl = '/' + imageUrl;
+        console.log('   ✅ Using image from images array (normalized):', finalUrl);
+        return finalUrl;
+      }
+    }
   }
   
   // Определяем по URL (fallback)
   const url = (service.url || '').toLowerCase();
-  if (url.includes('13m')) return '/images/avtovyshka-13m.png';
-  if (url.includes('15m')) return '/images/avtovyshka-15m.png';
-  if (url.includes('16m')) return '/images/avtovyshka-16m.png';
-  if (url.includes('17m')) return '/images/avtovyshka-18m.png'; // Fallback на 18м
-  if (url.includes('18m')) return '/images/avtovyshka-18m.png';
-  if (url.includes('21m')) return '/images/avtovyshka-21m.png';
-  if (url.includes('25m')) return '/images/avtovyshka-25m.png';
-  if (url.includes('29m')) return '/images/avtovyshka-29m.png';
-  if (url.includes('45m')) return '/images/avtovyshka-29m.png'; // Fallback на 29м, пока нет 45м
-  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
-  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
+  console.log('   🔄 Trying to determine image from URL:', url);
+  
+  if (url.includes('13m')) {
+    console.log('   ✅ Matched 13m');
+    return '/images/avtovyshka-13m.png';
+  }
+  if (url.includes('15m')) {
+    console.log('   ✅ Matched 15m');
+    return '/images/avtovyshka-15m.png';
+  }
+  if (url.includes('16m')) {
+    console.log('   ✅ Matched 16m');
+    return '/images/avtovyshka-16m.png';
+  }
+  if (url.includes('17m')) {
+    console.log('   ✅ Matched 17m -> 18m');
+    return '/images/avtovyshka-18m.png';
+  }
+  if (url.includes('18m')) {
+    console.log('   ✅ Matched 18m');
+    return '/images/avtovyshka-18m.png';
+  }
+  if (url.includes('21m')) {
+    console.log('   ✅ Matched 21m');
+    return '/images/avtovyshka-21m.png';
+  }
+  if (url.includes('25m')) {
+    console.log('   ✅ Matched 25m');
+    return '/images/avtovyshka-25m.png';
+  }
+  if (url.includes('29m')) {
+    console.log('   ✅ Matched 29m');
+    return '/images/avtovyshka-29m.png';
+  }
+  if (url.includes('45m')) {
+    console.log('   ✅ Matched 45m');
+    return '/images/avtovyshka-45m.png';
+  }
+  if (url.includes('vezdehod') || url.includes('вездеход')) {
+    console.log('   ✅ Matched vezdehod');
+    return '/images/avtovyshka-vezdehod-30m.png';
+  }
+  if (url.includes('samohodnaya') || url.includes('самоходная')) {
+    console.log('   ✅ Matched samohodnaya');
+    return '/images/avtovyshka-13m.png';
+  }
   
   // Определяем по высоте из названия
   const height = extractHeightFromTitle(service.title);
+  console.log('   🔄 Trying to determine image from height:', height);
+  
   if (height) {
-    if (height === 13) return '/images/avtovyshka-13m.png';
-    if (height === 15) return '/images/avtovyshka-15m.png';
-    if (height === 16) return '/images/avtovyshka-16m.png';
-    if (height === 17) return '/images/avtovyshka-18m.png'; // Fallback на 18м
-    if (height === 18) return '/images/avtovyshka-18m.png';
-    if (height === 21) return '/images/avtovyshka-21m.png';
-    if (height === 25) return '/images/avtovyshka-25m.png';
-    if (height === 29) return '/images/avtovyshka-29m.png';
-    if (height === 45) return '/images/avtovyshka-29m.png'; // Fallback на 29м, пока нет 45м
+    if (height === 13) {
+      console.log('   ✅ Matched height 13');
+      return '/images/avtovyshka-13m.png';
+    }
+    if (height === 15) {
+      console.log('   ✅ Matched height 15');
+      return '/images/avtovyshka-15m.png';
+    }
+    if (height === 16) {
+      console.log('   ✅ Matched height 16');
+      return '/images/avtovyshka-16m.png';
+    }
+    if (height === 17) {
+      console.log('   ✅ Matched height 17 -> 18m');
+      return '/images/avtovyshka-18m.png';
+    }
+    if (height === 18) {
+      console.log('   ✅ Matched height 18');
+      return '/images/avtovyshka-18m.png';
+    }
+    if (height === 21) {
+      console.log('   ✅ Matched height 21');
+      return '/images/avtovyshka-21m.png';
+    }
+    if (height === 25) {
+      console.log('   ✅ Matched height 25');
+      return '/images/avtovyshka-25m.png';
+    }
+    if (height === 29) {
+      console.log('   ✅ Matched height 29');
+      return '/images/avtovyshka-29m.png';
+    }
+    if (height === 45) {
+      console.log('   ✅ Matched height 45');
+      return '/images/avtovyshka-45m.png';
+    }
   }
   
   // Fallback
+  console.log('   ⚠️ Using default fallback image');
   return '/images/avtovyshka-13m.png';
 }
 
