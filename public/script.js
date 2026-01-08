@@ -275,7 +275,7 @@ let CALC_EQUIPMENT = {
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-29m.png', // Fallback на 29м, пока нет 45м
   },
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
@@ -379,12 +379,12 @@ function getImageForService(service) {
     if (height === 13) return '/images/avtovyshka-13m.png';
     if (height === 15) return '/images/avtovyshka-15m.png';
     if (height === 16) return '/images/avtovyshka-16m.png';
-    if (height === 17) return '/images/avtovyshka-17m.png';
+    if (height === 17) return '/images/avtovyshka-18m.png'; // Fallback на 18м
     if (height === 18) return '/images/avtovyshka-18m.png';
     if (height === 21) return '/images/avtovyshka-21m.png';
     if (height === 25) return '/images/avtovyshka-25m.png';
     if (height === 29) return '/images/avtovyshka-29m.png';
-    if (height === 45) return '/images/avtovyshka-45m.png';
+    if (height === 45) return '/images/avtovyshka-29m.png'; // Fallback на 29м, пока нет 45м
   }
   
   // Fallback
