@@ -516,9 +516,9 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Чем меньше число, тем выше в списке</small>
             </div>
             <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="serviceIsPopular" name="is_popular" value="1">
-                        Показать на главной странице (популярные слайды)
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="serviceIsPopular" name="is_popular" value="1" style="width: auto; margin: 0;">
+                        <span>Показать на главной странице (популярные слайды)</span>
                     </label>
                     <small class="form-hint">Отметьте, чтобы показать эту услугу в слайдере на главной странице</small>
             </div>
