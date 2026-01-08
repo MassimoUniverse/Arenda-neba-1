@@ -84,11 +84,11 @@
   overflow: hidden;
   pointer-events: none;
   will-change: transform, opacity, filter, z-index;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.05);
   /* Базовые значения - обновляются через JS */
-  transform: translateX(-50%) translateY(-50%) scale(0.95);
-  opacity: 0;
-  filter: blur(8px);
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+  opacity: 0.3;
+  filter: blur(6px);
   z-index: 1;
   /* Убираем CSS transitions - используем только JS для плавной интерполяции */
   transition: none;
@@ -118,9 +118,9 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.3) 40%,
+    rgba(0, 0, 0, 0) 70%
   );
   pointer-events: none;
   z-index: 1;

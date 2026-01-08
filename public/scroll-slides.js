@@ -179,13 +179,13 @@ async function initScrollSlides() {
     }
     
     // Когда секция полностью прокручена (конец прокрутки)
-    const sectionBottom = sectionTop + sectionHeight;
-    if (sectionBottom < 0) {
+    // Низ секции достиг верха экрана
+    if (sectionTop < -sectionHeight + windowHeight) {
       return 1;
     }
     
     // Вычисляем прогресс: от момента когда верх секции достиг верха экрана
-    // до момента когда низ секции достиг низа экрана
+    // до момента когда низ секции достиг верха экрана
     const startPoint = windowHeight; // когда верх секции на верху экрана
     const endPoint = -sectionHeight + windowHeight; // когда низ секции на верху экрана
     
@@ -240,33 +240,33 @@ async function initScrollSlides() {
     if (absDistance < 0.5) {
       const activeProgress = absDistance * 2; // 0-1 внутри активной зоны
       return {
-        translateY: -50 + (clampedDistance * 15), // Небольшое смещение для плавности
-        scale: 1 - (activeProgress * CONFIG.scaleRange * 0.15),
-        opacity: Math.max(0.9, 1 - (activeProgress * 0.1)),
-        blur: activeProgress * CONFIG.blurRange * 0.15,
+        translateY: -50 + (clampedDistance * 10), // Небольшое смещение для плавности
+        scale: 1 - (activeProgress * CONFIG.scaleRange * 0.1),
+        opacity: Math.max(0.95, 1 - (activeProgress * 0.05)),
+        blur: activeProgress * CONFIG.blurRange * 0.1,
         zIndex: CONFIG.zIndexBase + slidesCount + 2
       };
     }
     
     // Прошедшие слайды (distance < 0) - уходят вверх и уменьшаются
     if (clampedDistance < 0) {
-      const progress = Math.min(1, absDistance / 1.5); // Нормализуем для плавности
+      const progress = Math.min(1, absDistance / 1.2); // Нормализуем для плавности
       return {
-        translateY: -50 - (progress * 100), // Уходит вверх
-        scale: Math.max(0.6, 1 - (progress * CONFIG.scaleRange)),
-        opacity: Math.max(0, 1 - (progress * CONFIG.opacityRange * 0.8)),
-        blur: Math.min(CONFIG.blurRange, progress * CONFIG.blurRange * 0.6),
+        translateY: -50 - (progress * 90), // Уходит вверх
+        scale: Math.max(0.7, 1 - (progress * CONFIG.scaleRange * 0.8)),
+        opacity: Math.max(0, 1 - (progress * CONFIG.opacityRange)),
+        blur: Math.min(CONFIG.blurRange, progress * CONFIG.blurRange * 0.7),
         zIndex: CONFIG.zIndexBase + slidesCount - Math.floor(absDistance)
       };
     }
     
     // Будущие слайды (distance > 0) - появляются снизу и увеличиваются
-    const progress = Math.min(1, clampedDistance / 1.5); // Нормализуем для плавности
+    const progress = Math.min(1, clampedDistance / 1.2); // Нормализуем для плавности
     return {
       translateY: -50 + (progress * CONFIG.translateYRange), // Снизу
-      scale: Math.max(0.6, 1 - (progress * CONFIG.scaleRange)),
-      opacity: Math.max(0, 1 - (progress * CONFIG.opacityRange * 0.8)),
-      blur: Math.min(CONFIG.blurRange, progress * CONFIG.blurRange * 0.6),
+      scale: Math.max(0.7, 1 - (progress * CONFIG.scaleRange * 0.8)),
+      opacity: Math.max(0, 1 - (progress * CONFIG.opacityRange)),
+      blur: Math.min(CONFIG.blurRange, progress * CONFIG.blurRange * 0.7),
       zIndex: CONFIG.zIndexBase + Math.floor(clampedDistance)
     };
   }
