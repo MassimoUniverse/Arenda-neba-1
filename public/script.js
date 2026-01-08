@@ -1818,19 +1818,18 @@ async function initScrollSlides() {
     }
   }, 100);
   
-  // Инициализация - вызываем сразу и через небольшую задержку для надежности
+  // Инициализация - вызываем сразу
   updateSlides();
-  setTimeout(() => updateSlides(), 100);
   
   // Обновление при изменении размера окна
   window.addEventListener('resize', () => {
     updateSlides();
   }, { passive: true });
   
-  // Также обновляем при загрузке, если секция уже видна
-  if (section.getBoundingClientRect().top < window.innerHeight) {
-    setTimeout(() => updateSlides(), 200);
-  }
+  // Также обновляем при загрузке
+  setTimeout(() => {
+    updateSlides();
+  }, 100);
 }
 
 // Обработчик формы быстрой заявки
