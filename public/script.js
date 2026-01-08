@@ -1713,41 +1713,39 @@ async function initScrollSlides() {
    * Вычисляет стили слайда на основе distance
    */
   function getSlideStyles(distance) {
-    // Ограничиваем distance для плавности
-    const clampedDistance = Math.max(-2, Math.min(2, distance));
-    
-    // Активный слайд (distance ≈ 0)
-    if (Math.abs(clampedDistance) < 0.5) {
-      const activeProgress = Math.abs(clampedDistance) * 2; // 0-1
+    // Активный слайд (distance близко к 0)
+    if (Math.abs(distance) < 0.5) {
+      const activeProgress = Math.abs(distance) * 2; // 0-1
       return {
-        translateY: -50 + (clampedDistance * 15), // Небольшое смещение
-        scale: 1 - (activeProgress * CONFIG.scaleRange * 0.3),
-        opacity: 1 - (activeProgress * 0.2),
-        blur: activeProgress * CONFIG.blurRange * 0.3,
-        zIndex: CONFIG.zIndexBase + slidesCount
+        translateY: -50 + (distance * 20), // Небольшое смещение для плавности
+        scale: 1 - (activeProgress * CONFIG.scaleRange * 0.2),
+        opacity: Math.max(0.8, 1 - (activeProgress * 0.2)),
+        blur: activeProgress * CONFIG.blurRange * 0.2,
+        zIndex: CONFIG.zIndexBase + slidesCount + 1
       };
     }
     
-    // Прошедшие слайды (distance < 0)
-    if (clampedDistance < 0) {
-      const absDistance = Math.abs(clampedDistance);
+    // Прошедшие слайды (distance < 0) - уходят вверх
+    if (distance < 0) {
+      const absDistance = Math.abs(distance);
+      const clampedDistance = Math.min(2, absDistance);
       return {
-        translateY: -50 - (absDistance * 80), // Уходит вверх
-        scale: 1 - (absDistance * CONFIG.scaleRange),
-        opacity: Math.max(0, 1 - (absDistance * CONFIG.opacityRange)),
-        blur: Math.min(CONFIG.blurRange, absDistance * CONFIG.blurRange),
-        zIndex: CONFIG.zIndexBase + slidesCount - Math.floor(absDistance)
+        translateY: -50 - (clampedDistance * 80), // Уходит вверх
+        scale: Math.max(0.5, 1 - (clampedDistance * CONFIG.scaleRange)),
+        opacity: Math.max(0, 1 - (clampedDistance * CONFIG.opacityRange)),
+        blur: Math.min(CONFIG.blurRange, clampedDistance * CONFIG.blurRange * 0.5),
+        zIndex: CONFIG.zIndexBase + slidesCount - Math.floor(clampedDistance)
       };
     }
     
-    // Будущие слайды (distance > 0)
-    const absDistance = clampedDistance;
+    // Будущие слайды (distance > 0) - появляются снизу
+    const clampedDistance = Math.min(2, distance);
     return {
-      translateY: -50 + (absDistance * CONFIG.translateYRange), // Снизу
-      scale: 1 - (absDistance * CONFIG.scaleRange),
-      opacity: Math.max(0, 1 - (absDistance * CONFIG.opacityRange)),
-      blur: Math.min(CONFIG.blurRange, absDistance * CONFIG.blurRange),
-      zIndex: CONFIG.zIndexBase + Math.floor(absDistance)
+      translateY: -50 + (clampedDistance * CONFIG.translateYRange), // Снизу
+      scale: Math.max(0.5, 1 - (clampedDistance * CONFIG.scaleRange)),
+      opacity: Math.max(0, 1 - (clampedDistance * CONFIG.opacityRange)),
+      blur: Math.min(CONFIG.blurRange, clampedDistance * CONFIG.blurRange * 0.5),
+      zIndex: CONFIG.zIndexBase + Math.floor(clampedDistance)
     };
   }
   
@@ -1810,11 +1808,19 @@ async function initScrollSlides() {
     }
   }, 100);
   
-  // Инициализация
+  // Инициализация - вызываем сразу и через небольшую задержку для надежности
   updateSlides();
+  setTimeout(() => updateSlides(), 100);
   
   // Обновление при изменении размера окна
-  window.addEventListener('resize', updateSlides, { passive: true });
+  window.addEventListener('resize', () => {
+    updateSlides();
+  }, { passive: true });
+  
+  // Также обновляем при загрузке, если секция уже видна
+  if (section.getBoundingClientRect().top < window.innerHeight) {
+    setTimeout(() => updateSlides(), 200);
+  }
 }
 
 // Обработчик формы быстрой заявки
