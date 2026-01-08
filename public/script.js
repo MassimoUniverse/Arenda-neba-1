@@ -1551,8 +1551,62 @@ async function initOurCapabilitiesSlider() {
     '/equipment/avtovyshka-25m.html'
   ];
   
+  // ВСЕГДА используем данные из POPULAR_EQUIPMENT_SLIDES для популярных слайдов
+  // Это гарантирует правильное отображение независимо от данных в базе
   let slidesData = POPULAR_EQUIPMENT_SLIDES;
   
+  // Пытаемся получить изображения из базы данных, но используем fallback данные для всего остального
+  try {
+    const response = await fetch('/api/services');
+    if (response.ok) {
+      const services = await response.json();
+      // Фильтруем популярные машины по URL
+      const popularServices = services.filter(service => 
+        popularUrls.includes(service.url)
+      );
+      
+      if (popularServices.length > 0) {
+        // Используем только изображения из базы, всё остальное из POPULAR_EQUIPMENT_SLIDES
+        slidesData = POPULAR_EQUIPMENT_SLIDES.map((fallbackSlide, index) => {
+          const service = popularServices.find(s => popularUrls[index] === s.url);
+          
+          // Используем изображение из базы, если есть, иначе из fallback
+          let slideImage = fallbackSlide.image;
+          if (service && service.image_url) {
+            slideImage = service.image_url;
+          } else if (service) {
+            // Определяем изображение по URL
+            const serviceUrl = (service.url || '').toLowerCase();
+            if (serviceUrl.includes('13m')) {
+              slideImage = '/images/avtovyshka-13m.png';
+            } else if (serviceUrl.includes('16m')) {
+              slideImage = '/images/avtovyshka-18m.png';
+            } else if (serviceUrl.includes('21m')) {
+              slideImage = '/images/avtovyshka-21m.png';
+            } else if (serviceUrl.includes('25m')) {
+              slideImage = '/images/avtovyshka-25m.png';
+            }
+          }
+          
+          return {
+            ...fallbackSlide,
+            image: slideImage,
+            url: popularUrls[index] || fallbackSlide.url
+          };
+        });
+      } else {
+        // Если в базе нет нужных записей, используем fallback данные как есть
+        slidesData = POPULAR_EQUIPMENT_SLIDES;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading popular equipment:', error);
+    // Используем FALLBACK данные
+    slidesData = POPULAR_EQUIPMENT_SLIDES;
+  }
+  
+  // Старый код для загрузки из базы - закомментирован, так как теперь всегда используем fallback
+  /*
   try {
     const response = await fetch('/api/services');
     if (response.ok) {
