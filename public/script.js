@@ -582,17 +582,41 @@ function populateCalculatorSelect() {
   selectEl.innerHTML = '';
   
   // Сортируем ключи по высоте (числовые значения)
-  // Телескопический погрузчик (loader) всегда в конце
+  // Телескопический погрузчик всегда в конце
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
-    // Погрузчик всегда в конце
-    if (a === 'loader') return 1;
-    if (b === 'loader') return -1;
+    const configA = CALC_EQUIPMENT[a];
+    const configB = CALC_EQUIPMENT[b];
     
-    const numA = parseInt(a) || 999;
-    const numB = parseInt(b) || 999;
-    if (numA !== 999 && numB !== 999) return numA - numB;
-    if (numA === 999) return 1;
-    if (numB === 999) return -1;
+    // Проверяем по названию, если это погрузчик - всегда в конце
+    const isLoaderA = a === 'loader' || (configA && configA.name && configA.name.toLowerCase().includes('погрузчик'));
+    const isLoaderB = b === 'loader' || (configB && configB.name && configB.name.toLowerCase().includes('погрузчик'));
+    
+    // Погрузчик всегда в конце (после всех остальных)
+    if (isLoaderA && !isLoaderB) return 1; // A - погрузчик, B - нет, A идет в конец
+    if (isLoaderB && !isLoaderA) return -1; // B - погрузчик, A - нет, B идет в конец
+    if (isLoaderA && isLoaderB) return 0; // Оба погрузчика - порядок не важен
+    
+    // Если ни один не погрузчик, сортируем как обычно
+    const numA = parseInt(a);
+    const numB = parseInt(b);
+    
+    // Если оба числовые - сортируем по числу
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    }
+    
+    // Если A числовое, а B нет (и не погрузчик) - A идет раньше
+    if (!isNaN(numA) && isNaN(numB)) {
+      return -1;
+    }
+    
+    // Если B числовое, а A нет (и не погрузчик) - B идет раньше
+    if (isNaN(numA) && !isNaN(numB)) {
+      return 1;
+    }
+    
+    // Если оба не числовые - сортируем по алфавиту
+    // Но специальные ключи (self, 30offroad) идут после числовых, но перед погрузчиком
     return a.localeCompare(b);
   });
   
