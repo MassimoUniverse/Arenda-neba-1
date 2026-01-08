@@ -1632,12 +1632,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   try {
-    initScrollSlides();
-  } catch (error) {
-    console.error('Error initializing scroll slides:', error);
-  }
-  
-  try {
     initQuickContactForm();
   } catch (error) {
     console.error('Error initializing contact form:', error);
