@@ -1656,6 +1656,13 @@ async function initScrollSlides() {
   
   const slides = wrapper.querySelectorAll('.scroll-slide');
   
+  if (slides.length === 0) {
+    console.error('No slides created');
+    return;
+  }
+  
+  console.log('Scroll slides initialized:', slides.length, 'slides');
+  
   // Коэффициенты для плавной интерполяции (можно настроить)
   const CONFIG = {
     scaleRange: 0.25,      // Разница масштаба между активным и неактивным слайдом
@@ -1756,15 +1763,18 @@ async function initScrollSlides() {
     const progress = calculateScrollProgress();
     const position = getSlidePosition(progress);
     
+    // Убеждаемся, что слайды существуют
+    if (!slides || slides.length === 0) return;
+    
     slides.forEach((slide, index) => {
       const distance = getSlideDistance(index, position);
       const styles = getSlideStyles(distance);
       
       // Применяем стили
       slide.style.transform = `translateX(-50%) translateY(${styles.translateY}%) scale(${styles.scale})`;
-      slide.style.opacity = styles.opacity;
+      slide.style.opacity = Math.max(0, Math.min(1, styles.opacity));
       slide.style.filter = `blur(${styles.blur}px)`;
-      slide.style.zIndex = styles.zIndex;
+      slide.style.zIndex = Math.max(1, styles.zIndex);
     });
     
     // Показываем кнопку на последнем слайде
