@@ -283,8 +283,11 @@ async function initScrollSlides() {
     const progress = calculateScrollProgress();
     const position = getSlidePosition(progress);
     
+    // Убеждаемся, что при начальном состоянии (progress = 0) показывается первый слайд
+    const safePosition = Math.max(0, Math.min(slidesCount - 1, position));
+    
     slides.forEach((slide, index) => {
-      const distance = getSlideDistance(index, position);
+      const distance = getSlideDistance(index, safePosition);
       const styles = getSlideStyles(distance);
       
       // Применяем стили напрямую для плавной интерполяции
