@@ -1775,6 +1775,13 @@ async function initScrollSlides() {
       slide.style.opacity = Math.max(0, Math.min(1, styles.opacity));
       slide.style.filter = `blur(${styles.blur}px)`;
       slide.style.zIndex = Math.max(1, styles.zIndex);
+      
+      // Включаем pointer-events для активного слайда
+      if (Math.abs(distance) < 0.5) {
+        slide.style.pointerEvents = 'auto';
+      } else {
+        slide.style.pointerEvents = 'none';
+      }
     });
     
     // Показываем кнопку на последнем слайде
