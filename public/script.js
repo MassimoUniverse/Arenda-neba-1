@@ -1717,6 +1717,23 @@ async function initOurCapabilitiesSlider() {
       }
       // Будущие слайды остаются внизу (translateY(100%))
     });
+    
+    // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
+    if (buttonContainer) {
+      if (activeIndex >= totalSlides - 1) {
+        // Последний слайд - показываем кнопку
+        buttonContainer.classList.add('visible');
+      } else if (activeIndex < totalSlides - 2) {
+        // Не предпоследний и не последний слайд - скрываем кнопку
+        buttonContainer.classList.remove('visible');
+      }
+    }
+    
+    // Обновляем счётчики на слайдах (они уже есть в HTML каждого слайда)
+    // Счётчики обновляются автоматически, так как они встроены в каждый слайд
+    
+    previousIndex = activeIndex;
+  }
   
   // Функция вычисления прогресса прокрутки
   function calculateProgress() {
@@ -1925,14 +1942,43 @@ async function initEquipmentDropdown() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  displayServices();
-  displayReviews();
-  // Загружаем данные для калькулятора из API перед инициализацией
-  await loadCalculatorEquipmentFromAPI();
-  initCalculator();
-  initOurCapabilitiesSlider();
-  initQuickContactForm();
-  initEquipmentDropdown();
+  try {
+    await displayServices();
+  } catch (error) {
+    console.error('Error displaying services:', error);
+  }
+  
+  try {
+    await displayReviews();
+  } catch (error) {
+    console.error('Error displaying reviews:', error);
+  }
+  
+  try {
+    // Загружаем данные для калькулятора из API перед инициализацией
+    await loadCalculatorEquipmentFromAPI();
+    initCalculator();
+  } catch (error) {
+    console.error('Error initializing calculator:', error);
+  }
+  
+  try {
+    initOurCapabilitiesSlider();
+  } catch (error) {
+    console.error('Error initializing slider:', error);
+  }
+  
+  try {
+    initQuickContactForm();
+  } catch (error) {
+    console.error('Error initializing contact form:', error);
+  }
+  
+  try {
+    initEquipmentDropdown();
+  } catch (error) {
+    console.error('Error initializing equipment dropdown:', error);
+  }
 });
 
  
