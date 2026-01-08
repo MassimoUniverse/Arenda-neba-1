@@ -1,13 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Автовышка вездеход 35 метров - Аренда в СПб | Аренда Неба</title>
-    <meta name="description" content="Уникальная вездеходная техника 4x4 для труднодоступных мест и бездорожья. Идеальна для лесных массивов, строек, горных работ.">
+    <title>Автовышка-вездеход 30 метров - Аренда в СПб | Аренда Неба</title>
+    <meta name="description" content="Аренда автовышки-вездехода 30 метров в Санкт-Петербурге. Высота подъема 30м, грузоподъемность 300 кг. ☎ +7 (991) 000-91-11">
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
-    
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -50,7 +49,7 @@
                     <a href="../index.html#contacts">Контакты</a>
                 </nav>
                 <div class="header-contacts-mini">
-                    <a href="tel:+79910009111" class="header-messenger phone" data-ct="phone" aria-label="Позвонить">
+                    <a href="tel:+79910009111" data-ct="phone" class="header-messenger phone" aria-label="Позвонить">
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                         </svg>
@@ -73,6 +72,8 @@
         </div>
     </header>
 
+
+
     <!-- Breadcrumbs -->
     <div class="breadcrumbs">
         <div class="container">
@@ -80,7 +81,7 @@
             <span>/</span>
             <a href="../index.html#services">Автопарк</a>
             <span>/</span>
-            <span>Автовышка вездеход 35 метров</span>
+            <span>Автовышка 25м</span>
         </div>
     </div>
 
@@ -88,10 +89,10 @@
     <section class="equipment-detail">
         <div class="container">
             <div class="equipment-header">
-                <h1>Автовышка вездеход 35 метров</h1>
+                <h1>Автовышка-вездеход 30 метров</h1>
                 <div class="equipment-price">
                     <span class="price-label">Цена аренды:</span>
-                    <span class="price-value">от 32 000 ₽/смена <span class="price-vat">без НДС</span></span>
+                    <span class="price-value">32 000 ₽ / смена <span class="price-vat">без НДС</span></span>
                 </div>
             </div>
 
@@ -99,55 +100,57 @@
                 <div class="equipment-left">
                     <div class="equipment-gallery">
                         <div class="main-image">
-                            <img src="../images/avtovyshka-vezdehod-30m.png" alt="Автовышка вездеход 35 метров" id="mainEquipmentImage">
+                            <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop" alt="Автовышка 25 метров">
                         </div>
-                        <div class="gallery-thumbnails" id="galleryThumbnails">
-                            <img src="../images/avtovyshka-vezdehod-30m.png" alt="Вид 1" class="active">
+                        <div class="gallery-thumbnails">
+                            <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=200&h=150&fit=crop" alt="Вид 1" class="active">
+                            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=200&h=150&fit=crop" alt="Вид 2">
+                            <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=200&h=150&fit=crop" alt="Вид 3">
                         </div>
                     </div>
 
                     <!-- Мини-калькулятор для конкретной техники -->
                     <div class="equipment-calculator" id="equipmentCalculator">
-                        <div class="equipment-calculator-header">
-                            <h3>Рассчитать стоимость аренды</h3>
-                            <p>Укажите параметры для расчета стоимости</p>
+                    <div class="equipment-calculator-header">
+                        <h3>Рассчитать стоимость аренды</h3>
+                        <p>Укажите параметры для расчета стоимости</p>
+                    </div>
+                    <form class="equipment-calculator-form" id="equipmentCalculatorForm">
+                        <div class="calc-field-group">
+                            <label class="calc-field">
+                                <span class="calc-field-label">Количество смен</span>
+                                <select id="equip-calc-shifts" required>
+                                    <option value="0.5">Полсмены</option>
+                                    <option value="1" selected>1 смена</option>
+                                    <option value="2">2 смены</option>
+                                    <option value="3">3 смены</option>
+                                    <option value="more">Более 3 смен</option>
+                                </select>
+                                <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                            </label>
+                            <label class="calc-field">
+                                <span class="calc-field-label">Расстояние от КАД, км (в одну сторону)</span>
+                                <div class="calc-number-input">
+                                    <button type="button" class="calc-number-btn calc-number-btn--minus" data-target="equip-calc-distance">−</button>
+                                    <input type="number" id="equip-calc-distance" min="0" step="1" value="0">
+                                    <button type="button" class="calc-number-btn calc-number-btn--plus" data-target="equip-calc-distance">+</button>
+                                </div>
+                                <p class="calculator-km-info" id="equip-calc-km-info">85 ₽/км × 2 (в каждую сторону)</p>
+                            </label>
                         </div>
-                        <form class="equipment-calculator-form" id="equipmentCalculatorForm">
-                            <div class="calc-field-group">
-                                <label class="calc-field">
-                                    <span class="calc-field-label">Количество смен</span>
-                                    <select id="equip-calc-shifts" required>
-                                        <option value="0.5">Полсмены</option>
-                                        <option value="1" selected>1 смена</option>
-                                        <option value="2">2 смены</option>
-                                        <option value="3">3 смены</option>
-                                        <option value="more">Более 3 смен</option>
-                                    </select>
-                                    <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                                </label>
-                                <label class="calc-field">
-                                    <span class="calc-field-label">Расстояние от КАД, км (в одну сторону)</span>
-                                    <div class="calc-number-input">
-                                        <button type="button" class="calc-number-btn calc-number-btn--minus" data-target="equip-calc-distance">−</button>
-                                        <input type="number" id="equip-calc-distance" min="0" step="1" value="0">
-                                        <button type="button" class="calc-number-btn calc-number-btn--plus" data-target="equip-calc-distance">+</button>
-                                    </div>
-                                    <p class="calculator-km-info" id="equip-calc-km-info">85 ₽/км × 2 (в каждую сторону)</p>
-                                </label>
-                            </div>
-                            <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
-                            <div class="calc-result" id="equipmentCalcResult">
-                                <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
-                            </div>
-                            <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
+                        <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
+                        <div class="calc-result" id="equipmentCalcResult">
+                            <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
+                        </div>
+                        <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
                         </form>
                     </div>
 
                     <!-- Order Form -->
                     <div class="equipment-order-form">
-                        <h2>Заказать автовышка вездеход 35 метров</h2>
+                        <h2>Заказать автовышку-вездеход 30м</h2>
                         <form id="orderForm">
-                            <input type="hidden" name="equipment" value="Автовышка вездеход 35 метров">
+                            <input type="hidden" name="equipment" value="Автовышка-вездеход 30м">
                             <div class="form-group">
                                 <input type="text" name="name" placeholder="Ваше имя *" required>
                             </div>
@@ -198,42 +201,59 @@
                                     <div class="spec-item">
                                         <div class="spec-icon">📏</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Высота подъема люльки</div>
+                                            <div class="spec-label">Высота подъема</div>
                                             <div class="spec-value">25 метров</div>
-                                        </div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-icon">📐</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Максимальный вылет</div>
-                                            <div class="spec-value">14 метров</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">⚖️</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Максимальная грузоподъемность</div>
+                                            <div class="spec-label">Грузоподъемность</div>
                                             <div class="spec-value">250 кг</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">🚗</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Тип подъемника</div>
+                                            <div class="spec-label">База</div>
                                             <div class="spec-value">КАМАЗ-43253</div>
                                         </div>
                                     </div>
-                                    
-                                    
                                     <div class="spec-item">
-                                        <div class="spec-icon">📏</div>
+                                        <div class="spec-icon">📐</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Ширина</div>
+                                            <div class="spec-label">Вылет стрелы</div>
+                                            <div class="spec-value">14 метров</div>
+                                        </div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-icon">📦</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Размер люльки</div>
                                             <div class="spec-value">1.2 x 0.7 м</div>
                                         </div>
                                     </div>
-                                    
-                                    
+                                    <div class="spec-item">
+                                        <div class="spec-icon">🔋</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Напряжение</div>
+                                            <div class="spec-value">220В в люльке</div>
+                                        </div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-icon">🎯</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Маневренность</div>
+                                            <div class="spec-value">Радиус разворота 9м</div>
+                                        </div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-icon">⏱️</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Время установки</div>
+                                            <div class="spec-value">5-10 минут</div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="reach-diagrams-container" id="reachDiagramsContainer" style="display: none;">
                                     <h3 class="reach-diagrams-title">Схемы вылета стрелы</h3>
@@ -245,7 +265,21 @@
                         <div class="equipment-tab-content" id="tab-description">
                             <div class="info-section" style="padding: 0; margin: 0;">
                                 <h2 style="margin-top: 0; margin-bottom: 16px;">Описание</h2>
-                                <p>Уникальная вездеходная техника 4x4 для труднодоступных мест и бездорожья. Идеальна для лесных массивов, строек, горных работ.</p>
+                                <p>Автовышка 25 метров - универсальная машина для работ на средних и больших высотах. Идеально подходит для фасадных работ, монтажа рекламных конструкций, ремонта многоэтажных зданий и промышленных объектов.</p>
+                                <p>Техника в отличном техническом состоянии, регулярно проходит ТО. В стоимость аренды входит работа опытного машиниста и ГСМ.</p>
+                                
+                                <h2 style="margin-top: 24px; margin-bottom: 16px;">Область применения</h2>
+                                <ul class="application-list">
+                                    <li>✅ Фасадные и высотные работы</li>
+                                    <li>✅ Установка и обслуживание кондиционеров</li>
+                                    <li>✅ Монтаж вывесок и рекламных конструкций</li>
+                                    <li>✅ Установка уличного освещения</li>
+                                    <li>✅ Обрезка деревьев</li>
+                                    <li>✅ Мойка фасадов и окон</li>
+                                    <li>✅ Ремонт кровли</li>
+                                    <li>✅ Монтаж систем вентиляции</li>
+                                    <li>✅ Промышленный альпинизм</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -253,10 +287,17 @@
                     <div class="info-section">
                         <h2>Стоимость аренды</h2>
                         <div class="pricing-table">
-                            
                             <div class="pricing-row">
                                 <span>1 смена (8 часов)</span>
-                                <span class="pricing-value">32 000 ₽ <span class="price-vat">без НДС</span></span>
+                                <span class="pricing-value">32 000 ₽ <span class="price-vat">без НДС</span></span>
+                            </div>
+                            <div class="pricing-row">
+                                <span>2 смены (16 часов)</span>
+                                <span class="pricing-value">64 000 ₽ <span class="price-vat">без НДС</span></span>
+                            </div>
+                            <div class="pricing-row">
+                                <span>3+ смены</span>
+                                <span class="pricing-value">Договорная</span>
                             </div>
                             <div class="pricing-row">
                                 <span>Подача техники (за КАД)</span>
@@ -300,9 +341,10 @@
     </footer>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
     <script src="../equipment-page.js"></script>
@@ -314,3 +356,4 @@
     <!-- calltouch -->
 </body>
 </html>
+

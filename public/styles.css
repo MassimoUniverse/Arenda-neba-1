@@ -750,8 +750,6 @@ a.logo:hover {
   gap: 20px;
   box-shadow: var(--shadow-sm);
   align-items: start;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .field {
@@ -2277,17 +2275,9 @@ input[type='number'] {
   }
   
   /* Калькулятор */
-  .calculator-layout {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  
   .calculator-form {
     grid-template-columns: 1fr;
-    padding: 20px;
-    max-width: 100%;
-    box-sizing: border-box;
-    width: 100%;
+    padding: 24px;
   }
   
   .calculator-preview {
@@ -2296,12 +2286,6 @@ input[type='number'] {
   
   .field {
     margin-bottom: 16px;
-    width: 100%;
-  }
-  
-  .calc-select-current {
-    min-width: auto;
-    width: 100%;
   }
   
   /* Услуги */
@@ -2498,34 +2482,9 @@ input[type='number'] {
   }
   
   /* Калькулятор */
-  .calculator-layout {
-    gap: 20px;
-  }
-  
   .calculator-form {
-    padding: 16px;
-    gap: 14px;
-    max-width: 100%;
-    box-sizing: border-box;
-    width: 100%;
-    overflow-x: hidden;
-  }
-  
-  .field {
-    width: 100%;
-    min-width: 0;
-  }
-  
-  .calc-field-group {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  
-  .calc-select-current {
-    min-width: auto;
-    width: 100%;
-    font-size: 14px;
-    padding: 10px 14px;
+    padding: 20px;
+    gap: 16px;
   }
   
   .field-label {
@@ -2533,21 +2492,11 @@ input[type='number'] {
   }
   
   .calculator-sum-inline {
-    font-size: 16px;
+    font-size: 18px;
   }
   
   .calculator-note-inline {
-    font-size: 11px;
-  }
-  
-  .number-input {
-    width: 100%;
-  }
-  
-  .number-btn {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
+    font-size: 12px;
   }
   
   /* Услуги */

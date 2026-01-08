@@ -212,7 +212,7 @@ let CALC_EQUIPMENT = {
     height: 16,
     capacity: 200,
     boom: 9,
-    image: '/images/avtovyshka-16m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   17: {
     name: 'Автовышка 17 м',
@@ -223,7 +223,7 @@ let CALC_EQUIPMENT = {
     height: 17,
     capacity: 200,
     boom: 10,
-    image: '/images/avtovyshka-18m.png', // Используем 18м как fallback
+    image: '/images/avtovyshka-13m.png',
   },
   18: {
     name: 'Автовышка 18 м',
@@ -275,7 +275,7 @@ let CALC_EQUIPMENT = {
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-29m.png', // Fallback на 29м, пока нет 45м
+    image: '/images/avtovyshka-13m.png',
   },
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
@@ -324,174 +324,70 @@ function parseSpecifications(specs) {
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service) {
-  console.log('🔍 getImageForService called for:', service.title, {
-    image_url: service.image_url,
-    url: service.url,
-    height_lift: service.height_lift,
-    images: service.images
-  });
-  
   // Если есть image_url в базе, используем его (приоритет 1)
-  if (service.image_url && service.image_url.trim() !== '') {
-    let imageUrl = service.image_url.trim();
-    
+  if (service.image_url) {
     // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
-    if (imageUrl.startsWith('http://localhost:3000/')) {
-      imageUrl = imageUrl.replace('http://localhost:3000', '');
+    if (service.image_url.startsWith('http://localhost:3000/')) {
+      return service.image_url.replace('http://localhost:3000', '');
     }
-    if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
-      console.log('   ✅ Using full URL:', imageUrl);
-      return imageUrl;
+    if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
+      return service.image_url;
     }
     // Если это относительный путь, добавляем префикс если нужно
-    if (imageUrl.startsWith('/')) {
-      console.log('   ✅ Using relative path:', imageUrl);
-      return imageUrl;
+    if (service.image_url.startsWith('/')) {
+      return service.image_url;
     }
-    const finalUrl = '/' + imageUrl;
-    console.log('   ✅ Using normalized path:', finalUrl);
-    return finalUrl;
+    return '/' + service.image_url;
   }
   
   // Если есть массив images, используем первое изображение (приоритет 2)
-  if (service.images) {
-    let imagesArray = [];
+  if (service.images && Array.isArray(service.images) && service.images.length > 0) {
+    const firstImage = service.images[0];
+    let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
     
-    // Парсим JSON если это строка
-    if (typeof service.images === 'string') {
-      try {
-        imagesArray = JSON.parse(service.images);
-      } catch (e) {
-        // Если не JSON, возможно это одна строка с URL
-        if (service.images.trim()) {
-          imagesArray = [service.images.trim()];
-        }
-      }
-    } else if (Array.isArray(service.images)) {
-      imagesArray = service.images;
+    // Преобразуем localhost URL в относительный путь
+    if (imageUrl.startsWith('http://localhost:3000/')) {
+      imageUrl = imageUrl.replace('http://localhost:3000', '');
     }
     
-    if (imagesArray.length > 0) {
-      const firstImage = imagesArray[0];
-      let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
-      
-      if (imageUrl && imageUrl.trim()) {
-        imageUrl = imageUrl.trim();
-        
-        // Преобразуем localhost URL в относительный путь
-        if (imageUrl.startsWith('http://localhost:3000/')) {
-          imageUrl = imageUrl.replace('http://localhost:3000', '');
-        }
-        
-        if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
-          console.log('   ✅ Using image from images array (full URL):', imageUrl);
-          return imageUrl;
-        }
-        if (imageUrl.startsWith('/')) {
-          console.log('   ✅ Using image from images array:', imageUrl);
-          return imageUrl;
-        }
-        const finalUrl = '/' + imageUrl;
-        console.log('   ✅ Using image from images array (normalized):', finalUrl);
-        return finalUrl;
-      }
+    if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+      return imageUrl;
     }
+    if (imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
+    return '/' + imageUrl;
   }
   
   // Определяем по URL (fallback)
   const url = (service.url || '').toLowerCase();
-  console.log('   🔄 Trying to determine image from URL:', url);
-  
-  if (url.includes('13m')) {
-    console.log('   ✅ Matched 13m');
-    return '/images/avtovyshka-13m.png';
-  }
-  if (url.includes('15m')) {
-    console.log('   ✅ Matched 15m');
-    return '/images/avtovyshka-15m.png';
-  }
-  if (url.includes('16m')) {
-    console.log('   ✅ Matched 16m');
-    return '/images/avtovyshka-16m.png';
-  }
-  if (url.includes('17m')) {
-    console.log('   ✅ Matched 17m -> 18m');
-    return '/images/avtovyshka-18m.png';
-  }
-  if (url.includes('18m')) {
-    console.log('   ✅ Matched 18m');
-    return '/images/avtovyshka-18m.png';
-  }
-  if (url.includes('21m')) {
-    console.log('   ✅ Matched 21m');
-    return '/images/avtovyshka-21m.png';
-  }
-  if (url.includes('25m')) {
-    console.log('   ✅ Matched 25m');
-    return '/images/avtovyshka-25m.png';
-  }
-  if (url.includes('29m')) {
-    console.log('   ✅ Matched 29m');
-    return '/images/avtovyshka-29m.png';
-  }
-  if (url.includes('45m')) {
-    console.log('   ✅ Matched 45m');
-    return '/images/avtovyshka-45m.png';
-  }
-  if (url.includes('vezdehod') || url.includes('вездеход')) {
-    console.log('   ✅ Matched vezdehod');
-    return '/images/avtovyshka-vezdehod-30m.png';
-  }
-  if (url.includes('samohodnaya') || url.includes('самоходная')) {
-    console.log('   ✅ Matched samohodnaya');
-    return '/images/avtovyshka-13m.png';
-  }
+  if (url.includes('13m')) return '/images/avtovyshka-13m.png';
+  if (url.includes('15m')) return '/images/avtovyshka-15m.png';
+  if (url.includes('16m')) return '/images/avtovyshka-16m.png';
+  if (url.includes('17m')) return '/images/avtovyshka-17m.png';
+  if (url.includes('18m')) return '/images/avtovyshka-18m.png';
+  if (url.includes('21m')) return '/images/avtovyshka-21m.png';
+  if (url.includes('25m')) return '/images/avtovyshka-25m.png';
+  if (url.includes('29m')) return '/images/avtovyshka-29m.png';
+  if (url.includes('45m')) return '/images/avtovyshka-45m.png';
+  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
+  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
   
   // Определяем по высоте из названия
   const height = extractHeightFromTitle(service.title);
-  console.log('   🔄 Trying to determine image from height:', height);
-  
   if (height) {
-    if (height === 13) {
-      console.log('   ✅ Matched height 13');
-      return '/images/avtovyshka-13m.png';
-    }
-    if (height === 15) {
-      console.log('   ✅ Matched height 15');
-      return '/images/avtovyshka-15m.png';
-    }
-    if (height === 16) {
-      console.log('   ✅ Matched height 16');
-      return '/images/avtovyshka-16m.png';
-    }
-    if (height === 17) {
-      console.log('   ✅ Matched height 17 -> 18m');
-      return '/images/avtovyshka-18m.png';
-    }
-    if (height === 18) {
-      console.log('   ✅ Matched height 18');
-      return '/images/avtovyshka-18m.png';
-    }
-    if (height === 21) {
-      console.log('   ✅ Matched height 21');
-      return '/images/avtovyshka-21m.png';
-    }
-    if (height === 25) {
-      console.log('   ✅ Matched height 25');
-      return '/images/avtovyshka-25m.png';
-    }
-    if (height === 29) {
-      console.log('   ✅ Matched height 29');
-      return '/images/avtovyshka-29m.png';
-    }
-    if (height === 45) {
-      console.log('   ✅ Matched height 45');
-      return '/images/avtovyshka-45m.png';
-    }
+    if (height === 13) return '/images/avtovyshka-13m.png';
+    if (height === 15) return '/images/avtovyshka-15m.png';
+    if (height === 16) return '/images/avtovyshka-16m.png';
+    if (height === 17) return '/images/avtovyshka-17m.png';
+    if (height === 18) return '/images/avtovyshka-18m.png';
+    if (height === 21) return '/images/avtovyshka-21m.png';
+    if (height === 25) return '/images/avtovyshka-25m.png';
+    if (height === 29) return '/images/avtovyshka-29m.png';
+    if (height === 45) return '/images/avtovyshka-45m.png';
   }
   
   // Fallback
-  console.log('   ⚠️ Using default fallback image');
   return '/images/avtovyshka-13m.png';
 }
 
@@ -555,10 +451,9 @@ async function loadCalculatorEquipmentFromAPI() {
       const url = (service.url || '').toLowerCase();
       const title = (service.title || '').toLowerCase();
       
-      // Сначала проверяем, является ли это самоходной, вездеходом или погрузчиком
+      // Сначала проверяем, является ли это самоходной или вездеходом
       const isSamohodnaya = url.includes('samohodnaya') || url.includes('самоходная') || title.includes('самоходная');
       const isVezdehod = url.includes('vezdehod') || url.includes('вездеход') || title.includes('вездеход');
-      const isPogruzchik = url.includes('pogruzchik') || url.includes('погрузчик') || title.includes('погрузчик');
       
       let key;
       let height = null;
@@ -566,9 +461,6 @@ async function loadCalculatorEquipmentFromAPI() {
       if (isSamohodnaya) {
         // Самоходная вышка - всегда используем ключ 'self'
         key = 'self';
-      } else if (isPogruzchik) {
-        // Телескопический погрузчик - используем ключ 'loader'
-        key = 'loader';
       } else if (isVezdehod) {
         // Вездеход - всегда используем ключ '30offroad', даже если есть высота в названии
         key = '30offroad';
@@ -677,12 +569,7 @@ function populateCalculatorSelect() {
   selectEl.innerHTML = '';
   
   // Сортируем ключи по высоте (числовые значения)
-  // Погрузчик ('loader') всегда в конце списка
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
-    // Погрузчик всегда в конце
-    if (a === 'loader') return 1;
-    if (b === 'loader') return -1;
-    
     const numA = parseInt(a) || 999;
     const numB = parseInt(b) || 999;
     if (numA !== 999 && numB !== 999) return numA - numB;
@@ -1201,34 +1088,9 @@ function initCalculator() {
         ease: 'power2.in',
         onComplete: () => {
           // Обновляем контент
-          // Убеждаемся, что путь к изображению правильный
-          let imagePath = config.image || '/images/avtovyshka-13m.png';
-          if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
-            imagePath = '/' + imagePath;
-          }
-          console.log('🖼️ Setting image:', imagePath, 'for equipment:', config.name);
-          previewImage.src = imagePath;
+          previewImage.src = config.image;
           previewImage.alt = config.name;
           previewTitle.textContent = config.name;
-          
-          // Обработка ошибок загрузки изображения
-          previewImage.onerror = function() {
-            console.error('❌ Failed to load image:', imagePath);
-            console.error('   Trying fallback image');
-            // Используем fallback изображение
-            const fallbackImage = '/images/avtovyshka-13m.png';
-            if (this.src !== fallbackImage) {
-              console.log('   Using fallback:', fallbackImage);
-              this.src = fallbackImage;
-            } else {
-              console.error('   Fallback also failed!');
-            }
-            this.onerror = null; // Предотвращаем бесконечный цикл
-          };
-          
-          previewImage.onload = function() {
-            console.log('✅ Image loaded successfully:', imagePath);
-          };
 
           if (specsList) {
             specsList.innerHTML = '';
@@ -1257,34 +1119,9 @@ function initCalculator() {
       });
     } else {
       // Fallback без анимации, если контейнер не найден или GSAP недоступен
-      // Убеждаемся, что путь к изображению правильный
-      let imagePath = config.image || '/images/avtovyshka-13m.png';
-      if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
-        imagePath = '/' + imagePath;
-      }
-      console.log('🖼️ Setting image (fallback):', imagePath, 'for equipment:', config.name);
-      previewImage.src = imagePath;
+      previewImage.src = config.image;
       previewImage.alt = config.name;
       previewTitle.textContent = config.name;
-      
-      // Обработка ошибок загрузки изображения
-      previewImage.onerror = function() {
-        console.error('❌ Failed to load image:', imagePath);
-        console.error('   Trying fallback image');
-        // Используем fallback изображение
-        const fallbackImage = '/images/avtovyshka-13m.png';
-        if (this.src !== fallbackImage) {
-          console.log('   Using fallback:', fallbackImage);
-          this.src = fallbackImage;
-        } else {
-          console.error('   Fallback also failed!');
-        }
-        this.onerror = null; // Предотвращаем бесконечный цикл
-      };
-      
-      previewImage.onload = function() {
-        console.log('✅ Image loaded successfully:', imagePath);
-      };
 
       if (specsList) {
         specsList.innerHTML = '';
@@ -1651,11 +1488,12 @@ const POPULAR_EQUIPMENT_SLIDES = [
     id: '1',
     index: '01',
     title: 'Автовышка-платформа 13 метров',
-    text: '',
+    text: 'Компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг',
-      'Стоимость от 18 000 ₽/смена'
+      'Высота подъёма: 13 метров',
+      'Вылет стрелы: до 7 метров',
+      'Грузоподъёмность корзины: 400 кг',
+      'Размер корзины: 1.2 x 1.2 м'
     ],
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-13m.html',
@@ -1664,26 +1502,27 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '2',
     index: '02',
-    title: 'Автовышка-платформа 16 метров',
-    text: '',
+    title: 'Автовышка 18 метров',
+    text: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг',
-      'Стоимость от 20 000 ₽/смена'
+      'Высота подъёма: 18 метров',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность люльки: 200 кг'
     ],
     image: '/images/avtovyshka-18m.png',
-    url: '/equipment/avtovyshka-16m.html',
-    price: 'от 20 000 ₽/смена'
+    url: '/equipment/avtovyshka-18m.html',
+    price: 'от 24 000 ₽/смена'
   },
   {
     id: '3',
     index: '03',
     title: 'Автовышка-платформа 21 метр',
-    text: '',
+    text: 'Универсальная техника с большой платформой (2x4м) и хорошим запасом высоты. Подходит для большинства городских задач с крупногабаритными материалами.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг',
-      'Стоимость от 21 000 ₽/смена'
+      'Высота подъёма: 21 метр',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность корзины: 1000 кг',
+      'Размер корзины: 2 x 4 м'
     ],
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
@@ -1692,16 +1531,17 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '4',
     index: '04',
-    title: 'Автовышка телескоп-колено 25 метров',
-    text: '',
+    title: 'Автовышка 29 метров',
+    text: 'Мощная техника для монтажных и высотных работ повышенной сложности. Работа на высоте до 8–9 этажа.',
     bullets: [
-      'Корзина 1/2 метра',
-      'Грузоподъёмность 300 кг',
-      'Стоимость от 21 000 ₽/смена'
+      'Высота подъёма: 29 метров',
+      'Вылет стрелы: до 14 метров',
+      'Грузоподъёмность люльки: 200 кг',
+      'Проезд в арку: 3300 мм'
     ],
-    image: '/images/avtovyshka-25m.png',
-    url: '/equipment/avtovyshka-25m.html',
-    price: 'от 21 000 ₽/смена'
+    image: '/images/avtovyshka-29m.png',
+    url: '/equipment/avtovyshka-29m.html',
+    price: 'от 26 000 ₽/смена'
   }
 ];
 
@@ -1709,53 +1549,22 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
-  console.log('🔄 Initializing slider...');
+  const section = document.getElementById('popular-equipment');
+  const sliderContainer = document.getElementById('our-capabilities-slider');
   
-  // Функция для ожидания появления элемента
-  const waitForElement = (selector, maxAttempts = 50) => {
-    return new Promise((resolve, reject) => {
-      let attempts = 0;
-      const checkElement = () => {
-        const element = document.querySelector(selector);
-        if (element) {
-          resolve(element);
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          // Используем более длинную задержку для первых попыток
-          const delay = attempts < 10 ? 50 : 100;
-          setTimeout(() => requestAnimationFrame(checkElement), delay);
-        } else {
-          // Перед ошибкой выводим диагностику
-          console.error(`❌ Element ${selector} not found after ${maxAttempts} attempts`);
-          console.error('Available sections:', Array.from(document.querySelectorAll('section')).map(s => ({ id: s.id, className: s.className })));
-          console.error('All elements with id:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-          reject(new Error(`Element ${selector} not found after ${maxAttempts} attempts`));
-        }
-      };
-      checkElement();
-    });
-  };
+  if (!section || !sliderContainer) return;
+  
+  // Определяем URL популярных машин
+  const popularUrls = [
+    '/equipment/avtovyshka-13m.html',
+    '/equipment/avtovyshka-18m.html',
+    '/equipment/avtovyshka-21m.html',
+    '/equipment/avtovyshka-29m.html'
+  ];
+  
+  let slidesData = POPULAR_EQUIPMENT_SLIDES;
   
   try {
-    // Ждем появления секции
-    const section = await waitForElement('#popular-equipment');
-    console.log('✅ Section found:', section);
-    
-    // Ждем появления контейнера слайдов
-    const sliderContainer = await waitForElement('#our-capabilities-slider');
-    console.log('✅ Slider container found:', sliderContainer);
-    
-    // Определяем URL популярных машин
-    const popularUrls = [
-      '/equipment/avtovyshka-13m.html',
-      '/equipment/avtovyshka-16m.html',
-      '/equipment/avtovyshka-21m.html',
-      '/equipment/avtovyshka-25m.html'
-    ];
-    
-    let slidesData = POPULAR_EQUIPMENT_SLIDES;
-    
-    try {
     const response = await fetch('/api/services');
     if (response.ok) {
       const services = await response.json();
@@ -1800,12 +1609,12 @@ async function initOurCapabilitiesSlider() {
             // Если нет изображения в базе, используем локальные файлы
             if (serviceUrl.includes('13m')) {
               slideImage = '/images/avtovyshka-13m.png';
-            } else if (serviceUrl.includes('16m')) {
-              slideImage = '/images/avtovyshka-16m.png';
+            } else if (serviceUrl.includes('18m')) {
+              slideImage = '/images/avtovyshka-18m.png';
             } else if (serviceUrl.includes('21m')) {
               slideImage = '/images/avtovyshka-21m.png';
-            } else if (serviceUrl.includes('25m')) {
-              slideImage = '/images/avtovyshka-25m.png';
+            } else if (serviceUrl.includes('29m')) {
+              slideImage = '/images/avtovyshka-29m.png';
             } else {
               slideImage = '/images/avtovyshka-13m.png';
             }
@@ -1826,69 +1635,39 @@ async function initOurCapabilitiesSlider() {
           if (hasBadEncoding && fallbackSlide) {
             console.warn('⚠️ Bad encoding detected for service, using fallback data:', service.title);
             // Убираем информацию о полсмене из fallback цены
-            let cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
-            
-            // Убеждаемся, что цена начинается с "от"
-            if (cleanedFallbackPrice && !cleanedFallbackPrice.toLowerCase().startsWith('от')) {
-              cleanedFallbackPrice = 'от ' + cleanedFallbackPrice;
-            } else if (!cleanedFallbackPrice && fallbackSlide.price && !fallbackSlide.price.toLowerCase().startsWith('от')) {
-              cleanedFallbackPrice = 'от ' + fallbackSlide.price;
-            } else if (!cleanedFallbackPrice) {
-              cleanedFallbackPrice = fallbackSlide.price || '';
-            }
-            
+            const cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
             return {
               id: String(index + 1),
               index: String(index + 1).padStart(2, '0'),
               title: fallbackSlide.title,
-              text: '', // Убираем описательный текст
+              text: fallbackSlide.text,
               bullets: fallbackSlide.bullets || [],
               image: slideImage,
               url: service.url || popularUrls[index],
-              price: cleanedFallbackPrice
+              price: cleanedFallbackPrice || fallbackSlide.price
             };
           }
           
           // Убираем информацию о полсмене из цены для слайдов
-          let cleanedPrice = extractShiftPrice(price);
-          
-          // Убеждаемся, что цена начинается с "от"
-          if (cleanedPrice && !cleanedPrice.toLowerCase().startsWith('от')) {
-            cleanedPrice = 'от ' + cleanedPrice;
-          } else if (!cleanedPrice && price && !price.toLowerCase().startsWith('от')) {
-            cleanedPrice = 'от ' + price;
-          } else if (!cleanedPrice) {
-            cleanedPrice = price || '';
-          }
+          const cleanedPrice = extractShiftPrice(price);
           
           return {
             id: String(index + 1),
             index: String(index + 1).padStart(2, '0'),
             title: title,
-            text: '', // Убираем описательный текст
+            text: text,
             bullets: bullets.length > 0 ? bullets : (fallbackSlide?.bullets || []),
             image: slideImage,
             url: service.url || popularUrls[index],
-            price: cleanedPrice
+            price: cleanedPrice || price
           };
         });
       }
-      }
-    } catch (error) {
-      console.error('Error loading popular equipment:', error);
-      // Используем FALLBACK данные
     }
-    
-    // Проверяем данные слайдов
-    if (!slidesData || slidesData.length === 0) {
-      console.error('❌ No slides data available');
-      return;
-    }
-    
-    console.log('✅ Slides data loaded:', slidesData.length, 'slides');
-    
-    // Очищаем контейнер перед созданием слайдов
-    sliderContainer.innerHTML = '';
+  } catch (error) {
+    console.error('Error loading popular equipment:', error);
+    // Используем FALLBACK данные
+  }
   
   // Создаём слайды
   slidesData.forEach((slide, index) => {
@@ -1916,7 +1695,7 @@ async function initOurCapabilitiesSlider() {
       <div class="our-capabilities-slide-counter">${slideNumber}/${totalSlidesStr}</div>
       <div class="our-capabilities-slide-content">
         <h3 class="our-capabilities-slide-title">${slide.title}</h3>
-        ${slide.text && slide.text.trim() ? `<p class="our-capabilities-slide-text">${slide.text}</p>` : ''}
+        <p class="our-capabilities-slide-text">${slide.text}</p>
         ${bulletsHtml}
         ${priceHtml}
         ${linkHtml}
@@ -1927,12 +1706,6 @@ async function initOurCapabilitiesSlider() {
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
-  console.log('✅ Slides created:', slides.length);
-  
-  if (slides.length === 0) {
-    console.error('❌ No slides were created');
-    return;
-  }
   const totalSlides = slides.length;
   let previousIndex = 0;
   
@@ -2091,15 +1864,10 @@ async function initOurCapabilitiesSlider() {
     }
   }
   
-    // Также обновляем при изменении размера окна
-    window.addEventListener('resize', () => {
-      updateSlideFromScroll();
-    }, { passive: true });
-    
-  } catch (error) {
-    console.error('❌ Error initializing slider:', error);
-    console.error('Error details:', error.message, error.stack);
-  }
+  // Также обновляем при изменении размера окна
+  window.addEventListener('resize', () => {
+    updateSlideFromScroll();
+  }, { passive: true });
 }
 
 // Обработчик формы быстрой заявки
@@ -2188,87 +1956,15 @@ async function initEquipmentDropdown() {
   `).join('');
 }
 
-// Функция инициализации всех компонентов
-async function initializePage() {
-  try {
-    await displayServices();
-  } catch (error) {
-    console.error('Error displaying services:', error);
-  }
-  
-  try {
-    await displayReviews();
-  } catch (error) {
-    console.error('Error displaying reviews:', error);
-  }
-  
+document.addEventListener('DOMContentLoaded', async () => {
+  displayServices();
+  displayReviews();
   // Загружаем данные для калькулятора из API перед инициализацией
-  try {
-    await loadCalculatorEquipmentFromAPI();
-    initCalculator();
-  } catch (error) {
-    console.error('Error initializing calculator:', error);
-  }
-  
-  try {
-    await initOurCapabilitiesSlider();
-  } catch (error) {
-    console.error('Error initializing slider:', error);
-  }
-  
-  try {
-    initQuickContactForm();
-  } catch (error) {
-    console.error('Error initializing contact form:', error);
-  }
-  
-  try {
-    initEquipmentDropdown();
-  } catch (error) {
-    console.error('Error initializing equipment dropdown:', error);
-  }
-}
-
-// Множественная инициализация для надежности
-function startInitialization() {
-  // Проверяем наличие секции перед инициализацией
-  const section = document.getElementById('popular-equipment');
-  if (!section) {
-    console.warn('⚠️ Section #popular-equipment not found yet, will retry...');
-    // Повторяем попытку через небольшую задержку
-    setTimeout(() => {
-      if (document.getElementById('popular-equipment')) {
-        initializePage();
-      } else {
-        console.error('❌ Section #popular-equipment still not found after delay');
-        // Пробуем еще раз при полной загрузке страницы
-        window.addEventListener('load', initializePage, { once: true });
-      }
-    }, 500);
-    return;
-  }
-  
-  initializePage();
-}
-
-// Запускаем инициализацию при загрузке DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', startInitialization);
-} else {
-  // DOM уже загружен
-  startInitialization();
-}
-
-// Резервная инициализация при полной загрузке страницы
-window.addEventListener('load', () => {
-  // Проверяем, инициализирован ли слайдер
-  const slider = document.getElementById('our-capabilities-slider');
-  if (slider && slider.children.length === 0) {
-    console.log('🔄 Retrying slider initialization on window load...');
-    initOurCapabilitiesSlider().catch(err => {
-      console.error('❌ Slider initialization failed on window load:', err);
-    });
-  }
-}, { once: true });
+  await loadCalculatorEquipmentFromAPI();
+  initCalculator();
+  initOurCapabilitiesSlider();
+  initQuickContactForm();
+  initEquipmentDropdown();
+});
 
  

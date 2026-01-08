@@ -123,11 +123,6 @@ function generateEquipmentPageHTML(service) {
     ? description.substring(0, 150) + '...' 
     : description || `Аренда ${title.toLowerCase()} в Санкт-Петербурге. ☎ +7 (991) 000-91-11`;
   
-  // Формируем полные URL
-  const serviceUrlPath = url || '/equipment/' + generateUrlFromTitle(title);
-  const pageUrl = `https://arendaneba.ru${serviceUrlPath.startsWith('/') ? serviceUrlPath : '/' + serviceUrlPath}`;
-  const imageUrlFull = imageUrl.startsWith('http') ? imageUrl : `https://arendaneba.ru${imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl}`;
-  
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -135,25 +130,6 @@ function generateEquipmentPageHTML(service) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} - Аренда в СПб | Аренда Неба</title>
     <meta name="description" content="${metaDescription}">
-    <meta name="keywords" content="аренда ${title.toLowerCase()}, аренда автовышки СПб, ${title.toLowerCase()} в аренду, аренда автовышки цена">
-    <link rel="canonical" href="${pageUrl}">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="${pageUrl}">
-    <meta property="og:title" content="${title} - Аренда в СПб | Аренда Неба">
-    <meta property="og:description" content="${metaDescription}">
-    <meta property="og:image" content="${imageUrlFull}">
-    <meta property="og:locale" content="ru_RU">
-    <meta property="og:site_name" content="Аренда Неба">
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="${pageUrl}">
-    <meta name="twitter:title" content="${title} - Аренда в СПб | Аренда Неба">
-    <meta name="twitter:description" content="${metaDescription}">
-    <meta name="twitter:image" content="${imageUrlFull}">
-    
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
     
@@ -232,53 +208,6 @@ function generateEquipmentPageHTML(service) {
             <span>${breadcrumbTitle}</span>
         </div>
     </div>
-    
-    <!-- Structured Data (Schema.org) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "name": "${title}",
-      "description": "${metaDescription.replace(/"/g, '\\"')}",
-      "image": "${imageUrlFull}",
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "RUB",
-        "availability": "https://schema.org/InStock",
-        "url": "${pageUrl}"
-      },
-      "brand": {
-        "@type": "Brand",
-        "name": "Аренда Неба"
-      }
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Главная",
-          "item": "https://arendaneba.ru/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Автопарк",
-          "item": "https://arendaneba.ru/#services"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "${title.replace(/"/g, '\\"')}",
-          "item": "${pageUrl}"
-        }
-      ]
-    }
-    </script>
 
     <!-- Equipment Detail -->
     <section class="equipment-detail">
@@ -613,122 +542,6 @@ function createEquipmentPage(service) {
   }
 }
 
-// Function to ensure all equipment pages exist
-function ensureAllEquipmentPages() {
-  console.log('🔄 Checking and creating equipment pages...');
-  
-  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
-    if (err) {
-      console.error('❌ Error loading services for page generation:', err);
-      return;
-    }
-    
-    if (!services || services.length === 0) {
-      console.log('⚠️  No active services found');
-      return;
-    }
-    
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    if (!fs.existsSync(equipmentDir)) {
-      fs.mkdirSync(equipmentDir, { recursive: true });
-      console.log('📁 Created equipment directory');
-    }
-    
-    let created = 0;
-    let updated = 0;
-    let errors = 0;
-    
-    services.forEach((service, index) => {
-      try {
-        // Генерируем URL если его нет
-        let serviceUrl = service.url;
-        if (!serviceUrl || serviceUrl.trim() === '') {
-          serviceUrl = generateUrlFromTitle(service.title);
-        }
-        
-        // Убираем начальный слэш и /equipment/ если есть
-        let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
-        if (!filename.endsWith('.html')) {
-          filename += '.html';
-        }
-        
-        const filePath = path.join(equipmentDir, filename);
-        const fileExists = fs.existsSync(filePath);
-        
-        // Создаем объект услуги для генерации страницы
-        let reachDiagramsArray = [];
-        let imagesArray = [];
-        
-        try {
-          if (service.reach_diagrams && service.reach_diagrams.trim()) {
-            reachDiagramsArray = JSON.parse(service.reach_diagrams);
-          }
-        } catch (e) {
-          // Игнорируем ошибки парсинга
-        }
-        
-        try {
-          if (service.images && service.images.trim()) {
-            imagesArray = JSON.parse(service.images);
-          }
-        } catch (e) {
-          // Игнорируем ошибки парсинга
-        }
-        
-        const serviceData = {
-          title: service.title,
-          description: service.description || '',
-          price: service.price || '',
-          specifications: service.specifications || '',
-          image_url: service.image_url || '',
-          url: serviceUrl,
-          reach_diagram_url: service.reach_diagram_url || '',
-          reach_diagrams: reachDiagramsArray,
-          images: imagesArray,
-          height_lift: service.height_lift || '',
-          max_reach: service.max_reach || '',
-          max_capacity: service.max_capacity || '',
-          lift_type: service.lift_type || '',
-          transport_length: service.transport_length || '',
-          transport_height: service.transport_height || '',
-          width: service.width || '',
-          boom_rotation_angle: service.boom_rotation_angle || '',
-          basket_rotation_angle: service.basket_rotation_angle || '',
-          delivery_per_km: service.delivery_per_km || 85
-        };
-        
-        // Всегда создаем/обновляем страницу
-        const createdUrl = createEquipmentPage(serviceData);
-        
-        if (createdUrl) {
-          if (fileExists) {
-            updated++;
-          } else {
-            created++;
-          }
-          
-          // Обновляем URL в базе если его не было
-          if (!service.url || service.url.trim() === '') {
-            db.run('UPDATE services SET url = ? WHERE id = ?', [createdUrl, service.id], (err) => {
-              if (err) {
-                console.error(`⚠️  Error updating URL for ${service.title}:`, err);
-              }
-            });
-          }
-        } else {
-          errors++;
-          console.error(`❌ Failed to create page for: ${service.title}`);
-        }
-      } catch (error) {
-        errors++;
-        console.error(`❌ Error processing ${service.title}:`, error.message);
-      }
-    });
-    
-    console.log(`✅ Equipment pages check complete: ${created} created, ${updated} updated, ${errors} errors`);
-  });
-}
-
 // Database connection
 const db = new sqlite3.Database('./database.db', (err) => {
   if (err) {
@@ -824,19 +637,6 @@ const db = new sqlite3.Database('./database.db', (err) => {
       }
     });
     
-    // Добавляем поля для популярных слайдов
-    db.run(`ALTER TABLE services ADD COLUMN is_popular INTEGER DEFAULT 0`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding is_popular column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN popular_order INTEGER`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding popular_order column:', err);
-      }
-    });
-    
     // Create homepage table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS homepage (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -869,9 +669,8 @@ const db = new sqlite3.Database('./database.db', (err) => {
 
 // Middleware
 app.use(cors());
-// Увеличиваем лимит для JSON и URL-encoded данных
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Explicit route for equipment pages (MUST be BEFORE static files)
 // Используем (*) для захвата всего пути, включая специальные символы
@@ -958,21 +757,10 @@ app.use(express.static('public'));
 
 app.use('/uploads', express.static('uploads'));
 
-// Создаем папку uploads если её нет
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory');
-}
-
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Убеждаемся что папка существует
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    cb(null, uploadsDir);
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -1197,118 +985,12 @@ app.get('/api/homepage', (req, res) => {
   });
 });
 
-// Sitemap.xml endpoint
-app.get('/sitemap.xml', (req, res) => {
-  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
-    if (err) {
-      console.error('Error fetching services for sitemap:', err);
-      return res.status(500).send('Error generating sitemap');
-    }
-    
-    const baseUrl = 'https://arendaneba.ru';
-    const currentDate = new Date().toISOString().split('T')[0];
-    
-    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/</loc>
-    <lastmod>${currentDate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>`;
-    
-    services.forEach(service => {
-      if (service.url) {
-        const serviceUrl = service.url.startsWith('/') ? service.url : '/' + service.url;
-        sitemap += `
-  <url>
-    <loc>${baseUrl}${serviceUrl}</loc>
-    <lastmod>${currentDate}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-      }
-    });
-    
-    sitemap += `
-</urlset>`;
-    
-    res.set('Content-Type', 'application/xml');
-    res.send(sitemap);
-  });
-});
-
 app.get('/api/services', (req, res) => {
   db.all('SELECT * FROM services WHERE active = 1 ORDER BY order_num', [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    
-    // Автоматически проверяем и создаем страницы для всех услуг (асинхронно)
-    setTimeout(() => {
-      rows.forEach((service) => {
-        try {
-          let serviceUrl = service.url;
-          if (!serviceUrl || serviceUrl.trim() === '') {
-            serviceUrl = generateUrlFromTitle(service.title);
-          }
-          
-          let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
-          if (!filename.endsWith('.html')) {
-            filename += '.html';
-          }
-          
-          const equipmentDir = path.join(__dirname, 'public', 'equipment');
-          const filePath = path.join(equipmentDir, filename);
-          
-          // Если файл не существует, создаем его
-          if (!fs.existsSync(filePath)) {
-            let reachDiagramsArray = [];
-            let imagesArray = [];
-            
-            try {
-              if (service.reach_diagrams && service.reach_diagrams.trim()) {
-                reachDiagramsArray = JSON.parse(service.reach_diagrams);
-              }
-            } catch (e) {}
-            
-            try {
-              if (service.images && service.images.trim()) {
-                imagesArray = JSON.parse(service.images);
-              }
-            } catch (e) {}
-            
-            const serviceData = {
-              title: service.title,
-              description: service.description || '',
-              price: service.price || '',
-              specifications: service.specifications || '',
-              image_url: service.image_url || '',
-              url: serviceUrl,
-              reach_diagram_url: service.reach_diagram_url || '',
-              reach_diagrams: reachDiagramsArray,
-              images: imagesArray,
-              height_lift: service.height_lift || '',
-              max_reach: service.max_reach || '',
-              max_capacity: service.max_capacity || '',
-              lift_type: service.lift_type || '',
-              transport_length: service.transport_length || '',
-              transport_height: service.transport_height || '',
-              width: service.width || '',
-              boom_rotation_angle: service.boom_rotation_angle || '',
-              basket_rotation_angle: service.basket_rotation_angle || '',
-              delivery_per_km: service.delivery_per_km || 85
-            };
-            
-            createEquipmentPage(serviceData);
-          }
-        } catch (error) {
-          // Игнорируем ошибки при автоматической проверке
-        }
-      });
-    }, 100);
-    
     // Apply fixEncoding to text fields and parse images JSON
     const fixedRows = rows.map(row => {
       let images = [];
@@ -1906,8 +1588,7 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   const { title, description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
-          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order } = req.body;
+          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km } = req.body;
   
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -2000,8 +1681,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   }
   
   db.run(
-    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ? WHERE id = ?',
-    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular ? 1 : 0, popular_order || null, req.params.id],
+    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ? WHERE id = ?',
+    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, req.params.id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -2256,162 +1937,19 @@ app.post('/api/admin/upload-video', authenticateToken, videoUpload.single('video
 // File upload endpoint (Protected)
 app.post('/api/admin/upload', authenticateToken, upload.single('image'), (req, res) => {
   if (!req.file) {
-    console.error('❌ Upload error: No file received');
-    return res.status(400).json({ error: 'Файл не был загружен' });
+    return res.status(400).json({ error: 'No file uploaded' });
   }
-  
-  try {
-    console.log('✅ File uploaded successfully:', req.file.filename);
-    res.json({ 
-      success: true,
-      filename: req.file.filename,
-      url: `/uploads/${req.file.filename}`
-    });
-  } catch (error) {
-    console.error('❌ Upload error:', error);
-    res.status(500).json({ error: 'Ошибка при загрузке файла: ' + error.message });
-  }
-});
-
-// Error handler for multer
-app.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'Файл слишком большой. Максимальный размер: 30MB' });
-    }
-    return res.status(400).json({ error: 'Ошибка загрузки: ' + error.message });
-  }
-  if (error) {
-    return res.status(400).json({ error: 'Ошибка загрузки: ' + error.message });
-  }
-  next();
-});
-
-// Function to ensure all equipment pages exist and are up to date
-function ensureAllEquipmentPages() {
-  console.log('🔄 Checking and creating/updating equipment pages...');
-  
-  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
-    if (err) {
-      console.error('❌ Error loading services for page generation:', err);
-      return;
-    }
-    
-    if (!services || services.length === 0) {
-      console.log('⚠️  No active services found');
-      return;
-    }
-    
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    if (!fs.existsSync(equipmentDir)) {
-      fs.mkdirSync(equipmentDir, { recursive: true });
-      console.log('📁 Created equipment directory');
-    }
-    
-    let created = 0;
-    let updated = 0;
-    let errors = 0;
-    
-    services.forEach((service) => {
-      try {
-        // Генерируем URL если его нет
-        let serviceUrl = service.url;
-        if (!serviceUrl || serviceUrl.trim() === '') {
-          serviceUrl = generateUrlFromTitle(service.title);
-        }
-        
-        // Убираем начальный слэш и /equipment/ если есть
-        let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
-        if (!filename.endsWith('.html')) {
-          filename += '.html';
-        }
-        
-        const filePath = path.join(equipmentDir, filename);
-        const fileExists = fs.existsSync(filePath);
-        
-        // Создаем объект услуги для генерации страницы
-        let reachDiagramsArray = [];
-        let imagesArray = [];
-        
-        try {
-          if (service.reach_diagrams && service.reach_diagrams.trim()) {
-            reachDiagramsArray = JSON.parse(service.reach_diagrams);
-          }
-        } catch (e) {
-          // Игнорируем ошибки парсинга
-        }
-        
-        try {
-          if (service.images && service.images.trim()) {
-            imagesArray = JSON.parse(service.images);
-          }
-        } catch (e) {
-          // Игнорируем ошибки парсинга
-        }
-        
-        const serviceData = {
-          title: service.title,
-          description: service.description || '',
-          price: service.price || '',
-          specifications: service.specifications || '',
-          image_url: service.image_url || '',
-          url: serviceUrl,
-          reach_diagram_url: service.reach_diagram_url || '',
-          reach_diagrams: reachDiagramsArray,
-          images: imagesArray,
-          height_lift: service.height_lift || '',
-          max_reach: service.max_reach || '',
-          max_capacity: service.max_capacity || '',
-          lift_type: service.lift_type || '',
-          transport_length: service.transport_length || '',
-          transport_height: service.transport_height || '',
-          width: service.width || '',
-          boom_rotation_angle: service.boom_rotation_angle || '',
-          basket_rotation_angle: service.basket_rotation_angle || '',
-          delivery_per_km: service.delivery_per_km || 85
-        };
-        
-        // Всегда создаем/обновляем страницу
-        const createdUrl = createEquipmentPage(serviceData);
-        
-        if (createdUrl) {
-          if (fileExists) {
-            updated++;
-          } else {
-            created++;
-          }
-          
-          // Обновляем URL в базе если его не было
-          if (!service.url || service.url.trim() === '') {
-            db.run('UPDATE services SET url = ? WHERE id = ?', [createdUrl, service.id], (err) => {
-              if (err) {
-                console.error(`⚠️  Error updating URL for ${service.title}:`, err);
-              }
-            });
-          }
-        } else {
-          errors++;
-          console.error(`❌ Failed to create page for: ${service.title}`);
-        }
-      } catch (error) {
-        errors++;
-        console.error(`❌ Error processing ${service.title}:`, error.message);
-      }
-    });
-    
-    console.log(`✅ Equipment pages: ${created} created, ${updated} updated, ${errors} errors`);
+  res.json({ 
+    success: true,
+    filename: req.file.filename,
+    url: `/uploads/${req.file.filename}`
   });
-}
+});
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`📊 Admin panel: http://localhost:${PORT}/admin.html`);
-  
-  // Автоматически проверяем и создаем страницы при запуске
-  setTimeout(() => {
-    ensureAllEquipmentPages();
-  }, 1000); // Небольшая задержка, чтобы база точно была готова
 });
 
 

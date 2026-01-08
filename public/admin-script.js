@@ -13,7 +13,7 @@ function escapeHtml(text) {
 
 // Upload image function
 async function uploadImage(file, imageUrlInputId, previewId) {
-    if (!file) return null;
+    if (!file) return;
     
     const formData = new FormData();
     formData.append('image', file);
@@ -27,53 +27,33 @@ async function uploadImage(file, imageUrlInputId, previewId) {
             body: formData
         });
         
-        if (!response.ok) {
+        if (response.ok) {
+            const data = await response.json();
+            const fullUrl = `${API_URL}${data.url}`;
+            
+            // Update image URL input
+            const imageUrlInput = document.getElementById(imageUrlInputId);
+            if (imageUrlInput) {
+                imageUrlInput.value = fullUrl;
+            }
+            
+            // Update preview
+            if (previewId) {
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = fullUrl;
+                    preview.style.display = 'block';
+                }
+            }
+            
+            return fullUrl;
+        } else {
             const errorData = await response.json().catch(() => ({ error: 'Ошибка загрузки' }));
-            throw new Error(errorData.error || `Ошибка ${response.status}: ${response.statusText}`);
+            alert('Ошибка при загрузке изображения: ' + (errorData.error || 'Неизвестная ошибка'));
+            return null;
         }
-        
-        const data = await response.json();
-        if (!data.url) {
-            throw new Error('Сервер не вернул URL изображения');
-        }
-        
-        const fullUrl = `${API_URL}${data.url}`;
-        
-        // Update image URL input
-        const imageUrlInput = document.getElementById(imageUrlInputId);
-        if (imageUrlInput) {
-            imageUrlInput.value = fullUrl;
-        }
-        
-        // Update preview
-        if (previewId) {
-            const preview = document.getElementById(previewId);
-            if (preview) {
-                preview.src = fullUrl;
-                preview.style.display = 'block';
-                preview.alt = 'Загружено';
-            }
-        }
-        
-        return fullUrl;
     } catch (error) {
-        console.error('❌ Upload error:', error);
-        const errorMessage = error.message || 'Ошибка загрузки';
-        alert('Ошибка при загрузке изображения: ' + errorMessage);
-        
-        // Сбрасываем превью при ошибке
-        if (previewId) {
-            const preview = document.getElementById(previewId);
-            const container = document.getElementById(previewId + 'Container');
-            if (preview) {
-                preview.style.display = 'none';
-                preview.src = '';
-            }
-            if (container) {
-                container.style.display = 'none';
-            }
-        }
-        
+        alert('Ошибка при загрузке изображения: ' + error.message);
         return null;
     }
 }
@@ -90,36 +70,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // Login Form Handler
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
-    console.log('✅ Login form found, attaching handler');
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('🔐 Login form submitted');
-        
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const errorDiv = document.getElementById('loginError');
-
-        if (!username || !password) {
-            console.error('❌ Username or password is empty');
-            errorDiv.textContent = 'Заполните все поля';
-            errorDiv.classList.add('show');
-            return;
-        }
 
         try {
             // Очищаем предыдущие ошибки
             errorDiv.textContent = '';
             errorDiv.classList.remove('show');
             
-            console.log('📤 Sending login request to:', `${API_URL}/api/admin/login`);
-            
             const response = await fetch(`${API_URL}/api/admin/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
-            
-            console.log('📥 Response status:', response.status, response.statusText);
 
             let data;
             try {
@@ -135,24 +101,20 @@ if (loginForm) {
                 authToken = data.token;
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('username', data.username || username);
-                console.log('✅ Вход выполнен успешно, токен получен');
+                console.log('Вход выполнен успешно');
                 showDashboard();
             } else {
                 const errorMessage = data.error || 'Неверное имя пользователя или пароль';
-                console.error('❌ Ошибка входа:', errorMessage);
-                console.error('Response data:', data);
+                console.error('Ошибка входа:', errorMessage);
                 errorDiv.textContent = errorMessage;
                 errorDiv.classList.add('show');
             }
         } catch (error) {
-            console.error('❌ Ошибка подключения:', error);
-            console.error('Error details:', error.message, error.stack);
+            console.error('Ошибка подключения:', error);
             errorDiv.textContent = 'Ошибка подключения к серверу: ' + error.message;
             errorDiv.classList.add('show');
         }
     });
-} else {
-    console.error('❌ Login form not found!');
 }
 
 // Verify Token
@@ -1710,7 +1672,6 @@ function renderImagesPreview(previewContainer, container) {
             imgWrapper.style.width = '150px';
             imgWrapper.style.height = '150px';
             imgWrapper.style.marginBottom = '10px';
-            imgWrapper.style.marginRight = '10px';
             
             const img = document.createElement('img');
             img.src = url;
@@ -1720,14 +1681,6 @@ function renderImagesPreview(previewContainer, container) {
             img.style.objectFit = 'cover';
             img.style.border = '1px solid #ddd';
             img.style.borderRadius = '4px';
-            img.style.display = 'block';
-            
-            // Обработка ошибок загрузки изображения
-            img.onerror = function() {
-                console.error('❌ Failed to load image:', url);
-                img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
-                img.alt = 'Изображение не загружено';
-            };
             
             const removeBtn = document.createElement('button');
             removeBtn.textContent = '×';
@@ -1751,14 +1704,9 @@ function renderImagesPreview(previewContainer, container) {
             imgWrapper.appendChild(removeBtn);
             previewContainer.appendChild(imgWrapper);
         });
-        
-        // Убеждаемся, что контейнер виден
         container.style.display = 'block';
-        previewContainer.style.display = 'flex';
-        previewContainer.style.flexWrap = 'wrap';
     } else {
         container.style.display = 'none';
-        previewContainer.style.display = 'none';
     }
 }
 
@@ -1857,7 +1805,6 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
     // Show loading state
     container.style.display = 'block';
     previewContainer.innerHTML = '<p>Загрузка изображений...</p>';
-    previewContainer.style.display = 'flex';
     
     // Upload all files
     const uploadedUrls = [];
@@ -1869,7 +1816,6 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
             }
         } catch (error) {
             console.error('Error uploading image:', error);
-            alert(`Ошибка при загрузке файла "${file.name}": ${error.message}`);
         }
     }
     
@@ -1890,18 +1836,12 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
     console.log('📸 Images array updated. Total unique images:', serviceImagesArray.length);
     
     // Display previews
-    if (serviceImagesArray.length > 0) {
-        renderImagesPreview(previewContainer, container);
-        // Привязываем обработчики после отрисовки
-        setTimeout(() => {
-            attachImageRemoveHandlers(previewContainer);
-        }, 50);
-    } else {
-        container.style.display = 'none';
-        previewContainer.innerHTML = '';
-        previewContainer.style.display = 'none';
-        fileInput.value = '';
-    }
+    renderImagesPreview(previewContainer, container);
+    
+    // Привязываем обработчики после отрисовки
+    setTimeout(() => {
+        attachImageRemoveHandlers(previewContainer);
+    }, 50);
 }
 
 // Handle multiple reach diagrams upload
