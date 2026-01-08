@@ -451,9 +451,10 @@ async function loadCalculatorEquipmentFromAPI() {
       const url = (service.url || '').toLowerCase();
       const title = (service.title || '').toLowerCase();
       
-      // Сначала проверяем, является ли это самоходной или вездеходом
+      // Сначала проверяем, является ли это самоходной, вездеходом или погрузчиком
       const isSamohodnaya = url.includes('samohodnaya') || url.includes('самоходная') || title.includes('самоходная');
       const isVezdehod = url.includes('vezdehod') || url.includes('вездеход') || title.includes('вездеход');
+      const isPogruzchik = url.includes('pogruzchik') || url.includes('погрузчик') || title.includes('погрузчик');
       
       let key;
       let height = null;
@@ -473,6 +474,18 @@ async function loadCalculatorEquipmentFromAPI() {
           }
         }
         if (!height) height = 30; // По умолчанию для вездехода
+      } else if (isPogruzchik) {
+        // Телескопический погрузчик - используем специальный ключ 'loader'
+        key = 'loader';
+        // Извлекаем высоту для отображения, но не используем как ключ
+        height = extractHeightFromTitle(service.title);
+        if (!height && service.height_lift) {
+          const heightMatch = service.height_lift.match(/(\d+(?:\.\d+)?)/);
+          if (heightMatch) {
+            height = Math.round(parseFloat(heightMatch[1]));
+          }
+        }
+        if (!height) height = 12; // По умолчанию для погрузчика
       } else {
         // Обычная автовышка - извлекаем высоту и используем как ключ
         height = extractHeightFromTitle(service.title);
@@ -569,7 +582,12 @@ function populateCalculatorSelect() {
   selectEl.innerHTML = '';
   
   // Сортируем ключи по высоте (числовые значения)
+  // Телескопический погрузчик (loader) всегда в конце
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
+    // Погрузчик всегда в конце
+    if (a === 'loader') return 1;
+    if (b === 'loader') return -1;
+    
     const numA = parseInt(a) || 999;
     const numB = parseInt(b) || 999;
     if (numA !== 999 && numB !== 999) return numA - numB;
