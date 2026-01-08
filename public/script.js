@@ -1696,17 +1696,26 @@ async function initOurCapabilitiesSlider() {
           }
           
           // Убираем информацию о полсмене из цены для слайдов
-          const cleanedPrice = extractShiftPrice(price);
+          let cleanedPrice = extractShiftPrice(price);
+          
+          // Убеждаемся, что цена начинается с "от"
+          if (cleanedPrice && !cleanedPrice.toLowerCase().startsWith('от')) {
+            cleanedPrice = 'от ' + cleanedPrice;
+          } else if (!cleanedPrice && price && !price.toLowerCase().startsWith('от')) {
+            cleanedPrice = 'от ' + price;
+          } else if (!cleanedPrice) {
+            cleanedPrice = price || '';
+          }
           
           return {
             id: String(index + 1),
             index: String(index + 1).padStart(2, '0'),
             title: title,
-            text: text,
+            text: '', // Убираем описательный текст
             bullets: bullets.length > 0 ? bullets : (fallbackSlide?.bullets || []),
             image: slideImage,
             url: service.url || popularUrls[index],
-            price: cleanedPrice || price
+            price: cleanedPrice
           };
         });
       }
@@ -1753,7 +1762,7 @@ async function initOurCapabilitiesSlider() {
       <div class="our-capabilities-slide-counter">${slideNumber}/${totalSlidesStr}</div>
       <div class="our-capabilities-slide-content">
         <h3 class="our-capabilities-slide-title">${slide.title}</h3>
-        <p class="our-capabilities-slide-text">${slide.text}</p>
+        ${slide.text && slide.text.trim() ? `<p class="our-capabilities-slide-text">${slide.text}</p>` : ''}
         ${bulletsHtml}
         ${priceHtml}
         ${linkHtml}
