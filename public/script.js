@@ -1497,12 +1497,11 @@ const POPULAR_EQUIPMENT_SLIDES = [
     id: '1',
     index: '01',
     title: 'Автовышка-платформа 13 метров',
-    text: 'Компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.',
+    text: '',
     bullets: [
-      'Высота подъёма: 13 метров',
-      'Вылет стрелы: до 7 метров',
-      'Грузоподъёмность корзины: 400 кг',
-      'Размер корзины: 1.2 x 1.2 м'
+      'Большая корзина 2/4 метра',
+      'Грузоподъёмность 1000 кг',
+      'Стоимость от 18 000 ₽/смена'
     ],
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-13m.html',
@@ -1511,27 +1510,26 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '2',
     index: '02',
-    title: 'Автовышка 18 метров',
-    text: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
+    title: 'Автовышка-платформа 16 метров',
+    text: '',
     bullets: [
-      'Высота подъёма: 18 метров',
-      'Вылет стрелы: до 11 метров',
-      'Грузоподъёмность люльки: 200 кг'
+      'Большая корзина 2/4 метра',
+      'Грузоподъёмность 1000 кг',
+      'Стоимость от 20 000 ₽/смена'
     ],
     image: '/images/avtovyshka-18m.png',
-    url: '/equipment/avtovyshka-18m.html',
-    price: 'от 24 000 ₽/смена'
+    url: '/equipment/avtovyshka-16m.html',
+    price: 'от 20 000 ₽/смена'
   },
   {
     id: '3',
     index: '03',
     title: 'Автовышка-платформа 21 метр',
-    text: 'Универсальная техника с большой платформой (2x4м) и хорошим запасом высоты. Подходит для большинства городских задач с крупногабаритными материалами.',
+    text: '',
     bullets: [
-      'Высота подъёма: 21 метр',
-      'Вылет стрелы: до 11 метров',
-      'Грузоподъёмность корзины: 1000 кг',
-      'Размер корзины: 2 x 4 м'
+      'Большая корзина 2/4 метра',
+      'Грузоподъёмность 1000 кг',
+      'Стоимость от 21 000 ₽/смена'
     ],
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
@@ -1540,17 +1538,16 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '4',
     index: '04',
-    title: 'Автовышка 29 метров',
-    text: 'Мощная техника для монтажных и высотных работ повышенной сложности. Работа на высоте до 8–9 этажа.',
+    title: 'Автовышка телескоп-колено 25 метров',
+    text: '',
     bullets: [
-      'Высота подъёма: 29 метров',
-      'Вылет стрелы: до 14 метров',
-      'Грузоподъёмность люльки: 200 кг',
-      'Проезд в арку: 3300 мм'
+      'Корзина 1/2 метра',
+      'Грузоподъёмность 300 кг',
+      'Стоимость от 21 000 ₽/смена'
     ],
-    image: '/images/avtovyshka-29m.png',
-    url: '/equipment/avtovyshka-29m.html',
-    price: 'от 26 000 ₽/смена'
+    image: '/images/avtovyshka-25m.png',
+    url: '/equipment/avtovyshka-25m.html',
+    price: 'от 21 000 ₽/смена'
   }
 ];
 
@@ -1675,16 +1672,26 @@ async function initOurCapabilitiesSlider() {
           if (hasBadEncoding && fallbackSlide) {
             console.warn('⚠️ Bad encoding detected for service, using fallback data:', service.title);
             // Убираем информацию о полсмене из fallback цены
-            const cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
+            let cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
+            
+            // Убеждаемся, что цена начинается с "от"
+            if (cleanedFallbackPrice && !cleanedFallbackPrice.toLowerCase().startsWith('от')) {
+              cleanedFallbackPrice = 'от ' + cleanedFallbackPrice;
+            } else if (!cleanedFallbackPrice && fallbackSlide.price && !fallbackSlide.price.toLowerCase().startsWith('от')) {
+              cleanedFallbackPrice = 'от ' + fallbackSlide.price;
+            } else if (!cleanedFallbackPrice) {
+              cleanedFallbackPrice = fallbackSlide.price || '';
+            }
+            
             return {
               id: String(index + 1),
               index: String(index + 1).padStart(2, '0'),
               title: fallbackSlide.title,
-              text: fallbackSlide.text,
+              text: '', // Убираем описательный текст
               bullets: fallbackSlide.bullets || [],
               image: slideImage,
               url: service.url || popularUrls[index],
-              price: cleanedFallbackPrice || fallbackSlide.price
+              price: cleanedFallbackPrice
             };
           }
           
