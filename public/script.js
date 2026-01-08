@@ -1556,6 +1556,10 @@ async function initOurCapabilitiesSlider() {
   // НЕ загружаем данные из базы для популярных слайдов - используем только константу
   const slidesData = POPULAR_EQUIPMENT_SLIDES;
   
+  // Отладка: проверяем данные слайдов
+  console.log('🎯 Popular Equipment Slides Data:', slidesData);
+  console.log('🎯 Slide titles:', slidesData.map(s => s.title));
+  
   // Создаём слайды
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
