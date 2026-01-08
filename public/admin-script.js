@@ -649,9 +649,9 @@ function showServiceModal(id = null) {
             </div>
             </div>
             
-            <div class="form-section">
+            <div class="form-section" id="specsSection" style="display: none;">
                 <h3 class="form-section-title">Характеристики для слайдера</h3>
-                <small class="form-hint" style="display: block; margin-bottom: 1rem; color: var(--text-light);">Эти характеристики будут отображаться в слайдере на главной странице (если услуга отмечена как популярная). Можно указать до 4 характеристик.</small>
+                <small class="form-hint" style="display: block; margin-bottom: 1rem; color: var(--text-light);">Эти характеристики будут отображаться в слайдере на главной странице. Можно указать до 4 характеристик.</small>
                 <div class="form-group">
                     <label for="serviceSpec1">Характеристика 1</label>
                     <input type="text" id="serviceSpec1" name="spec1" placeholder="Например: Большая корзина 2/4 метра">
@@ -708,10 +708,24 @@ function showServiceModal(id = null) {
         // Обработчик для чекбокса популярных слайдов
         const isPopularCheckbox = document.getElementById('serviceIsPopular');
         const popularOrderGroup = document.getElementById('popularOrderGroup');
-        if (isPopularCheckbox && popularOrderGroup) {
-            isPopularCheckbox.addEventListener('change', function() {
-                popularOrderGroup.style.display = this.checked ? 'block' : 'none';
-            });
+        const specsSection = document.getElementById('specsSection');
+        
+        if (isPopularCheckbox) {
+            const togglePopularFields = function() {
+                const isChecked = isPopularCheckbox.checked;
+                if (popularOrderGroup) {
+                    popularOrderGroup.style.display = isChecked ? 'block' : 'none';
+                }
+                if (specsSection) {
+                    specsSection.style.display = isChecked ? 'block' : 'none';
+                }
+            };
+            
+            // Устанавливаем начальное состояние
+            togglePopularFields();
+            
+            // Добавляем обработчик изменения
+            isPopularCheckbox.addEventListener('change', togglePopularFields);
         }
         
         // Синхронизация полей характеристик со скрытым полем
@@ -933,12 +947,18 @@ async function loadServiceData(id) {
             const isPopularCheckbox = document.getElementById('serviceIsPopular');
             const popularOrderGroup = document.getElementById('popularOrderGroup');
             const popularOrderInput = document.getElementById('servicePopularOrder');
+            const specsSection = document.getElementById('specsSection');
             
             if (isPopularCheckbox) {
                 isPopularCheckbox.checked = service.is_popular === 1 || service.is_popular === true;
-                // Показываем/скрываем поле порядка в зависимости от чекбокса
+                const isChecked = isPopularCheckbox.checked;
+                
+                // Показываем/скрываем поля в зависимости от чекбокса
                 if (popularOrderGroup) {
-                    popularOrderGroup.style.display = isPopularCheckbox.checked ? 'block' : 'none';
+                    popularOrderGroup.style.display = isChecked ? 'block' : 'none';
+                }
+                if (specsSection) {
+                    specsSection.style.display = isChecked ? 'block' : 'none';
                 }
             }
             
