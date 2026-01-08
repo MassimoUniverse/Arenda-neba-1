@@ -1,5 +1,16 @@
 # 📥 Синхронизация файлов с сервера на локальную машину
 
+## ✅ Последнее восстановление
+
+**Дата:** 8 января 2026  
+**Бэкап:** `backup_2026-01-04_22-41-24`  
+**Восстановлено:**
+- ✅ База данных (`database.db` - 61,440 байт)
+- ✅ Папка `public` со всеми файлами (12 страниц оборудования, включая новый `avtovyshka-17m.html`)
+- ✅ `server.js`
+- ✅ `package.json`
+- ✅ `init-db.js`
+
 ## Вариант 1: Через SCP (командная строка)
 
 ### На локальной машине (Windows PowerShell):
@@ -11,17 +22,17 @@
 # ls -lht /opt/arenda-neba/backups/
 
 # 2. Скопируйте весь бэкап на локальную машину
-scp -r root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_12-30-00 "F:\New site\backups\"
+scp -r root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_22-41-24 "F:\New site\backups\"
 
 # 3. Или скопируйте только нужные файлы:
 # База данных
-scp root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_12-30-00/database.db "F:\New site\deploy\database.db"
+scp root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_22-41-24/database.db "F:\New site\deploy\database.db"
 
 # Папка public
-scp -r root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_12-30-00/public "F:\New site\deploy\"
+scp -r root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_22-41-24/public "F:\New site\deploy\"
 
 # server.js
-scp root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_12-30-00/server.js "F:\New site\deploy\server.js"
+scp root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_22-41-24/server.js "F:\New site\deploy\server.js"
 ```
 
 ## Вариант 2: Через WinSCP (графический интерфейс)
@@ -36,7 +47,7 @@ scp root@your-server-ip:/opt/arenda-neba/backups/backup_2026-01-04_12-30-00/serv
 
 3. **Найдите бэкап**:
    - Перейдите в `/opt/arenda-neba/backups/`
-   - Найдите папку с бэкапом (например, `backup_2026-01-04_12-30-00`)
+   - Найдите папку с бэкапом (например, `backup_2026-01-04_22-41-24`)
 
 4. **Скопируйте файлы**:
    - Выберите нужные файлы/папки
@@ -66,8 +77,8 @@ scp root@your-server-ip:/opt/arenda-neba/server.js "F:\New site\deploy\server.js
 
 ```powershell
 # Замените IP и дату бэкапа на реальные значения
-$SERVER_IP = "your-server-ip"
-$BACKUP_DATE = "2026-01-04_12-30-00"
+$SERVER_IP = "91.222.237.34"
+$BACKUP_DATE = "2026-01-04_22-41-24"
 
 # Создайте папку для бэкапа
 New-Item -ItemType Directory -Force -Path "F:\New site\backups\backup_$BACKUP_DATE"
@@ -84,14 +95,18 @@ scp -r root@${SERVER_IP}:/opt/arenda-neba/backups/backup_${BACKUP_DATE}/* "F:\Ne
 cd "F:\New site\deploy"
 
 # Восстановить базу данных
-Copy-Item "..\backups\backup_2026-01-04_12-30-00\database.db" -Destination "database.db" -Force
+Copy-Item "..\backups\backup_2026-01-04_22-41-24\database.db" -Destination "database.db" -Force
 
 # Восстановить папку public
 Remove-Item -Recurse -Force "public" -ErrorAction SilentlyContinue
-Copy-Item -Recurse "..\backups\backup_2026-01-04_12-30-00\public" -Destination "public"
+Copy-Item -Recurse "..\backups\backup_2026-01-04_22-41-24\public" -Destination "public"
 
 # Восстановить server.js
-Copy-Item "..\backups\backup_2026-01-04_12-30-00\server.js" -Destination "server.js" -Force
+Copy-Item "..\backups\backup_2026-01-04_22-41-24\server.js" -Destination "server.js" -Force
+
+# Восстановить package.json и init-db.js
+Copy-Item "..\backups\backup_2026-01-04_22-41-24\package.json" -Destination "package.json" -Force
+Copy-Item "..\backups\backup_2026-01-04_22-41-24\init-db.js" -Destination "init-db.js" -Force
 ```
 
 ## Проверка после копирования
@@ -113,4 +128,5 @@ Get-Item "F:\New site\deploy\database.db" | Select-Object Length, LastWriteTime
 - Проверьте, что файлы скопировались полностью
 - Убедитесь, что размеры файлов совпадают
 - При необходимости перезапустите локальный сервер
+
 

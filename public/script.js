@@ -1,5 +1,5 @@
-// Мобильное меню - функция инициализации
-function initMobileMenu() {
+// Мобильное меню
+document.addEventListener('DOMContentLoaded', () => {
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
   
@@ -28,7 +28,10 @@ function initMobileMenu() {
       }
     });
   }
-}
+  
+  // Load homepage data
+  loadHomepageData();
+});
 
 // Load homepage data from API
 async function loadHomepageData() {
@@ -1546,39 +1549,20 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
-  try {
-    console.log('🔍 initOurCapabilitiesSlider: Starting...');
-    const section = document.getElementById('popular-equipment');
-    const sliderContainer = document.getElementById('our-capabilities-slider');
-    
-    if (!section) {
-      console.warn('⚠️ initOurCapabilitiesSlider: Section not found, skipping');
-      return;
-    }
-    
-    if (!sliderContainer) {
-      console.warn('⚠️ initOurCapabilitiesSlider: Slider container not found, skipping');
-      return;
-    }
-    
-    console.log('✅ initOurCapabilitiesSlider: Elements found');
-    
-    // Определяем URL популярных машин
-    const popularUrls = [
-      '/equipment/avtovyshka-13m.html',
-      '/equipment/avtovyshka-18m.html',
-      '/equipment/avtovyshka-21m.html',
-      '/equipment/avtovyshka-29m.html'
-    ];
-    
-    // Проверяем наличие fallback данных
-    if (!POPULAR_EQUIPMENT_SLIDES || POPULAR_EQUIPMENT_SLIDES.length === 0) {
-      console.warn('⚠️ initOurCapabilitiesSlider: POPULAR_EQUIPMENT_SLIDES is empty or undefined, skipping');
-      return;
-    }
-    
-    let slidesData = POPULAR_EQUIPMENT_SLIDES;
-    console.log('📊 initOurCapabilitiesSlider: Using fallback data, slides count:', slidesData.length);
+  const section = document.getElementById('popular-equipment');
+  const sliderContainer = document.getElementById('our-capabilities-slider');
+  
+  if (!section || !sliderContainer) return;
+  
+  // Определяем URL популярных машин
+  const popularUrls = [
+    '/equipment/avtovyshka-13m.html',
+    '/equipment/avtovyshka-18m.html',
+    '/equipment/avtovyshka-21m.html',
+    '/equipment/avtovyshka-29m.html'
+  ];
+  
+  let slidesData = POPULAR_EQUIPMENT_SLIDES;
   
   try {
     const response = await fetch('/api/services');
@@ -1680,31 +1664,13 @@ async function initOurCapabilitiesSlider() {
         });
       }
     }
-    } catch (error) {
-      console.error('❌ Error loading popular equipment:', error);
-      // Используем FALLBACK данные
-    }
-    
-    // Проверяем, что есть данные для слайдов
-    if (!slidesData || slidesData.length === 0) {
-      console.warn('⚠️ initOurCapabilitiesSlider: No slides data available, skipping');
-      return;
-    }
-    
-    console.log('✅ initOurCapabilitiesSlider: Slides data ready, count:', slidesData.length);
-    
-    // Очищаем контейнер перед созданием слайдов
-    sliderContainer.innerHTML = '';
-    
-    // Создаём слайды
-    slidesData.forEach((slide, index) => {
-      try {
-        if (!slide || !slide.title) {
-          console.warn('⚠️ Skipping invalid slide at index:', index);
-          return;
-        }
-        
-        console.log(`📝 Creating slide ${index + 1}:`, slide.title);
+  } catch (error) {
+    console.error('Error loading popular equipment:', error);
+    // Используем FALLBACK данные
+  }
+  
+  // Создаём слайды
+  slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
     slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
     slideEl.dataset.index = index;
@@ -1736,152 +1702,124 @@ async function initOurCapabilitiesSlider() {
       </div>
     `;
     
-        sliderContainer.appendChild(slideEl);
-        console.log(`✅ Slide ${index + 1} created and appended`);
-      } catch (error) {
-        console.error(`❌ Error creating slide ${index + 1}:`, error);
-      }
-    });
-    
-    const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
-    const totalSlides = slides.length;
-    
-    console.log(`📊 Total slides created: ${totalSlides}`);
-    
-    if (totalSlides === 0) {
-      console.warn('⚠️ No slides were created!');
-      return;
-    }
-    
-    console.log('✅ All slides created successfully');
+    sliderContainer.appendChild(slideEl);
+  });
+  
+  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+  const totalSlides = slides.length;
+  let previousIndex = 0;
   
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-    // Высота окна для расчетов
-    const windowHeight = window.innerHeight;
-    const slideHeight = windowHeight * 0.8; // Высота слайда (80vh)
+  // Функция обновления активного слайда с эффектом колоды карт
+  function updateActiveSlide(activeIndex) {
+    if (activeIndex < 0 || activeIndex >= totalSlides) return;
+    
+    // Если индекс не изменился, не обновляем
+    if (activeIndex === previousIndex) return;
+    
+    // Плавное переключение без задержек для более быстрого отклика
+    slides.forEach((slide, index) => {
+      slide.classList.remove('active', 'prev');
+      
+      if (index === activeIndex) {
+        // Текущий активный слайд - появляется снизу
+        slide.classList.add('active');
+      } else if (index < activeIndex) {
+        // Прошедшие слайды уходят наверх и исчезают
+        slide.classList.add('prev');
+      }
+      // Будущие слайды остаются внизу (translateY(100%))
+    });
+    
+    // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
+    if (buttonContainer) {
+      if (activeIndex >= totalSlides - 1) {
+        // Последний слайд - показываем кнопку
+        buttonContainer.classList.add('visible');
+      } else if (activeIndex < totalSlides - 2) {
+        // Не предпоследний и не последний слайд - скрываем кнопку
+        buttonContainer.classList.remove('visible');
+      }
+    }
+    
+    // Обновляем счётчики на слайдах (они уже есть в HTML каждого слайда)
+    // Счётчики обновляются автоматически, так как они встроены в каждый слайд
+    
+    previousIndex = activeIndex;
+  }
   
-  // Функция вычисления прогресса прокрутки (от 0 до 1)
+  // Функция вычисления прогресса прокрутки
   function calculateProgress() {
     const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
     const sectionHeight = rect.height;
-    const viewportHeight = window.innerHeight;
     
-    // Когда верх секции достигает верха экрана - начинаем отсчет
-    const startPoint = viewportHeight;
-    // Когда низ секции достигает верха экрана - заканчиваем отсчет
-    const endPoint = -sectionHeight + viewportHeight;
-    
-    // Если секция еще не достигла начала прокрутки
-    if (sectionTop > startPoint) {
+    // Если секция еще не достигла верха экрана, прогресс = 0
+    if (sectionTop > windowHeight) {
       return 0;
     }
     
-    // Если секция уже прошла конец прокрутки
-    if (sectionTop < endPoint) {
-      return 1;
-    }
+    // Вычисляем прогресс: когда секция входит в viewport (top < windowHeight)
+    // и прокручивается до конца (top < -sectionHeight + windowHeight)
+    const startPoint = windowHeight; // когда верх секции достигает верха экрана
+    const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
-    // Вычисляем прогресс от 0 до 1
-    const scrolled = startPoint - sectionTop;
-    const totalScroll = startPoint - endPoint;
-    const progress = Math.max(0, Math.min(1, scrolled / totalScroll));
+    // Добавляем большую задержку для первого слайда - он должен показываться дольше
+    // Вычитаем 80% высоты окна из начала, чтобы можно было прокрутить ниже перед началом слайдов
+    const delayOffset = windowHeight * 0.8; // 80% высоты экрана задержки - можно прокрутить ниже
+    const adjustedStartPoint = startPoint - delayOffset;
+    
+    // Нормализуем прогресс от 0 до 1 с учетом задержки
+    const scrolled = adjustedStartPoint - sectionTop;
+    const totalScroll = adjustedStartPoint - endPoint;
+    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
+    
+    // Если прогресс еще в зоне задержки, возвращаем 0 (первый слайд)
+    if (sectionTop > adjustedStartPoint) {
+      progress = 0;
+    }
     
     return progress;
   }
   
-  // Функция обновления позиций слайдов на основе прогресса скролла
-  function updateSlidesFromScroll() {
+  // Функция обновления слайда на основе прогресса
+  function updateSlideFromScroll() {
     const progress = calculateProgress();
     
-    // Распределяем прогресс между слайдами
-    // Каждый слайд занимает 1/totalSlides часть прогресса
-    const progressPerSlide = 1 / totalSlides;
+    // Вычисляем индекс слайда на основе прогресса
+    // Первый слайд должен показываться дольше - добавляем задержку
+    // Для 4 слайдов: первые 30% прогресса = слайд 0, затем равномерно распределяем остальные
+    const firstSlideDelay = 0.3; // 30% прогресса для первого слайда - больше времени на чтение
+    let slideProgress;
     
-    slides.forEach((slide, index) => {
-      // Вычисляем локальный прогресс для этого слайда (от -1 до 1)
-      // -1 = слайд полностью ниже экрана
-      // 0 = слайд в центре экрана (активная позиция)
-      // 1 = слайд полностью выше экрана
-      const slideStartProgress = index * progressPerSlide;
-      const slideEndProgress = (index + 1) * progressPerSlide;
-      
-      let localProgress;
-      
-      if (progress < slideStartProgress) {
-        // Слайд еще не начал появляться - он внизу
-        // Для первого слайда (index === 0) при progress = 0, показываем его в центре
-        if (index === 0) {
-          localProgress = 0; // Первый слайд в центре при загрузке
-        } else {
-          localProgress = -1;
-        }
-      } else if (progress > slideEndProgress) {
-        // Слайд уже прошел - он вверху
-        localProgress = 1;
-      } else {
-        // Слайд в процессе перехода
-        // Нормализуем прогресс от 0 до 1 для этого слайда
-        const normalizedProgress = (progress - slideStartProgress) / progressPerSlide;
-        // Преобразуем в диапазон от -1 до 1 (где 0 = центр)
-        localProgress = (normalizedProgress - 0.5) * 2;
-      }
-      
-      // Вычисляем translateY на основе локального прогресса
-      // Когда localProgress = -1: translateY = slideHeight (снизу)
-      // Когда localProgress = 0: translateY = 0 (центр)
-      // Когда localProgress = 1: translateY = -slideHeight (сверху)
-      const translateY = localProgress * slideHeight;
-      
-      // Вычисляем opacity на основе позиции
-      // Слайд видим когда он близок к центру (localProgress около 0)
-      let opacity = 1;
-      if (Math.abs(localProgress) > 0.5) {
-        // Слайд далеко от центра - уменьшаем opacity
-        opacity = Math.max(0, 1 - (Math.abs(localProgress) - 0.5) * 2);
-      }
-      
-      // Вычисляем scale на основе позиции
-      // Слайд в полном размере когда он в центре
-      let scale = 1;
-      if (Math.abs(localProgress) > 0.5) {
-        // Слайд далеко от центра - уменьшаем scale
-        scale = Math.max(0.85, 1 - (Math.abs(localProgress) - 0.5) * 0.3);
-      }
-      
-      // Вычисляем z-index
-      // Слайды ближе к центру должны быть выше
-      const zIndex = Math.max(1, Math.round(10 - Math.abs(localProgress) * 5));
-      
-      // Применяем трансформации напрямую через style
-      slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${translateY}px)) scale(${scale})`;
-      slide.style.opacity = opacity;
-      slide.style.zIndex = zIndex;
-      slide.style.visibility = opacity > 0.01 ? 'visible' : 'hidden';
-      
-      // Включаем pointer-events только для слайда в центре
-      slide.style.pointerEvents = Math.abs(localProgress) < 0.3 ? 'auto' : 'none';
-    });
-    
-    // Показываем кнопку когда показывается последний слайд
-    if (buttonContainer) {
-      const lastSlideStartProgress = (totalSlides - 1) * progressPerSlide;
-      if (progress >= lastSlideStartProgress) {
-        buttonContainer.classList.add('visible');
-      } else {
-        buttonContainer.classList.remove('visible');
-      }
+    if (progress < firstSlideDelay) {
+      // Первый слайд - показываем его дольше
+      slideProgress = 0;
+    } else {
+      // Остальные слайды - распределяем равномерно по оставшемуся прогрессу
+      const remainingProgress = progress - firstSlideDelay;
+      const remainingSlides = totalSlides - 1;
+      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
     }
+    
+    // Используем плавное округление для более естественного переключения
+    const activeIndex = Math.min(
+      totalSlides - 1,
+      Math.max(0, Math.floor(slideProgress + 0.1)) // Небольшое смещение для более раннего переключения
+    );
+    
+    updateActiveSlide(activeIndex);
   }
   
-  // Обработчик прокрутки с оптимизацией через requestAnimationFrame
+  // Обработчик прокрутки - используем Lenis, если доступен
   let ticking = false;
   function handleScroll() {
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        updateSlidesFromScroll();
+        updateSlideFromScroll();
         ticking = false;
       });
       ticking = true;
@@ -1891,7 +1829,7 @@ async function initOurCapabilitiesSlider() {
   // Подключаем обработчик прокрутки
   function setupScrollHandler() {
     if (window.lenis) {
-      // Используем Lenis события для плавной прокрутки
+      // Используем Lenis события
       window.lenis.on('scroll', handleScroll);
     } else {
       // Fallback на нативный scroll
@@ -1899,57 +1837,7 @@ async function initOurCapabilitiesSlider() {
     }
   }
   
-  // Инициализация
-  console.log('🔧 Setting up scroll handler and initial positions...');
   setupScrollHandler();
-  
-  // Устанавливаем начальные позиции слайдов сразу
-  // Первый слайд должен быть виден сразу при загрузке страницы
-  slides.forEach((slide, index) => {
-    // Убеждаемся, что слайды видны
-    slide.style.visibility = 'visible';
-    slide.style.display = 'block';
-    slide.style.position = 'absolute';
-    slide.style.left = '50%';
-    slide.style.top = '50%';
-    
-    if (index === 0) {
-      // Первый слайд - в центре, видимый
-      slide.style.transform = `translateX(-50%) translateY(-50%) scale(1)`;
-      slide.style.opacity = '1';
-      slide.style.zIndex = '10';
-      slide.style.pointerEvents = 'auto';
-      console.log(`✅ Slide ${index + 1} (first) positioned at center`);
-    } else {
-      // Остальные слайды - внизу, невидимые
-      slide.style.transform = `translateX(-50%) translateY(calc(-50% + ${slideHeight}px)) scale(0.95)`;
-      slide.style.opacity = '0';
-      slide.style.zIndex = String(Math.max(1, 10 - index));
-      slide.style.pointerEvents = 'none';
-    }
-  });
-  
-  console.log('✅ Initial positions set for all slides');
-  
-  // Обновляем позиции на основе текущего скролла
-  // Используем небольшую задержку, чтобы убедиться, что DOM готов
-  setTimeout(() => {
-    console.log('🔄 Updating slides from scroll...');
-    updateSlidesFromScroll();
-    console.log('✅ Slides updated from scroll');
-  }, 100);
-  
-  // Также обновляем при изменении размера окна
-  window.addEventListener('resize', () => {
-    updateSlidesFromScroll();
-  });
-  
-    console.log('✅ initOurCapabilitiesSlider: Complete');
-  } catch (error) {
-    console.error('❌ CRITICAL ERROR in initOurCapabilitiesSlider:', error);
-    // Не пробрасываем ошибку дальше, чтобы не ломать остальной сайт
-  }
-}
   
   // Переключимся на Lenis, когда он загрузится
   const checkLenisSlider = setInterval(() => {
@@ -2068,92 +1956,15 @@ async function initEquipmentDropdown() {
   `).join('');
 }
 
-// Единый обработчик DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🚀 DOMContentLoaded: Starting initialization...');
-  
-  // Инициализируем мобильное меню
-  try {
-    initMobileMenu();
-  } catch (error) {
-    console.error('❌ Error in initMobileMenu:', error);
-  }
-  
-  // Load homepage data
-  try {
-    await loadHomepageData();
-  } catch (error) {
-    console.error('❌ Error in loadHomepageData:', error);
-  }
-  
-  // Инициализируем все функции независимо, чтобы ошибки в одной не ломали остальные
-  try {
-    console.log('📦 Initializing displayServices...');
-    await displayServices();
-    console.log('✅ displayServices completed');
-  } catch (error) {
-    console.error('❌ Error in displayServices:', error);
-    // Пробуем использовать fallback
-    try {
-      const grid = document.getElementById('services-grid');
-      if (grid && FALLBACK_SERVICES) {
-        grid.innerHTML = '';
-        FALLBACK_SERVICES.forEach((service) => {
-          grid.appendChild(createServiceCard(service));
-        });
-        initServicesCarousel();
-      }
-    } catch (fallbackError) {
-      console.error('❌ Error in fallback services:', fallbackError);
-    }
-  }
-  
-  try {
-    console.log('📝 Initializing displayReviews...');
-    await displayReviews();
-    console.log('✅ displayReviews completed');
-  } catch (error) {
-    console.error('❌ Error in displayReviews:', error);
-  }
-  
-  try {
-    console.log('🧮 Initializing calculator...');
-    // Загружаем данные для калькулятора из API перед инициализацией
-    await loadCalculatorEquipmentFromAPI();
-    initCalculator();
-    console.log('✅ Calculator initialized');
-  } catch (error) {
-    console.error('❌ Error in calculator initialization:', error);
-  }
-  
-  try {
-    console.log('📧 Initializing quick contact form...');
-    initQuickContactForm();
-    console.log('✅ Quick contact form initialized');
-  } catch (error) {
-    console.error('❌ Error in initQuickContactForm:', error);
-  }
-  
-  try {
-    console.log('📋 Initializing equipment dropdown...');
-    initEquipmentDropdown();
-    console.log('✅ Equipment dropdown initialized');
-  } catch (error) {
-    console.error('❌ Error in initEquipmentDropdown:', error);
-  }
-  
-  // Инициализируем слайдер с небольшой задержкой для гарантии готовности DOM
-  setTimeout(async () => {
-    try {
-      console.log('🎯 Calling initOurCapabilitiesSlider...');
-      await initOurCapabilitiesSlider();
-      console.log('✅ Slider initialization completed');
-    } catch (error) {
-      console.error('❌ Error in initOurCapabilitiesSlider:', error);
-    }
-  }, 200);
-  
-  console.log('✅ All initialization started');
+  displayServices();
+  displayReviews();
+  // Загружаем данные для калькулятора из API перед инициализацией
+  await loadCalculatorEquipmentFromAPI();
+  initCalculator();
+  initOurCapabilitiesSlider();
+  initQuickContactForm();
+  initEquipmentDropdown();
 });
 
  
