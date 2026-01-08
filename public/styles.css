@@ -1306,21 +1306,34 @@ input[type='number'] {
 .our-capabilities-slide {
   position: absolute;
   left: 50%;
+  transform: translateX(-50%) translateY(calc(-50% + 100%)) scale(0.95);
   width: 100%;
   height: 80vh;
   max-height: 850px;
   min-height: 700px;
   border-radius: 32px;
   overflow: hidden;
+  opacity: 0;
+  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+              scale 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
-  will-change: transform, opacity, scale, filter, z-index;
+  z-index: 1;
+  will-change: transform, opacity;
   top: 50%;
-  /* Базовые значения будут устанавливаться через JS для плавной интерполяции */
+}
+
+.our-capabilities-slide.active {
   transform: translateX(-50%) translateY(-50%) scale(1);
   opacity: 1;
-  filter: blur(0) brightness(1);
-  z-index: 1;
-  transition: none; /* Убираем CSS transitions, используем JS для плавной анимации */
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.our-capabilities-slide.prev {
+  transform: translateX(-50%) translateY(calc(-50% - 80vh)) scale(0.85);
+  opacity: 0;
+  z-index: 0;
 }
 
 .our-capabilities-slide-bg {
