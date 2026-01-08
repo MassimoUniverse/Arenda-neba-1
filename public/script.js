@@ -1704,18 +1704,20 @@ async function initOurCapabilitiesSlider() {
     // Если индекс не изменился, не обновляем
     if (activeIndex === previousIndex) return;
     
-    // Плавное переключение без задержек для более быстрого отклика
+    // Плавное переключение с улучшенной анимацией
     slides.forEach((slide, index) => {
       slide.classList.remove('active', 'prev');
       
       if (index === activeIndex) {
-        // Текущий активный слайд - появляется снизу
-        slide.classList.add('active');
+        // Текущий активный слайд - появляется снизу с плавной анимацией
+        requestAnimationFrame(() => {
+          slide.classList.add('active');
+        });
       } else if (index < activeIndex) {
         // Прошедшие слайды уходят наверх и исчезают
         slide.classList.add('prev');
       }
-      // Будущие слайды остаются внизу (translateY(100%))
+      // Будущие слайды остаются внизу (translateY(120%))
     });
     
     // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
