@@ -649,10 +649,16 @@ function showServiceModal(id = null) {
             </div>
             </div>
             
-            <div class="form-group" style="display: none;">
-                <label for="serviceSpecs">Характеристики (старое поле, для совместимости)</label>
-                <textarea id="serviceSpecs" name="specifications" rows="2"></textarea>
+            <div class="form-section">
+                <h3 class="form-section-title">Характеристики для слайдера</h3>
+                <div class="form-group">
+                    <label for="serviceSpecs">Характеристики для слайдера (через запятую)</label>
+                    <textarea id="serviceSpecs" name="specifications" rows="3" placeholder="Большая корзина 2/4 метра, Грузоподъёмность 1000 кг"></textarea>
+                    <small class="form-hint">Эти характеристики будут отображаться в слайдере на главной странице (если услуга отмечена как популярная). Каждая характеристика через запятую.</small>
+                </div>
             </div>
+            
+            <div class="form-group" style="display: none;">
             <div class="form-group" style="display: none;">
                 <label for="serviceReachDiagram">URL схемы вылета стрелы (старый формат, для совместимости)</label>
                 <input type="text" id="serviceReachDiagram" name="reach_diagram_url" placeholder="https://example.com/diagram.jpg">
