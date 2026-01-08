@@ -1594,9 +1594,9 @@ async function initOurCapabilitiesSlider() {
     // Определяем URL популярных машин
     const popularUrls = [
       '/equipment/avtovyshka-13m.html',
-      '/equipment/avtovyshka-18m.html',
+      '/equipment/avtovyshka-16m.html',
       '/equipment/avtovyshka-21m.html',
-      '/equipment/avtovyshka-29m.html'
+      '/equipment/avtovyshka-25m.html'
     ];
     
     let slidesData = POPULAR_EQUIPMENT_SLIDES;
@@ -1646,12 +1646,12 @@ async function initOurCapabilitiesSlider() {
             // Если нет изображения в базе, используем локальные файлы
             if (serviceUrl.includes('13m')) {
               slideImage = '/images/avtovyshka-13m.png';
-            } else if (serviceUrl.includes('18m')) {
+            } else if (serviceUrl.includes('16m')) {
               slideImage = '/images/avtovyshka-18m.png';
             } else if (serviceUrl.includes('21m')) {
               slideImage = '/images/avtovyshka-21m.png';
-            } else if (serviceUrl.includes('29m')) {
-              slideImage = '/images/avtovyshka-29m.png';
+            } else if (serviceUrl.includes('25m')) {
+              slideImage = '/images/avtovyshka-25m.png';
             } else {
               slideImage = '/images/avtovyshka-13m.png';
             }
