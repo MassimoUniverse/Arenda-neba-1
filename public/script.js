@@ -324,23 +324,75 @@ function parseSpecifications(specs) {
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service) {
-  // Если есть image_url в базе, используем его (приоритет 1)
-  if (service.image_url) {
-    // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
-    if (service.image_url.startsWith('http://localhost:3000/')) {
-      return service.image_url.replace('http://localhost:3000', '');
-    }
-    if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
-      return service.image_url;
-    }
-    // Если это относительный путь, добавляем префикс если нужно
-    if (service.image_url.startsWith('/')) {
-      return service.image_url;
-    }
-    return '/' + service.image_url;
+  // Сначала определяем правильное изображение по URL страницы (это приоритет)
+  const url = (service.url || '').toLowerCase();
+  let correctImageByUrl = null;
+  
+  if (url.includes('13m')) {
+    correctImageByUrl = '/images/avtovyshka-13m.png';
+  } else if (url.includes('15m')) {
+    correctImageByUrl = '/images/avtovyshka-15m.png';
+  } else if (url.includes('16m')) {
+    correctImageByUrl = '/images/avtovyshka-15m.png'; // Используем 15м для 16м
+  } else if (url.includes('17m')) {
+    correctImageByUrl = '/images/avtovyshka-18m.png'; // Используем 18м для 17м
+  } else if (url.includes('18m')) {
+    correctImageByUrl = '/images/avtovyshka-18m.png';
+  } else if (url.includes('21m')) {
+    correctImageByUrl = '/images/avtovyshka-21m.png';
+  } else if (url.includes('25m')) {
+    correctImageByUrl = '/images/avtovyshka-25m.png';
+  } else if (url.includes('29m')) {
+    correctImageByUrl = '/images/avtovyshka-29m.png';
+  } else if (url.includes('45m')) {
+    correctImageByUrl = '/images/avtovyshka-29m.png'; // Используем 29м для 45м
+  } else if (url.includes('vezdehod') || url.includes('вездеход')) {
+    correctImageByUrl = '/images/avtovyshka-vezdehod-30m.png';
+  } else if (url.includes('samohodnaya') || url.includes('самоходная')) {
+    correctImageByUrl = '/images/avtovyshka-13m.png';
   }
   
-  // Если есть массив images, используем первое изображение (приоритет 2)
+  // Если нашли правильное изображение по URL, используем его (игнорируем image_url из базы)
+  if (correctImageByUrl) {
+    return correctImageByUrl;
+  }
+  
+  // Если не нашли по URL, пробуем по высоте из названия
+  const height = extractHeightFromTitle(service.title);
+  if (height) {
+    if (height === 13) return '/images/avtovyshka-13m.png';
+    if (height === 15) return '/images/avtovyshka-15m.png';
+    if (height === 16) return '/images/avtovyshka-15m.png'; // Используем 15м для 16м
+    if (height === 17) return '/images/avtovyshka-18m.png'; // Используем 18м для 17м
+    if (height === 18) return '/images/avtovyshka-18m.png';
+    if (height === 21) return '/images/avtovyshka-21m.png';
+    if (height === 25) return '/images/avtovyshka-25m.png';
+    if (height === 29) return '/images/avtovyshka-29m.png';
+    if (height === 45) return '/images/avtovyshka-29m.png'; // Используем 29м для 45м
+  }
+  
+  // Только если нет image_url из базы и нет определения по URL, используем image_url
+  // Но только если это не localhost и не неправильный путь
+  if (service.image_url) {
+    const imageUrl = service.image_url.trim();
+    // Игнорируем localhost URLs и неправильные пути
+    if (!imageUrl.startsWith('http://localhost') && 
+        !imageUrl.includes('localhost') &&
+        (imageUrl.startsWith('/images/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+      if (imageUrl.startsWith('http://localhost:3000/')) {
+        return imageUrl.replace('http://localhost:3000', '');
+      }
+      if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+        return imageUrl;
+      }
+      if (imageUrl.startsWith('/')) {
+        return imageUrl;
+      }
+      return '/' + imageUrl;
+    }
+  }
+  
+  // Если есть массив images, используем первое изображение (только если это правильный путь)
   if (service.images && Array.isArray(service.images) && service.images.length > 0) {
     const firstImage = service.images[0];
     let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
@@ -357,34 +409,6 @@ function getImageForService(service) {
       return imageUrl;
     }
     return '/' + imageUrl;
-  }
-  
-  // Определяем по URL (fallback)
-  const url = (service.url || '').toLowerCase();
-  if (url.includes('13m')) return '/images/avtovyshka-13m.png';
-  if (url.includes('15m')) return '/images/avtovyshka-15m.png';
-  if (url.includes('16m')) return '/images/avtovyshka-16m.png';
-  if (url.includes('17m')) return '/images/avtovyshka-17m.png';
-  if (url.includes('18m')) return '/images/avtovyshka-18m.png';
-  if (url.includes('21m')) return '/images/avtovyshka-21m.png';
-  if (url.includes('25m')) return '/images/avtovyshka-25m.png';
-  if (url.includes('29m')) return '/images/avtovyshka-29m.png';
-  if (url.includes('45m')) return '/images/avtovyshka-45m.png';
-  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
-  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
-  
-  // Определяем по высоте из названия
-  const height = extractHeightFromTitle(service.title);
-  if (height) {
-    if (height === 13) return '/images/avtovyshka-13m.png';
-    if (height === 15) return '/images/avtovyshka-15m.png';
-    if (height === 16) return '/images/avtovyshka-16m.png';
-    if (height === 17) return '/images/avtovyshka-17m.png';
-    if (height === 18) return '/images/avtovyshka-18m.png';
-    if (height === 21) return '/images/avtovyshka-21m.png';
-    if (height === 25) return '/images/avtovyshka-25m.png';
-    if (height === 29) return '/images/avtovyshka-29m.png';
-    if (height === 45) return '/images/avtovyshka-45m.png';
   }
   
   // Fallback
@@ -699,7 +723,8 @@ function createServiceCard(service) {
   const imgWrap = document.createElement('div');
   imgWrap.className = 'service-card-image';
   const img = document.createElement('img');
-  img.src = service.image || '/images/avtovyshka-13m.png';
+  // Используем функцию getImageForService для правильного определения изображения
+  img.src = getImageForService(service);
   img.alt = service.title;
   // Улучшение качества изображения
   img.loading = 'eager'; // Загружаем сразу в полном качестве
@@ -1590,34 +1615,9 @@ async function initOurCapabilitiesSlider() {
           const specs = fixTextEncoding(service.specifications || '');
           const bullets = specs.split(',').filter(s => s.trim()).map(s => s.trim());
           
-          // Определяем изображение по URL или используем из базы данных
-          let slideImage = service.image_url || '/images/avtovyshka-13m.png';
-          const serviceUrl = (service.url || '').toLowerCase();
-          
-          if (!service.image_url) {
-            // Если нет изображения в базе, используем локальные файлы по URL
-            if (serviceUrl.includes('13m')) {
-              slideImage = '/images/avtovyshka-13m.png';
-            } else if (serviceUrl.includes('15m')) {
-              slideImage = '/images/avtovyshka-15m.png';
-            } else if (serviceUrl.includes('16m')) {
-              slideImage = '/images/avtovyshka-15m.png'; // Используем 15м для 16м
-            } else if (serviceUrl.includes('18m')) {
-              slideImage = '/images/avtovyshka-18m.png';
-            } else if (serviceUrl.includes('21m')) {
-              slideImage = '/images/avtovyshka-21m.png';
-            } else if (serviceUrl.includes('25m')) {
-              slideImage = '/images/avtovyshka-25m.png';
-            } else if (serviceUrl.includes('29m')) {
-              slideImage = '/images/avtovyshka-29m.png';
-            } else if (serviceUrl.includes('45m')) {
-              slideImage = '/images/avtovyshka-29m.png'; // Используем 29м для 45м
-            } else if (serviceUrl.includes('vezdehod') || serviceUrl.includes('вездеход')) {
-              slideImage = '/images/avtovyshka-vezdehod-30m.png';
-            } else {
-              slideImage = '/images/avtovyshka-13m.png';
-            }
-          }
+          // Используем функцию getImageForService для правильного определения изображения
+          // Она приоритизирует URL страницы над image_url из базы
+          const slideImage = getImageForService(service);
           
           // Используем fallback данные, если данные из базы содержат неправильную кодировку
           const title = fixTextEncoding(service.title);
