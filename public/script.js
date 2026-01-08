@@ -1561,7 +1561,7 @@ async function initOurCapabilitiesSlider() {
   console.log('🔄 Initializing slider...');
   
   // Функция для ожидания появления элемента
-  const waitForElement = (selector, maxAttempts = 20) => {
+  const waitForElement = (selector, maxAttempts = 50) => {
     return new Promise((resolve, reject) => {
       let attempts = 0;
       const checkElement = () => {
@@ -1570,8 +1570,14 @@ async function initOurCapabilitiesSlider() {
           resolve(element);
         } else if (attempts < maxAttempts) {
           attempts++;
-          requestAnimationFrame(checkElement);
+          // Используем более длинную задержку для первых попыток
+          const delay = attempts < 10 ? 50 : 100;
+          setTimeout(() => requestAnimationFrame(checkElement), delay);
         } else {
+          // Перед ошибкой выводим диагностику
+          console.error(`❌ Element ${selector} not found after ${maxAttempts} attempts`);
+          console.error('Available sections:', Array.from(document.querySelectorAll('section')).map(s => ({ id: s.id, className: s.className })));
+          console.error('All elements with id:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
           reject(new Error(`Element ${selector} not found after ${maxAttempts} attempts`));
         }
       };
@@ -2053,12 +2059,46 @@ async function initializePage() {
   }
 }
 
-// Запускаем инициализацию при загрузке DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePage);
-} else {
-  // DOM уже загружен
+// Множественная инициализация для надежности
+function startInitialization() {
+  // Проверяем наличие секции перед инициализацией
+  const section = document.getElementById('popular-equipment');
+  if (!section) {
+    console.warn('⚠️ Section #popular-equipment not found yet, will retry...');
+    // Повторяем попытку через небольшую задержку
+    setTimeout(() => {
+      if (document.getElementById('popular-equipment')) {
+        initializePage();
+      } else {
+        console.error('❌ Section #popular-equipment still not found after delay');
+        // Пробуем еще раз при полной загрузке страницы
+        window.addEventListener('load', initializePage, { once: true });
+      }
+    }, 500);
+    return;
+  }
+  
   initializePage();
 }
+
+// Запускаем инициализацию при загрузке DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startInitialization);
+} else {
+  // DOM уже загружен
+  startInitialization();
+}
+
+// Резервная инициализация при полной загрузке страницы
+window.addEventListener('load', () => {
+  // Проверяем, инициализирован ли слайдер
+  const slider = document.getElementById('our-capabilities-slider');
+  if (slider && slider.children.length === 0) {
+    console.log('🔄 Retrying slider initialization on window load...');
+    initOurCapabilitiesSlider().catch(err => {
+      console.error('❌ Slider initialization failed on window load:', err);
+    });
+  }
+}, { once: true });
 
  
