@@ -73,63 +73,63 @@ async function loadHomepageData() {
 const FALLBACK_SERVICES = [
   {
     title: 'Автовышка 15 метров',
-    price: 'от 18 000 ₽/смена',
+    price: 'от А 18 000 ₽/смена',
     short: 'Компактная автовышка для работ во дворах и стеснённых условиях',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-15m.html',
   },
   {
     title: 'Автовышка-платформа 16 метров',
-    price: 'от 20 000 ₽/смена',
+    price: 'от А 20 000 ₽/смена',
     short: 'Оптимальна для сервисных и монтажных работ. Платформа 2x4м, грузоподъемность 1000 кг',
-    image: '/images/avtovyshka-15m.png',
+    image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-16m.html',
   },
   {
     title: 'Автовышка 18 метров',
-    price: 'от 24 000 ₽/смена',
+    price: 'от А 24 000 ₽/смена',
     short: 'Работы на фасадах и рекламных конструкциях',
     image: '/images/avtovyshka-18m.png',
     url: '/equipment/avtovyshka-18m.html',
   },
   {
     title: 'Автовышка-платформа 21 метр',
-    price: 'от 21 000 ₽/смена',
+    price: 'от А 21 000 ₽/смена',
     short: 'Платформа 2x4м с грузоподъемностью 1000 кг. Хороший запас высоты и вылета стрелы',
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
   },
   {
     title: 'Автовышка 25 метров',
-    price: 'от 21 000 ₽/смена',
+    price: 'от А 21 000 ₽/смена',
     short: 'Работы на высоте до 8–9 этажа',
-    image: '/images/avtovyshka-25m.png',
+    image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-25m.html',
   },
   {
     title: 'Автовышка 29 метров',
-    price: 'от 26 000 ₽/смена',
+    price: 'от А 26 000 ₽/смена',
     short: 'Монтажные и высотные работы повышенной сложности',
     image: '/images/avtovyshka-29m.png',
     url: '/equipment/avtovyshka-29m.html',
   },
   {
     title: 'Автовышка 45 метров',
-    price: 'от 22 000 ₽/смена',
+    price: 'от А 22 000 ₽/смена',
     short: 'Крупные объекты, промышленные площадки',
-    image: '/images/avtovyshka-29m.png',
+    image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-45m.html',
   },
   {
     title: 'Автовышка-вездеход 30 метров',
-    price: 'от 28 000 ₽/смена',
+    price: 'от А 28 000 ₽/смена',
     short: 'Работа там, где обычная техника не проедет',
-    image: '/images/avtovyshka-vezdehod-30m.png',
+    image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-vezdehod-35m.html',
   },
   {
     title: 'Самоходная автовышка',
-    price: 'от 28 000 ₽/смена',
+    price: 'от А 28 000 ₽/смена',
     short: 'Манёвренная техника для внутренних работ',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/samohodnaya-avtovyshka.html',
@@ -162,7 +162,7 @@ const STATIC_CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-vezdehod-30m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   self: {
     name: 'Самоходная автовышка',
@@ -201,7 +201,7 @@ let CALC_EQUIPMENT = {
     height: 15,
     capacity: 200,
     boom: 8,
-    image: '/images/avtovyshka-15m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   16: {
     name: 'Автовышка 16 м',
@@ -212,7 +212,7 @@ let CALC_EQUIPMENT = {
     height: 16,
     capacity: 200,
     boom: 9,
-    image: '/images/avtovyshka-15m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   17: {
     name: 'Автовышка 17 м',
@@ -223,7 +223,7 @@ let CALC_EQUIPMENT = {
     height: 17,
     capacity: 200,
     boom: 10,
-    image: '/images/avtovyshka-18m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   18: {
     name: 'Автовышка 18 м',
@@ -275,7 +275,7 @@ let CALC_EQUIPMENT = {
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-29m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
@@ -285,7 +285,7 @@ let CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-vezdehod-30m.png',
+    image: '/images/avtovyshka-13m.png',
   },
   self: {
     name: 'Самоходная автовышка',
@@ -324,75 +324,23 @@ function parseSpecifications(specs) {
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service) {
-  // Сначала определяем правильное изображение по URL страницы (это приоритет)
-  const url = (service.url || '').toLowerCase();
-  let correctImageByUrl = null;
-  
-  if (url.includes('13m')) {
-    correctImageByUrl = '/images/avtovyshka-13m.png';
-  } else if (url.includes('15m')) {
-    correctImageByUrl = '/images/avtovyshka-15m.png';
-  } else if (url.includes('16m')) {
-    correctImageByUrl = '/images/avtovyshka-15m.png'; // Используем 15м для 16м
-  } else if (url.includes('17m')) {
-    correctImageByUrl = '/images/avtovyshka-18m.png'; // Используем 18м для 17м
-  } else if (url.includes('18m')) {
-    correctImageByUrl = '/images/avtovyshka-18m.png';
-  } else if (url.includes('21m')) {
-    correctImageByUrl = '/images/avtovyshka-21m.png';
-  } else if (url.includes('25m')) {
-    correctImageByUrl = '/images/avtovyshka-25m.png';
-  } else if (url.includes('29m')) {
-    correctImageByUrl = '/images/avtovyshka-29m.png';
-  } else if (url.includes('45m')) {
-    correctImageByUrl = '/images/avtovyshka-29m.png'; // Используем 29м для 45м
-  } else if (url.includes('vezdehod') || url.includes('вездеход')) {
-    correctImageByUrl = '/images/avtovyshka-vezdehod-30m.png';
-  } else if (url.includes('samohodnaya') || url.includes('самоходная')) {
-    correctImageByUrl = '/images/avtovyshka-13m.png';
-  }
-  
-  // Если нашли правильное изображение по URL, используем его (игнорируем image_url из базы)
-  if (correctImageByUrl) {
-    return correctImageByUrl;
-  }
-  
-  // Если не нашли по URL, пробуем по высоте из названия
-  const height = extractHeightFromTitle(service.title);
-  if (height) {
-    if (height === 13) return '/images/avtovyshka-13m.png';
-    if (height === 15) return '/images/avtovyshka-15m.png';
-    if (height === 16) return '/images/avtovyshka-15m.png'; // Используем 15м для 16м
-    if (height === 17) return '/images/avtovyshka-18m.png'; // Используем 18м для 17м
-    if (height === 18) return '/images/avtovyshka-18m.png';
-    if (height === 21) return '/images/avtovyshka-21m.png';
-    if (height === 25) return '/images/avtovyshka-25m.png';
-    if (height === 29) return '/images/avtovyshka-29m.png';
-    if (height === 45) return '/images/avtovyshka-29m.png'; // Используем 29м для 45м
-  }
-  
-  // Только если нет image_url из базы и нет определения по URL, используем image_url
-  // Но только если это не localhost и не неправильный путь
+  // Если есть image_url в базе, используем его (приоритет 1)
   if (service.image_url) {
-    const imageUrl = service.image_url.trim();
-    // Игнорируем localhost URLs и неправильные пути
-    if (!imageUrl.startsWith('http://localhost') && 
-        !imageUrl.includes('localhost') &&
-        (imageUrl.startsWith('/images/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
-      if (imageUrl.startsWith('http://localhost:3000/')) {
-        return imageUrl.replace('http://localhost:3000', '');
-      }
-      if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
-        return imageUrl;
-      }
-      if (imageUrl.startsWith('/')) {
-        return imageUrl;
-      }
-      return '/' + imageUrl;
+    // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
+    if (service.image_url.startsWith('http://localhost:3000/')) {
+      return service.image_url.replace('http://localhost:3000', '');
     }
+    if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
+      return service.image_url;
+    }
+    // Если это относительный путь, добавляем префикс если нужно
+    if (service.image_url.startsWith('/')) {
+      return service.image_url;
+    }
+    return '/' + service.image_url;
   }
   
-  // Если есть массив images, используем первое изображение (только если это правильный путь)
+  // Если есть массив images, используем первое изображение (приоритет 2)
   if (service.images && Array.isArray(service.images) && service.images.length > 0) {
     const firstImage = service.images[0];
     let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
@@ -409,6 +357,34 @@ function getImageForService(service) {
       return imageUrl;
     }
     return '/' + imageUrl;
+  }
+  
+  // Определяем по URL (fallback)
+  const url = (service.url || '').toLowerCase();
+  if (url.includes('13m')) return '/images/avtovyshka-13m.png';
+  if (url.includes('15m')) return '/images/avtovyshka-15m.png';
+  if (url.includes('16m')) return '/images/avtovyshka-16m.png';
+  if (url.includes('17m')) return '/images/avtovyshka-17m.png';
+  if (url.includes('18m')) return '/images/avtovyshka-18m.png';
+  if (url.includes('21m')) return '/images/avtovyshka-21m.png';
+  if (url.includes('25m')) return '/images/avtovyshka-25m.png';
+  if (url.includes('29m')) return '/images/avtovyshka-29m.png';
+  if (url.includes('45m')) return '/images/avtovyshka-45m.png';
+  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
+  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
+  
+  // Определяем по высоте из названия
+  const height = extractHeightFromTitle(service.title);
+  if (height) {
+    if (height === 13) return '/images/avtovyshka-13m.png';
+    if (height === 15) return '/images/avtovyshka-15m.png';
+    if (height === 16) return '/images/avtovyshka-16m.png';
+    if (height === 17) return '/images/avtovyshka-17m.png';
+    if (height === 18) return '/images/avtovyshka-18m.png';
+    if (height === 21) return '/images/avtovyshka-21m.png';
+    if (height === 25) return '/images/avtovyshka-25m.png';
+    if (height === 29) return '/images/avtovyshka-29m.png';
+    if (height === 45) return '/images/avtovyshka-45m.png';
   }
   
   // Fallback
@@ -475,9 +451,10 @@ async function loadCalculatorEquipmentFromAPI() {
       const url = (service.url || '').toLowerCase();
       const title = (service.title || '').toLowerCase();
       
-      // Сначала проверяем, является ли это самоходной или вездеходом
+      // Сначала проверяем, является ли это самоходной, вездеходом или погрузчиком
       const isSamohodnaya = url.includes('samohodnaya') || url.includes('самоходная') || title.includes('самоходная');
       const isVezdehod = url.includes('vezdehod') || url.includes('вездеход') || title.includes('вездеход');
+      const isPogruzchik = url.includes('pogruzchik') || url.includes('погрузчик') || title.includes('погрузчик') || title.includes('телескопический');
       
       let key;
       let height = null;
@@ -497,6 +474,17 @@ async function loadCalculatorEquipmentFromAPI() {
           }
         }
         if (!height) height = 30; // По умолчанию для вездехода
+      } else if (isPogruzchik) {
+        // Телескопический погрузчик - используем специальный ключ для сортировки в конец
+        key = 'loader';
+        // Извлекаем высоту для отображения, если есть
+        height = extractHeightFromTitle(service.title);
+        if (!height && service.height_lift) {
+          const heightMatch = service.height_lift.match(/(\d+(?:\.\d+)?)/);
+          if (heightMatch) {
+            height = Math.round(parseFloat(heightMatch[1]));
+          }
+        }
       } else {
         // Обычная автовышка - извлекаем высоту и используем как ключ
         height = extractHeightFromTitle(service.title);
@@ -592,8 +580,12 @@ function populateCalculatorSelect() {
   // Очищаем существующие опции
   selectEl.innerHTML = '';
   
-  // Сортируем ключи по высоте (числовые значения)
+  // Сортируем ключи по высоте (числовые значения), телескопический погрузчик в конце
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
+    // Телескопический погрузчик всегда в конце
+    if (a === 'loader') return 1;
+    if (b === 'loader') return -1;
+    
     const numA = parseInt(a) || 999;
     const numB = parseInt(b) || 999;
     if (numA !== 999 && numB !== 999) return numA - numB;
@@ -723,8 +715,7 @@ function createServiceCard(service) {
   const imgWrap = document.createElement('div');
   imgWrap.className = 'service-card-image';
   const img = document.createElement('img');
-  // Используем функцию getImageForService для правильного определения изображения
-  img.src = getImageForService(service);
+  img.src = service.image || '/images/avtovyshka-13m.png';
   img.alt = service.title;
   // Улучшение качества изображения
   img.loading = 'eager'; // Загружаем сразу в полном качестве
@@ -1512,50 +1503,61 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '1',
     index: '01',
-    title: 'Автовышка-платформа 13м',
+    title: 'Автовышка-платформа 13 метров',
+    text: 'Компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
+      'Высота подъёма: 13 метров',
+      'Вылет стрелы: до 7 метров',
+      'Грузоподъёмность корзины: 400 кг',
+      'Размер корзины: 1.2 x 1.2 м'
     ],
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-13m.html',
-    price: 'от 18 000 ₽/смена'
+    price: 'от А 18 000 ₽/смена'
   },
   {
     id: '2',
     index: '02',
-    title: 'Автовышка-платформа 16м',
+    title: 'Автовышка 18 метров',
+    text: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
+      'Высота подъёма: 18 метров',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность люльки: 200 кг'
     ],
-    image: '/images/avtovyshka-15m.png',
-    url: '/equipment/avtovyshka-16m.html',
-    price: 'от 20 000 ₽/смена'
+    image: '/images/avtovyshka-18m.png',
+    url: '/equipment/avtovyshka-18m.html',
+    price: 'от А 24 000 ₽/смена'
   },
   {
     id: '3',
     index: '03',
-    title: 'Автовышка-платформа 21м',
+    title: 'Автовышка-платформа 21 метр',
+    text: 'Универсальная техника с большой платформой (2x4м) и хорошим запасом высоты. Подходит для большинства городских задач с крупногабаритными материалами.',
     bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
+      'Высота подъёма: 21 метр',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность корзины: 1000 кг',
+      'Размер корзины: 2 x 4 м'
     ],
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
-    price: 'от 21 000 ₽/смена'
+    price: 'от А 21 000 ₽/смена'
   },
   {
     id: '4',
     index: '04',
-    title: 'Автовышка телескоп-колено 25м',
+    title: 'Автовышка 29 метров',
+    text: 'Мощная техника для монтажных и высотных работ повышенной сложности. Работа на высоте до 8–9 этажа.',
     bullets: [
-      'Корзина 1/2 метра',
-      'Грузоподъёмность 300 кг'
+      'Высота подъёма: 29 метров',
+      'Вылет стрелы: до 14 метров',
+      'Грузоподъёмность люльки: 200 кг',
+      'Проезд в арку: 3300 мм'
     ],
-    image: '/images/avtovyshka-25m.png',
-    url: '/equipment/avtovyshka-25m.html',
-    price: 'от 21 000 ₽/смена'
+    image: '/images/avtovyshka-29m.png',
+    url: '/equipment/avtovyshka-29m.html',
+    price: 'от А 26 000 ₽/смена'
   }
 ];
 
@@ -1615,9 +1617,24 @@ async function initOurCapabilitiesSlider() {
           const specs = fixTextEncoding(service.specifications || '');
           const bullets = specs.split(',').filter(s => s.trim()).map(s => s.trim());
           
-          // Используем функцию getImageForService для правильного определения изображения
-          // Она приоритизирует URL страницы над image_url из базы
-          const slideImage = getImageForService(service);
+          // Определяем изображение по URL или используем из базы данных
+          let slideImage = service.image_url || '/images/avtovyshka-13m.png';
+          const serviceUrl = (service.url || '').toLowerCase();
+          
+          if (!service.image_url) {
+            // Если нет изображения в базе, используем локальные файлы
+            if (serviceUrl.includes('13m')) {
+              slideImage = '/images/avtovyshka-13m.png';
+            } else if (serviceUrl.includes('18m')) {
+              slideImage = '/images/avtovyshka-18m.png';
+            } else if (serviceUrl.includes('21m')) {
+              slideImage = '/images/avtovyshka-21m.png';
+            } else if (serviceUrl.includes('29m')) {
+              slideImage = '/images/avtovyshka-29m.png';
+            } else {
+              slideImage = '/images/avtovyshka-13m.png';
+            }
+          }
           
           // Используем fallback данные, если данные из базы содержат неправильную кодировку
           const title = fixTextEncoding(service.title);
