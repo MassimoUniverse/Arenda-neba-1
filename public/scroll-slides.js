@@ -347,7 +347,7 @@ async function initScrollSlides() {
     }
   }, 100);
   
-  // Инициализация при загрузке
+  // Инициализация при загрузке - вызываем несколько раз для надежности
   updateSlides();
   
   // Обновление при изменении размера окна
@@ -358,7 +358,11 @@ async function initScrollSlides() {
   // Также обновляем после небольших задержек для надежности
   setTimeout(() => {
     updateSlides();
-  }, 100);
+  }, 50);
+  
+  setTimeout(() => {
+    updateSlides();
+  }, 150);
   
   setTimeout(() => {
     updateSlides();
@@ -372,4 +376,18 @@ async function initScrollSlides() {
       updateSlides();
     });
   }
+  
+  // Периодическое обновление для надежности (каждые 100мс)
+  const updateInterval = setInterval(() => {
+    const progress = calculateScrollProgress();
+    // Обновляем только если секция видна
+    if (progress >= 0 && progress <= 1) {
+      updateSlides();
+    }
+  }, 100);
+  
+  // Останавливаем интервал через 10 секунд после загрузки
+  setTimeout(() => {
+    clearInterval(updateInterval);
+  }, 10000);
 }
