@@ -1,0 +1,248 @@
+/* =============================================
+   SCROLL-DRIVEN SLIDES (Плавная интерполяция)
+   ============================================= */
+
+/* Секция со слайдами - высота 400vh для прокрутки */
+.scroll-slides-section {
+  position: relative;
+  height: 400vh; /* 4 высоты экрана для плавной прокрутки */
+  width: 100%;
+  margin: 0;
+  padding: 100px 0 0;
+  background: var(--bg-white);
+}
+
+.scroll-slides-header {
+  text-align: center;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.scroll-slides-header h2 {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: var(--text-dark);
+}
+
+.scroll-slides-header p {
+  font-size: 17px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Контейнер для sticky-блока */
+.scroll-slides-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Sticky-обертка - фиксируется при прокрутке */
+.scroll-slides-sticky-wrapper {
+  position: sticky;
+  top: 80px;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding: 0;
+}
+
+/* Обертка для слайдов */
+.scroll-slides-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1600px;
+  height: 80vh;
+  max-height: 850px;
+  min-height: 700px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Отдельный слайд */
+.scroll-slide {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  height: 80vh;
+  max-height: 850px;
+  min-height: 700px;
+  border-radius: 32px;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform, opacity, filter, z-index;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  /* Базовые значения - обновляются через JS */
+  transform: translateX(-50%) translateY(-50%) scale(0.95);
+  opacity: 0;
+  filter: blur(8px);
+  z-index: 1;
+  /* Убираем CSS transitions - используем только JS для плавной интерполяции */
+  transition: none;
+}
+
+/* Фоновое изображение слайда */
+.scroll-slide-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.scroll-slide-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Градиент поверх изображения */
+.scroll-slide-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Счетчик слайдов (01/04) */
+.scroll-slide-counter {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  font-variant-numeric: tabular-nums;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 20px;
+  border-radius: 24px;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Контент слайда */
+.scroll-slide-content {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  right: 40px;
+  max-width: 600px;
+  z-index: 2;
+}
+
+.scroll-slide-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  margin: 0 0 16px;
+}
+
+.scroll-slide-subtitle {
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 20px;
+  max-width: 550px;
+}
+
+.scroll-slide-price {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 700;
+  color: var(--accent);
+  margin: 20px 0 12px;
+}
+
+.scroll-slide-link {
+  display: inline-block;
+  font-size: clamp(14px, 1.8vw, 16px);
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.scroll-slide-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .scroll-slides-section {
+    height: 300vh; /* Меньше высоты на мобилке */
+    padding: 60px 0 0;
+  }
+  
+  .scroll-slides-sticky-wrapper {
+    top: 70px;
+    height: 100vh;
+    min-height: 100vh;
+  }
+  
+  .scroll-slides-wrapper {
+    padding: 0 16px;
+    height: 80vh;
+    max-height: 800px;
+    min-height: 650px;
+  }
+  
+  .scroll-slide {
+    width: calc(100% - 32px);
+    height: 80vh;
+    max-height: 800px;
+    min-height: 650px;
+  }
+  
+  .scroll-slide-content {
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    max-width: 100%;
+  }
+  
+  .scroll-slide-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  
+  .scroll-slide-subtitle {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+  
+  .scroll-slide-counter {
+    top: 16px;
+    right: 16px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
