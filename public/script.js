@@ -1559,11 +1559,27 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // =============================================
 async function initOurCapabilitiesSlider() {
   console.log('🔄 Initializing slider...');
-  const section = document.getElementById('popular-equipment');
-  const sliderContainer = document.getElementById('our-capabilities-slider');
+  
+  // Ждем, пока DOM полностью загрузится
+  let attempts = 0;
+  let section = null;
+  let sliderContainer = null;
+  
+  while (attempts < 10 && (!section || !sliderContainer)) {
+    section = document.getElementById('popular-equipment');
+    sliderContainer = document.getElementById('our-capabilities-slider');
+    
+    if (!section || !sliderContainer) {
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } else {
+      break;
+    }
+  }
   
   if (!section) {
-    console.error('❌ Section #popular-equipment not found');
+    console.error('❌ Section #popular-equipment not found after', attempts, 'attempts');
+    console.error('Available sections:', Array.from(document.querySelectorAll('section')).map(s => s.id));
     return;
   }
   
@@ -1993,7 +2009,8 @@ async function initEquipmentDropdown() {
   `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Функция инициализации всех компонентов
+async function initializePage() {
   try {
     await displayServices();
   } catch (error) {
@@ -2031,6 +2048,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Error initializing equipment dropdown:', error);
   }
-});
+}
+
+// Запускаем инициализацию при загрузке DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  // DOM уже загружен
+  initializePage();
+}
 
  
