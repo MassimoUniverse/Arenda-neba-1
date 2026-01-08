@@ -171,7 +171,7 @@ async function initScrollSlides() {
     const rect = section.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
-    const sectionHeight = rect.height; // 400vh
+    const sectionHeight = rect.height; // 300vh
     
     // Когда секция еще не достигла верха экрана (начало прокрутки)
     if (sectionTop > windowHeight) {
@@ -314,22 +314,25 @@ async function initScrollSlides() {
    * Обработчик прокрутки с requestAnimationFrame для плавности
    */
   function handleScroll() {
-    if (rafId) return;
-    
-    rafId = window.requestAnimationFrame(() => {
-      updateSlides();
-      rafId = null;
-    });
+    // Всегда обновляем, но используем RAF для оптимизации
+    if (!rafId) {
+      rafId = window.requestAnimationFrame(() => {
+        updateSlides();
+        rafId = null;
+      });
+    }
   }
   
   /**
    * Настройка обработчика прокрутки
    */
   function setupScrollHandler() {
+    // Всегда добавляем нативный обработчик для надежности
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Если есть Lenis, используем его события
     if (window.lenis) {
       window.lenis.on('scroll', handleScroll);
-    } else {
-      window.addEventListener('scroll', handleScroll, { passive: true });
     }
   }
   
@@ -338,7 +341,7 @@ async function initScrollSlides() {
   // Переключимся на Lenis, когда он загрузится
   const checkLenis = setInterval(() => {
     if (window.lenis) {
-      window.removeEventListener('scroll', handleScroll);
+      // Не удаляем нативный обработчик, просто добавляем Lenis
       window.lenis.on('scroll', handleScroll);
       clearInterval(checkLenis);
     }
