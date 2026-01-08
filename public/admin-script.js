@@ -1228,6 +1228,11 @@ window.saveService = async function(event, id) {
     data.boom_rotation_angle = document.getElementById('serviceBoomRotationAngle')?.value || '';
     data.basket_rotation_angle = document.getElementById('serviceBasketRotationAngle')?.value || '';
     data.delivery_per_km = parseInt(document.getElementById('serviceDeliveryPerKm')?.value || '85');
+    
+    // Добавляем поля популярных слайдов
+    const isPopularCheckbox = document.getElementById('serviceIsPopular');
+    data.is_popular = isPopularCheckbox?.checked ? 1 : 0;
+    data.popular_order = document.getElementById('servicePopularOrder')?.value || null;
 
     // Handle images URLs from textarea
     const imagesUrlsText = document.getElementById('serviceImagesUrls')?.value || '';
