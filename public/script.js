@@ -462,6 +462,9 @@ async function loadCalculatorEquipmentFromAPI() {
       if (isSamohodnaya) {
         // Самоходная вышка - всегда используем ключ 'self'
         key = 'self';
+      } else if (isPogruzchik) {
+        // Телескопический погрузчик - используем ключ 'loader'
+        key = 'loader';
       } else if (isVezdehod) {
         // Вездеход - всегда используем ключ '30offroad', даже если есть высота в названии
         key = '30offroad';
@@ -474,18 +477,6 @@ async function loadCalculatorEquipmentFromAPI() {
           }
         }
         if (!height) height = 30; // По умолчанию для вездехода
-      } else if (isPogruzchik) {
-        // Телескопический погрузчик - используем специальный ключ 'loader'
-        key = 'loader';
-        // Извлекаем высоту для отображения, но не используем как ключ
-        height = extractHeightFromTitle(service.title);
-        if (!height && service.height_lift) {
-          const heightMatch = service.height_lift.match(/(\d+(?:\.\d+)?)/);
-          if (heightMatch) {
-            height = Math.round(parseFloat(heightMatch[1]));
-          }
-        }
-        if (!height) height = 12; // По умолчанию для погрузчика
       } else {
         // Обычная автовышка - извлекаем высоту и используем как ключ
         height = extractHeightFromTitle(service.title);
@@ -582,41 +573,17 @@ function populateCalculatorSelect() {
   selectEl.innerHTML = '';
   
   // Сортируем ключи по высоте (числовые значения)
-  // Телескопический погрузчик всегда в конце
+  // Погрузчик ('loader') всегда в конце списка
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
-    const configA = CALC_EQUIPMENT[a];
-    const configB = CALC_EQUIPMENT[b];
+    // Погрузчик всегда в конце
+    if (a === 'loader') return 1;
+    if (b === 'loader') return -1;
     
-    // Проверяем по названию, если это погрузчик - всегда в конце
-    const isLoaderA = a === 'loader' || (configA && configA.name && configA.name.toLowerCase().includes('погрузчик'));
-    const isLoaderB = b === 'loader' || (configB && configB.name && configB.name.toLowerCase().includes('погрузчик'));
-    
-    // Погрузчик всегда в конце (после всех остальных)
-    if (isLoaderA && !isLoaderB) return 1; // A - погрузчик, B - нет, A идет в конец
-    if (isLoaderB && !isLoaderA) return -1; // B - погрузчик, A - нет, B идет в конец
-    if (isLoaderA && isLoaderB) return 0; // Оба погрузчика - порядок не важен
-    
-    // Если ни один не погрузчик, сортируем как обычно
-    const numA = parseInt(a);
-    const numB = parseInt(b);
-    
-    // Если оба числовые - сортируем по числу
-    if (!isNaN(numA) && !isNaN(numB)) {
-      return numA - numB;
-    }
-    
-    // Если A числовое, а B нет (и не погрузчик) - A идет раньше
-    if (!isNaN(numA) && isNaN(numB)) {
-      return -1;
-    }
-    
-    // Если B числовое, а A нет (и не погрузчик) - B идет раньше
-    if (isNaN(numA) && !isNaN(numB)) {
-      return 1;
-    }
-    
-    // Если оба не числовые - сортируем по алфавиту
-    // Но специальные ключи (self, 30offroad) идут после числовых, но перед погрузчиком
+    const numA = parseInt(a) || 999;
+    const numB = parseInt(b) || 999;
+    if (numA !== 999 && numB !== 999) return numA - numB;
+    if (numA === 999) return 1;
+    if (numB === 999) return -1;
     return a.localeCompare(b);
   });
   
@@ -1523,6 +1490,394 @@ function initCalculator() {
 }
 
 // =============================================
+// POPULAR EQUIPMENT SLIDER - данные слайдов
+// =============================================
+const POPULAR_EQUIPMENT_SLIDES = [
+  {
+    id: '1',
+    index: '01',
+    title: 'Автовышка-платформа 13 метров',
+    text: 'Компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.',
+    bullets: [
+      'Высота подъёма: 13 метров',
+      'Вылет стрелы: до 7 метров',
+      'Грузоподъёмность корзины: 400 кг',
+      'Размер корзины: 1.2 x 1.2 м'
+    ],
+    image: '/images/avtovyshka-13m.png',
+    url: '/equipment/avtovyshka-13m.html',
+    price: 'от 18 000 ₽/смена'
+  },
+  {
+    id: '2',
+    index: '02',
+    title: 'Автовышка 18 метров',
+    text: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
+    bullets: [
+      'Высота подъёма: 18 метров',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность люльки: 200 кг'
+    ],
+    image: '/images/avtovyshka-18m.png',
+    url: '/equipment/avtovyshka-18m.html',
+    price: 'от 24 000 ₽/смена'
+  },
+  {
+    id: '3',
+    index: '03',
+    title: 'Автовышка-платформа 21 метр',
+    text: 'Универсальная техника с большой платформой (2x4м) и хорошим запасом высоты. Подходит для большинства городских задач с крупногабаритными материалами.',
+    bullets: [
+      'Высота подъёма: 21 метр',
+      'Вылет стрелы: до 11 метров',
+      'Грузоподъёмность корзины: 1000 кг',
+      'Размер корзины: 2 x 4 м'
+    ],
+    image: '/images/avtovyshka-21m.png',
+    url: '/equipment/avtovyshka-21m.html',
+    price: 'от 21 000 ₽/смена'
+  },
+  {
+    id: '4',
+    index: '04',
+    title: 'Автовышка 29 метров',
+    text: 'Мощная техника для монтажных и высотных работ повышенной сложности. Работа на высоте до 8–9 этажа.',
+    bullets: [
+      'Высота подъёма: 29 метров',
+      'Вылет стрелы: до 14 метров',
+      'Грузоподъёмность люльки: 200 кг',
+      'Проезд в арку: 3300 мм'
+    ],
+    image: '/images/avtovyshka-29m.png',
+    url: '/equipment/avtovyshka-29m.html',
+    price: 'от 26 000 ₽/смена'
+  }
+];
+
+// =============================================
+// POPULAR EQUIPMENT SLIDER - инициализация
+// =============================================
+async function initOurCapabilitiesSlider() {
+  const section = document.getElementById('popular-equipment');
+  const sliderContainer = document.getElementById('our-capabilities-slider');
+  
+  if (!section || !sliderContainer) return;
+  
+  // Определяем URL популярных машин
+  const popularUrls = [
+    '/equipment/avtovyshka-13m.html',
+    '/equipment/avtovyshka-18m.html',
+    '/equipment/avtovyshka-21m.html',
+    '/equipment/avtovyshka-29m.html'
+  ];
+  
+  let slidesData = POPULAR_EQUIPMENT_SLIDES;
+  
+  try {
+    const response = await fetch('/api/services');
+    if (response.ok) {
+      const services = await response.json();
+      // Фильтруем популярные машины по URL
+      const popularServices = services.filter(service => 
+        popularUrls.includes(service.url)
+      );
+      
+      if (popularServices.length > 0) {
+        // Преобразуем данные из API в формат слайдов
+        slidesData = popularServices.map((service, index) => {
+          // Исправляем кодировку текстовых полей
+          const fixTextEncoding = (text) => {
+            if (!text || typeof text !== 'string') return text;
+            // Удаляем проблемные последовательности с неправильной кодировкой
+            let fixed = text;
+            // Исправляем двойную кодировку кириллицы
+            if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed)) {
+              try {
+                // Пробуем исправить через декодирование
+                const buffer = Buffer.from(fixed, 'latin1');
+                const decoded = buffer.toString('utf8');
+                if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
+                  fixed = decoded;
+                }
+              } catch (e) {
+                // Игнорируем ошибки
+              }
+            }
+            return fixed;
+          };
+          
+          // Парсим specifications для получения характеристик
+          const specs = fixTextEncoding(service.specifications || '');
+          const bullets = specs.split(',').filter(s => s.trim()).map(s => s.trim());
+          
+          // Определяем изображение по URL или используем из базы данных
+          let slideImage = service.image_url || '/images/avtovyshka-13m.png';
+          const serviceUrl = (service.url || '').toLowerCase();
+          
+          if (!service.image_url) {
+            // Если нет изображения в базе, используем локальные файлы
+            if (serviceUrl.includes('13m')) {
+              slideImage = '/images/avtovyshka-13m.png';
+            } else if (serviceUrl.includes('18m')) {
+              slideImage = '/images/avtovyshka-18m.png';
+            } else if (serviceUrl.includes('21m')) {
+              slideImage = '/images/avtovyshka-21m.png';
+            } else if (serviceUrl.includes('29m')) {
+              slideImage = '/images/avtovyshka-29m.png';
+            } else {
+              slideImage = '/images/avtovyshka-13m.png';
+            }
+          }
+          
+          // Используем fallback данные, если данные из базы содержат неправильную кодировку
+          const title = fixTextEncoding(service.title);
+          const text = fixTextEncoding(service.description || '');
+          const price = fixTextEncoding(service.price || '');
+          
+          // Проверяем, есть ли признаки неправильной кодировки
+          const hasBadEncoding = /Р[Р-Я]/.test(title) || /С[Р-Я]/.test(title) || 
+                                 /Р[Р-Я]/.test(text) || /С[Р-Я]/.test(text) ||
+                                 /Р[Р-Я]/.test(price) || /С[Р-Я]/.test(price);
+          
+          // Если есть проблемы с кодировкой, используем fallback данные
+          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
+          if (hasBadEncoding && fallbackSlide) {
+            console.warn('⚠️ Bad encoding detected for service, using fallback data:', service.title);
+            // Убираем информацию о полсмене из fallback цены
+            const cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
+            return {
+              id: String(index + 1),
+              index: String(index + 1).padStart(2, '0'),
+              title: fallbackSlide.title,
+              text: fallbackSlide.text,
+              bullets: fallbackSlide.bullets || [],
+              image: slideImage,
+              url: service.url || popularUrls[index],
+              price: cleanedFallbackPrice || fallbackSlide.price
+            };
+          }
+          
+          // Убираем информацию о полсмене из цены для слайдов
+          const cleanedPrice = extractShiftPrice(price);
+          
+          return {
+            id: String(index + 1),
+            index: String(index + 1).padStart(2, '0'),
+            title: title,
+            text: text,
+            bullets: bullets.length > 0 ? bullets : (fallbackSlide?.bullets || []),
+            image: slideImage,
+            url: service.url || popularUrls[index],
+            price: cleanedPrice || price
+          };
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error loading popular equipment:', error);
+    // Используем FALLBACK данные
+  }
+  
+  // Создаём слайды
+  slidesData.forEach((slide, index) => {
+    const slideEl = document.createElement('div');
+    slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
+    slideEl.dataset.index = index;
+    
+    const bulletsHtml = slide.bullets ? `
+      <ul class="our-capabilities-slide-bullets">
+        ${slide.bullets.map(bullet => `<li>${bullet}</li>`).join('')}
+      </ul>
+    ` : '';
+    
+    const slideNumber = String(index + 1).padStart(2, '0');
+    const totalSlidesStr = String(slidesData.length).padStart(2, '0');
+    
+    const priceHtml = slide.price ? `<p class="our-capabilities-slide-price">${slide.price} <span class="price-vat">без НДС</span></p>` : '';
+    const linkHtml = slide.url ? `<a href="${slide.url}" class="our-capabilities-slide-link">Подробнее →</a>` : '';
+    
+    slideEl.innerHTML = `
+      <div class="our-capabilities-slide-bg">
+        <img src="${slide.image}" alt="${slide.title}" loading="lazy" />
+      </div>
+      <div class="our-capabilities-slide-gradient"></div>
+      <div class="our-capabilities-slide-counter">${slideNumber}/${totalSlidesStr}</div>
+      <div class="our-capabilities-slide-content">
+        <h3 class="our-capabilities-slide-title">${slide.title}</h3>
+        <p class="our-capabilities-slide-text">${slide.text}</p>
+        ${bulletsHtml}
+        ${priceHtml}
+        ${linkHtml}
+      </div>
+    `;
+    
+    sliderContainer.appendChild(slideEl);
+  });
+  
+  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+  const totalSlides = slides.length;
+  let previousIndex = 0;
+  
+  // Находим кнопку "Посмотреть весь автопарк"
+  const buttonContainer = section.querySelector('.popular-equipment-button');
+  
+  // Функция обновления активного слайда с эффектом колоды карт
+  function updateActiveSlide(activeIndex) {
+    if (activeIndex < 0 || activeIndex >= totalSlides) return;
+    
+    // Если индекс не изменился, не обновляем
+    if (activeIndex === previousIndex) return;
+    
+    // Плавное переключение без задержек для более быстрого отклика
+    slides.forEach((slide, index) => {
+      slide.classList.remove('active', 'prev');
+      
+      if (index === activeIndex) {
+        // Текущий активный слайд - появляется снизу
+        slide.classList.add('active');
+      } else if (index < activeIndex) {
+        // Прошедшие слайды уходят наверх и исчезают
+        slide.classList.add('prev');
+      }
+      // Будущие слайды остаются внизу (translateY(100%))
+    });
+    
+    // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
+    if (buttonContainer) {
+      if (activeIndex >= totalSlides - 1) {
+        // Последний слайд - показываем кнопку
+        buttonContainer.classList.add('visible');
+      } else if (activeIndex < totalSlides - 2) {
+        // Не предпоследний и не последний слайд - скрываем кнопку
+        buttonContainer.classList.remove('visible');
+      }
+    }
+    
+    // Обновляем счётчики на слайдах (они уже есть в HTML каждого слайда)
+    // Счётчики обновляются автоматически, так как они встроены в каждый слайд
+    
+    previousIndex = activeIndex;
+  }
+  
+  // Функция вычисления прогресса прокрутки
+  function calculateProgress() {
+    const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const sectionTop = rect.top;
+    const sectionHeight = rect.height;
+    
+    // Если секция еще не достигла верха экрана, прогресс = 0
+    if (sectionTop > windowHeight) {
+      return 0;
+    }
+    
+    // Вычисляем прогресс: когда секция входит в viewport (top < windowHeight)
+    // и прокручивается до конца (top < -sectionHeight + windowHeight)
+    const startPoint = windowHeight; // когда верх секции достигает верха экрана
+    const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
+    
+    // Добавляем большую задержку для первого слайда - он должен показываться дольше
+    // Вычитаем 80% высоты окна из начала, чтобы можно было прокрутить ниже перед началом слайдов
+    const delayOffset = windowHeight * 0.8; // 80% высоты экрана задержки - можно прокрутить ниже
+    const adjustedStartPoint = startPoint - delayOffset;
+    
+    // Нормализуем прогресс от 0 до 1 с учетом задержки
+    const scrolled = adjustedStartPoint - sectionTop;
+    const totalScroll = adjustedStartPoint - endPoint;
+    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
+    
+    // Если прогресс еще в зоне задержки, возвращаем 0 (первый слайд)
+    if (sectionTop > adjustedStartPoint) {
+      progress = 0;
+    }
+    
+    return progress;
+  }
+  
+  // Функция обновления слайда на основе прогресса
+  function updateSlideFromScroll() {
+    const progress = calculateProgress();
+    
+    // Вычисляем индекс слайда на основе прогресса
+    // Первый слайд должен показываться дольше - добавляем задержку
+    // Для 4 слайдов: первые 30% прогресса = слайд 0, затем равномерно распределяем остальные
+    const firstSlideDelay = 0.3; // 30% прогресса для первого слайда - больше времени на чтение
+    let slideProgress;
+    
+    if (progress < firstSlideDelay) {
+      // Первый слайд - показываем его дольше
+      slideProgress = 0;
+    } else {
+      // Остальные слайды - распределяем равномерно по оставшемуся прогрессу
+      const remainingProgress = progress - firstSlideDelay;
+      const remainingSlides = totalSlides - 1;
+      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
+    }
+    
+    // Используем плавное округление для более естественного переключения
+    const activeIndex = Math.min(
+      totalSlides - 1,
+      Math.max(0, Math.floor(slideProgress + 0.1)) // Небольшое смещение для более раннего переключения
+    );
+    
+    updateActiveSlide(activeIndex);
+  }
+  
+  // Обработчик прокрутки - используем Lenis, если доступен
+  let ticking = false;
+  function handleScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateSlideFromScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  
+  // Подключаем обработчик прокрутки
+  function setupScrollHandler() {
+    if (window.lenis) {
+      // Используем Lenis события
+      window.lenis.on('scroll', handleScroll);
+    } else {
+      // Fallback на нативный scroll
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+  }
+  
+  setupScrollHandler();
+  
+  // Переключимся на Lenis, когда он загрузится
+  const checkLenisSlider = setInterval(() => {
+    if (window.lenis) {
+      window.removeEventListener('scroll', handleScroll);
+      window.lenis.on('scroll', handleScroll);
+      clearInterval(checkLenisSlider);
+    }
+  }, 100);
+  
+  // Инициализация при загрузке
+  updateSlideFromScroll();
+  
+  // Дополнительная проверка: если секция уже прокручена, показываем кнопку
+  if (buttonContainer) {
+    const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    // Если секция уже прошла (верх секции выше верха экрана), показываем кнопку
+    if (rect.top < windowHeight * 0.5) {
+      const progress = calculateProgress();
+      if (progress >= 0.7) {
+        buttonContainer.classList.add('visible');
+      }
+    }
+  }
+  
+  // Также обновляем при изменении размера окна
+  window.addEventListener('resize', () => {
+    updateSlideFromScroll();
+  }, { passive: true });
+}
 
 // Обработчик формы быстрой заявки
 function initQuickContactForm() {
@@ -1611,43 +1966,14 @@ async function initEquipmentDropdown() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    await displayServices();
-  } catch (error) {
-    console.error('Error displaying services:', error);
-  }
-  
-  try {
-    await displayReviews();
-  } catch (error) {
-    console.error('Error displaying reviews:', error);
-  }
-  
-  try {
-    // Загружаем данные для калькулятора из API перед инициализацией
-    await loadCalculatorEquipmentFromAPI();
-    initCalculator();
-  } catch (error) {
-    console.error('Error initializing calculator:', error);
-  }
-  
-  try {
-    initScrollSlides();
-  } catch (error) {
-    console.error('Error initializing scroll slides:', error);
-  }
-  
-  try {
-    initQuickContactForm();
-  } catch (error) {
-    console.error('Error initializing contact form:', error);
-  }
-  
-  try {
-    initEquipmentDropdown();
-  } catch (error) {
-    console.error('Error initializing equipment dropdown:', error);
-  }
+  displayServices();
+  displayReviews();
+  // Загружаем данные для калькулятора из API перед инициализацией
+  await loadCalculatorEquipmentFromAPI();
+  initCalculator();
+  initOurCapabilitiesSlider();
+  initQuickContactForm();
+  initEquipmentDropdown();
 });
 
  
