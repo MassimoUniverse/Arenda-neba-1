@@ -1994,14 +1994,43 @@ async function initEquipmentDropdown() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  displayServices();
-  displayReviews();
+  try {
+    await displayServices();
+  } catch (error) {
+    console.error('Error displaying services:', error);
+  }
+  
+  try {
+    await displayReviews();
+  } catch (error) {
+    console.error('Error displaying reviews:', error);
+  }
+  
   // Загружаем данные для калькулятора из API перед инициализацией
-  await loadCalculatorEquipmentFromAPI();
-  initCalculator();
-  initOurCapabilitiesSlider();
-  initQuickContactForm();
-  initEquipmentDropdown();
+  try {
+    await loadCalculatorEquipmentFromAPI();
+    initCalculator();
+  } catch (error) {
+    console.error('Error initializing calculator:', error);
+  }
+  
+  try {
+    await initOurCapabilitiesSlider();
+  } catch (error) {
+    console.error('Error initializing slider:', error);
+  }
+  
+  try {
+    initQuickContactForm();
+  } catch (error) {
+    console.error('Error initializing contact form:', error);
+  }
+  
+  try {
+    initEquipmentDropdown();
+  } catch (error) {
+    console.error('Error initializing equipment dropdown:', error);
+  }
 });
 
  
