@@ -1560,47 +1560,45 @@ const POPULAR_EQUIPMENT_SLIDES = [
 async function initOurCapabilitiesSlider() {
   console.log('🔄 Initializing slider...');
   
-  // Ждем, пока DOM полностью загрузится
-  let attempts = 0;
-  let section = null;
-  let sliderContainer = null;
-  
-  while (attempts < 10 && (!section || !sliderContainer)) {
-    section = document.getElementById('popular-equipment');
-    sliderContainer = document.getElementById('our-capabilities-slider');
-    
-    if (!section || !sliderContainer) {
-      attempts++;
-      await new Promise(resolve => setTimeout(resolve, 100));
-    } else {
-      break;
-    }
-  }
-  
-  if (!section) {
-    console.error('❌ Section #popular-equipment not found after', attempts, 'attempts');
-    console.error('Available sections:', Array.from(document.querySelectorAll('section')).map(s => s.id));
-    return;
-  }
-  
-  if (!sliderContainer) {
-    console.error('❌ Slider container #our-capabilities-slider not found');
-    return;
-  }
-  
-  console.log('✅ Section and container found');
-  
-  // Определяем URL популярных машин
-  const popularUrls = [
-    '/equipment/avtovyshka-13m.html',
-    '/equipment/avtovyshka-18m.html',
-    '/equipment/avtovyshka-21m.html',
-    '/equipment/avtovyshka-29m.html'
-  ];
-  
-  let slidesData = POPULAR_EQUIPMENT_SLIDES;
+  // Функция для ожидания появления элемента
+  const waitForElement = (selector, maxAttempts = 20) => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const checkElement = () => {
+        const element = document.querySelector(selector);
+        if (element) {
+          resolve(element);
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          requestAnimationFrame(checkElement);
+        } else {
+          reject(new Error(`Element ${selector} not found after ${maxAttempts} attempts`));
+        }
+      };
+      checkElement();
+    });
+  };
   
   try {
+    // Ждем появления секции
+    const section = await waitForElement('#popular-equipment');
+    console.log('✅ Section found:', section);
+    
+    // Ждем появления контейнера слайдов
+    const sliderContainer = await waitForElement('#our-capabilities-slider');
+    console.log('✅ Slider container found:', sliderContainer);
+    
+    // Определяем URL популярных машин
+    const popularUrls = [
+      '/equipment/avtovyshka-13m.html',
+      '/equipment/avtovyshka-18m.html',
+      '/equipment/avtovyshka-21m.html',
+      '/equipment/avtovyshka-29m.html'
+    ];
+    
+    let slidesData = POPULAR_EQUIPMENT_SLIDES;
+    
+    try {
     const response = await fetch('/api/services');
     if (response.ok) {
       const services = await response.json();
@@ -1699,22 +1697,22 @@ async function initOurCapabilitiesSlider() {
           };
         });
       }
+      }
+    } catch (error) {
+      console.error('Error loading popular equipment:', error);
+      // Используем FALLBACK данные
     }
-  } catch (error) {
-    console.error('Error loading popular equipment:', error);
-    // Используем FALLBACK данные
-  }
-  
-  // Проверяем данные слайдов
-  if (!slidesData || slidesData.length === 0) {
-    console.error('❌ No slides data available');
-    return;
-  }
-  
-  console.log('✅ Slides data loaded:', slidesData.length, 'slides');
-  
-  // Очищаем контейнер перед созданием слайдов
-  sliderContainer.innerHTML = '';
+    
+    // Проверяем данные слайдов
+    if (!slidesData || slidesData.length === 0) {
+      console.error('❌ No slides data available');
+      return;
+    }
+    
+    console.log('✅ Slides data loaded:', slidesData.length, 'slides');
+    
+    // Очищаем контейнер перед созданием слайдов
+    sliderContainer.innerHTML = '';
   
   // Создаём слайды
   slidesData.forEach((slide, index) => {
@@ -1917,10 +1915,15 @@ async function initOurCapabilitiesSlider() {
     }
   }
   
-  // Также обновляем при изменении размера окна
-  window.addEventListener('resize', () => {
-    updateSlideFromScroll();
-  }, { passive: true });
+    // Также обновляем при изменении размера окна
+    window.addEventListener('resize', () => {
+      updateSlideFromScroll();
+    }, { passive: true });
+    
+  } catch (error) {
+    console.error('❌ Error initializing slider:', error);
+    console.error('Error details:', error.message, error.stack);
+  }
 }
 
 // Обработчик формы быстрой заявки
