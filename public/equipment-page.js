@@ -239,10 +239,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Собираем все изображения: основное + дополнительные
       let allImages = [];
       
-      // Добавляем основное изображение
-      if (service.image_url) {
+      // Сначала определяем правильное изображение по URL страницы
+      const currentPath = window.location.pathname.toLowerCase();
+      let correctImageByUrl = null;
+      
+      if (currentPath.includes('13m')) {
+        correctImageByUrl = '../images/avtovyshka-13m.png';
+      } else if (currentPath.includes('15m')) {
+        correctImageByUrl = '../images/avtovyshka-15m.png';
+      } else if (currentPath.includes('16m')) {
+        correctImageByUrl = '../images/avtovyshka-15m.png';
+      } else if (currentPath.includes('17m')) {
+        correctImageByUrl = '../images/avtovyshka-18m.png';
+      } else if (currentPath.includes('18m')) {
+        correctImageByUrl = '../images/avtovyshka-18m.png';
+      } else if (currentPath.includes('21m')) {
+        correctImageByUrl = '../images/avtovyshka-21m.png';
+      } else if (currentPath.includes('25m')) {
+        correctImageByUrl = '../images/avtovyshka-25m.png';
+      } else if (currentPath.includes('29m')) {
+        correctImageByUrl = '../images/avtovyshka-29m.png';
+      } else if (currentPath.includes('45m')) {
+        correctImageByUrl = '../images/avtovyshka-29m.png';
+      } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
+        correctImageByUrl = '../images/avtovyshka-vezdehod-30m.png';
+      } else if (currentPath.includes('samohodnaya') || currentPath.includes('самоходная')) {
+        correctImageByUrl = '../images/avtovyshka-13m.png';
+      }
+      
+      // Используем правильное изображение по URL, если нашли
+      if (correctImageByUrl) {
+        allImages.push(correctImageByUrl);
+        console.log('  ✅ Added correct image by URL:', correctImageByUrl);
+      } else if (service.image_url && !service.image_url.includes('localhost')) {
+        // Используем image_url из базы только если нет определения по URL и это не localhost
         allImages.push(service.image_url);
-        console.log('  ✅ Added image_url:', service.image_url);
+        console.log('  ✅ Added image_url from database:', service.image_url);
       }
       
       // Обрабатываем массив изображений
