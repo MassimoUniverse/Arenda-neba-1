@@ -651,14 +651,29 @@ function showServiceModal(id = null) {
             
             <div class="form-section">
                 <h3 class="form-section-title">Характеристики для слайдера</h3>
+                <small class="form-hint" style="display: block; margin-bottom: 1rem; color: var(--text-light);">Эти характеристики будут отображаться в слайдере на главной странице (если услуга отмечена как популярная). Можно указать до 4 характеристик.</small>
                 <div class="form-group">
-                    <label for="serviceSpecs">Характеристики для слайдера (через запятую)</label>
-                    <textarea id="serviceSpecs" name="specifications" rows="3" placeholder="Большая корзина 2/4 метра, Грузоподъёмность 1000 кг"></textarea>
-                    <small class="form-hint">Эти характеристики будут отображаться в слайдере на главной странице (если услуга отмечена как популярная). Каждая характеристика через запятую.</small>
+                    <label for="serviceSpec1">Характеристика 1</label>
+                    <input type="text" id="serviceSpec1" name="spec1" placeholder="Например: Большая корзина 2/4 метра">
+                </div>
+                <div class="form-group">
+                    <label for="serviceSpec2">Характеристика 2</label>
+                    <input type="text" id="serviceSpec2" name="spec2" placeholder="Например: Грузоподъёмность 1000 кг">
+                </div>
+                <div class="form-group">
+                    <label for="serviceSpec3">Характеристика 3 (необязательно)</label>
+                    <input type="text" id="serviceSpec3" name="spec3" placeholder="Например: Высота подъёма 21 метр">
+                </div>
+                <div class="form-group">
+                    <label for="serviceSpec4">Характеристика 4 (необязательно)</label>
+                    <input type="text" id="serviceSpec4" name="spec4" placeholder="Например: Вылет стрелы до 11 метров">
                 </div>
             </div>
             
             <div class="form-group" style="display: none;">
+                <label for="serviceSpecs">Характеристики (скрытое поле для совместимости)</label>
+                <textarea id="serviceSpecs" name="specifications" rows="1"></textarea>
+            </div>
             <div class="form-group" style="display: none;">
                 <label for="serviceReachDiagram">URL схемы вылета стрелы (старый формат, для совместимости)</label>
                 <input type="text" id="serviceReachDiagram" name="reach_diagram_url" placeholder="https://example.com/diagram.jpg">
@@ -698,6 +713,28 @@ function showServiceModal(id = null) {
                 popularOrderGroup.style.display = this.checked ? 'block' : 'none';
             });
         }
+        
+        // Синхронизация полей характеристик со скрытым полем
+        const syncSpecs = () => {
+            const spec1 = document.getElementById('serviceSpec1')?.value?.trim() || '';
+            const spec2 = document.getElementById('serviceSpec2')?.value?.trim() || '';
+            const spec3 = document.getElementById('serviceSpec3')?.value?.trim() || '';
+            const spec4 = document.getElementById('serviceSpec4')?.value?.trim() || '';
+            const specsInput = document.getElementById('serviceSpecs');
+            if (specsInput) {
+                const allSpecs = [spec1, spec2, spec3, spec4].filter(s => s).join(', ');
+                specsInput.value = allSpecs;
+            }
+        };
+        
+        // Добавляем обработчики на поля характеристик
+        ['serviceSpec1', 'serviceSpec2', 'serviceSpec3', 'serviceSpec4'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', syncSpecs);
+                input.addEventListener('change', syncSpecs);
+            }
+        });
         
         // НЕ клонируем форму, чтобы не потерять обработчики событий на динамически созданных элементах
         // Просто добавляем обработчик submit на форму
@@ -978,8 +1015,29 @@ async function loadServiceData(id) {
             if (basketRotationAngleInput) basketRotationAngleInput.value = service.basket_rotation_angle || '';
             
             // Старое поле для совместимости
+            // Загружаем характеристики в отдельные поля
             const specsInput = document.getElementById('serviceSpecs');
-            if (specsInput) specsInput.value = service.specifications || '';
+            const spec1Input = document.getElementById('serviceSpec1');
+            const spec2Input = document.getElementById('serviceSpec2');
+            const spec3Input = document.getElementById('serviceSpec3');
+            const spec4Input = document.getElementById('serviceSpec4');
+            
+            // Парсим характеристики из строки (разделенные запятыми)
+            if (service.specifications) {
+                const specs = service.specifications.split(',').map(s => s.trim()).filter(s => s);
+                if (spec1Input) spec1Input.value = specs[0] || '';
+                if (spec2Input) spec2Input.value = specs[1] || '';
+                if (spec3Input) spec3Input.value = specs[2] || '';
+                if (spec4Input) spec4Input.value = specs[3] || '';
+            }
+            
+            // Сохраняем в скрытое поле для совместимости
+            if (specsInput) {
+                const allSpecs = [spec1Input?.value, spec2Input?.value, spec3Input?.value, spec4Input?.value]
+                    .filter(s => s && s.trim())
+                    .join(', ');
+                specsInput.value = allSpecs;
+            }
             
             document.getElementById('serviceImage').value = service.image_url || '';
             document.getElementById('serviceUrl').value = service.url || '';
@@ -1239,6 +1297,20 @@ window.saveService = async function(event, id) {
     const isPopularCheckbox = document.getElementById('serviceIsPopular');
     data.is_popular = isPopularCheckbox?.checked ? 1 : 0;
     data.popular_order = document.getElementById('servicePopularOrder')?.value || null;
+    
+    // Собираем характеристики из отдельных полей (до 4 штук)
+    const spec1 = document.getElementById('serviceSpec1')?.value?.trim() || '';
+    const spec2 = document.getElementById('serviceSpec2')?.value?.trim() || '';
+    const spec3 = document.getElementById('serviceSpec3')?.value?.trim() || '';
+    const spec4 = document.getElementById('serviceSpec4')?.value?.trim() || '';
+    
+    // Объединяем характеристики через запятую
+    const allSpecs = [spec1, spec2, spec3, spec4].filter(s => s).join(', ');
+    data.specifications = allSpecs;
+    
+    // Обновляем скрытое поле для совместимости
+    const specsInput = document.getElementById('serviceSpecs');
+    if (specsInput) specsInput.value = allSpecs;
 
     // Handle images URLs from textarea
     const imagesUrlsText = document.getElementById('serviceImagesUrls')?.value || '';

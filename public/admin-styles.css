@@ -608,6 +608,16 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-white);
+    z-index: 10;
+    margin-top: auto;
+}
+
+.modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }
 
 /* File Upload */
