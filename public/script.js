@@ -1523,75 +1523,50 @@ function initCalculator() {
 }
 
 // =============================================
-// POPULAR EQUIPMENT SLIDER - данные слайдов
 // =============================================
-const POPULAR_EQUIPMENT_SLIDES = [
+// SCROLL-DRIVEN SLIDES - данные слайдов
+// =============================================
+// Меняйте этот массив для изменения контента слайдов
+const SCROLL_SLIDES_DATA = [
   {
-    id: '1',
-    index: '01',
     title: 'Автовышка-платформа 13м',
-    bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
-    ],
+    subtitle: 'Большая корзина 2/4 метра, Грузоподъёмность 1000 кг',
     image: '/images/avtovyshka-13m.png',
-    url: '/equipment/avtovyshka-13m.html',
+    link: '/equipment/avtovyshka-13m.html',
     price: 'от 18 000 ₽/смена'
   },
   {
-    id: '2',
-    index: '02',
     title: 'Автовышка-платформа 16м',
-    bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
-    ],
+    subtitle: 'Большая корзина 2/4 метра, Грузоподъёмность 1000 кг',
     image: '/images/avtovyshka-18m.png',
-    url: '/equipment/avtovyshka-16m.html',
+    link: '/equipment/avtovyshka-16m.html',
     price: 'от 20 000 ₽/смена'
   },
   {
-    id: '3',
-    index: '03',
     title: 'Автовышка-платформа 21м',
-    bullets: [
-      'Большая корзина 2/4 метра',
-      'Грузоподъёмность 1000 кг'
-    ],
+    subtitle: 'Большая корзина 2/4 метра, Грузоподъёмность 1000 кг',
     image: '/images/avtovyshka-21m.png',
-    url: '/equipment/avtovyshka-21m.html',
+    link: '/equipment/avtovyshka-21m.html',
     price: 'от 21 000 ₽/смена'
   },
   {
-    id: '4',
-    index: '04',
     title: 'Автовышка телескоп-колено 25м',
-    bullets: [
-      'Корзина 1/2 метра',
-      'Грузоподъёмность 300 кг'
-    ],
+    subtitle: 'Корзина 1/2 метра, Грузоподъёмность 300 кг',
     image: '/images/avtovyshka-25m.png',
-    url: '/equipment/avtovyshka-25m.html',
+    link: '/equipment/avtovyshka-25m.html',
     price: 'от 21 000 ₽/смена'
   }
 ];
 
 // =============================================
-// POPULAR EQUIPMENT SLIDER - инициализация
+// SCROLL-DRIVEN SLIDES - инициализация
 // =============================================
-async function initOurCapabilitiesSlider() {
+async function initScrollSlides() {
   const section = document.getElementById('popular-equipment');
-  const sliderContainer = document.getElementById('our-capabilities-slider');
+  const wrapper = document.getElementById('scroll-slides-wrapper');
+  const buttonContainer = document.querySelector('.scroll-slides-button');
   
-  if (!section || !sliderContainer) return;
-  
-  // Определяем URL популярных машин
-  const popularUrls = [
-    '/equipment/avtovyshka-13m.html',
-    '/equipment/avtovyshka-16m.html',
-    '/equipment/avtovyshka-21m.html',
-    '/equipment/avtovyshka-25m.html'
-  ];
+  if (!section || !wrapper) return;
   
   // Загружаем популярные слайды из базы данных
   let slidesData = [];
@@ -1600,47 +1575,36 @@ async function initOurCapabilitiesSlider() {
     const response = await fetch('/api/services');
     if (response.ok) {
       const services = await response.json();
-      // Фильтруем только популярные слайды и сортируем по popular_order
       const popularServices = services
         .filter(service => service.is_popular === 1 || service.is_popular === true)
         .sort((a, b) => (a.popular_order || 999) - (b.popular_order || 999))
-        .slice(0, 4); // Максимум 4 слайда
+        .slice(0, 4);
       
       if (popularServices.length > 0) {
-        slidesData = popularServices.map((service, index) => {
-          // Парсим specifications для получения характеристик (bullets)
-          const bullets = service.specifications 
+        slidesData = popularServices.map((service) => {
+          const specs = service.specifications 
             ? service.specifications.split(',').filter(s => s.trim()).map(s => s.trim())
             : [];
           
-          // Определяем изображение
           let slideImage = service.image_url || '/images/avtovyshka-13m.png';
           const serviceUrl = (service.url || '').toLowerCase();
           if (!service.image_url) {
-            if (serviceUrl.includes('13m')) {
-              slideImage = '/images/avtovyshka-13m.png';
-            } else if (serviceUrl.includes('16m')) {
-              slideImage = '/images/avtovyshka-18m.png';
-            } else if (serviceUrl.includes('21m')) {
-              slideImage = '/images/avtovyshka-21m.png';
-            } else if (serviceUrl.includes('25m')) {
-              slideImage = '/images/avtovyshka-25m.png';
-            }
+            if (serviceUrl.includes('13m')) slideImage = '/images/avtovyshka-13m.png';
+            else if (serviceUrl.includes('16m')) slideImage = '/images/avtovyshka-18m.png';
+            else if (serviceUrl.includes('21m')) slideImage = '/images/avtovyshka-21m.png';
+            else if (serviceUrl.includes('25m')) slideImage = '/images/avtovyshka-25m.png';
           }
           
-          // Убеждаемся, что цена начинается с "от"
           let price = service.price || '';
           if (price && !price.toLowerCase().startsWith('от')) {
             price = 'от ' + price;
           }
           
           return {
-            id: String(index + 1),
-            index: String(index + 1).padStart(2, '0'),
             title: service.title || '',
-            bullets: bullets,
+            subtitle: specs.join(', ') || '',
             image: slideImage,
-            url: service.url || '',
+            link: service.url || '',
             price: price
           };
         });
@@ -1650,203 +1614,187 @@ async function initOurCapabilitiesSlider() {
     console.error('Error loading popular equipment:', error);
   }
   
-  // Если нет популярных слайдов в базе, используем fallback данные
+  // Если нет данных из API, используем fallback
   if (slidesData.length === 0) {
-    slidesData = POPULAR_EQUIPMENT_SLIDES;
+    slidesData = SCROLL_SLIDES_DATA;
   }
   
-  // Если все еще нет слайдов, выходим
   if (slidesData.length === 0) {
     console.warn('No slides data available');
     return;
   }
   
+  const slidesCount = slidesData.length;
+  const totalSlidesStr = String(slidesCount).padStart(2, '0');
+  
   // Создаём слайды
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
-    slideEl.className = `our-capabilities-slide ${index === 0 ? 'active' : ''}`;
+    slideEl.className = 'scroll-slide';
     slideEl.dataset.index = index;
     
-    const bulletsHtml = slide.bullets ? `
-      <ul class="our-capabilities-slide-bullets">
-        ${slide.bullets.map(bullet => `<li>${bullet}</li>`).join('')}
-      </ul>
-    ` : '';
-    
     const slideNumber = String(index + 1).padStart(2, '0');
-    const totalSlidesStr = String(slidesData.length).padStart(2, '0');
-    
-    const priceHtml = slide.price ? `<p class="our-capabilities-slide-price">${slide.price} <span class="price-vat">без НДС</span></p>` : '';
-    const linkHtml = slide.url ? `<a href="${slide.url}" class="our-capabilities-slide-link">Подробнее →</a>` : '';
+    const priceHtml = slide.price ? `<p class="scroll-slide-price">${slide.price} <span class="price-vat">без НДС</span></p>` : '';
+    const linkHtml = slide.link ? `<a href="${slide.link}" class="scroll-slide-link">Подробнее →</a>` : '';
     
     slideEl.innerHTML = `
-      <div class="our-capabilities-slide-bg">
+      <div class="scroll-slide-bg">
         <img src="${slide.image}" alt="${slide.title}" loading="lazy" />
       </div>
-      <div class="our-capabilities-slide-gradient"></div>
-      <div class="our-capabilities-slide-counter">${slideNumber}/${totalSlidesStr}</div>
-      <div class="our-capabilities-slide-content">
-        <h3 class="our-capabilities-slide-title">${slide.title}</h3>
-        ${bulletsHtml}
+      <div class="scroll-slide-gradient"></div>
+      <div class="scroll-slide-counter">${slideNumber}/${totalSlidesStr}</div>
+      <div class="scroll-slide-content">
+        <h3 class="scroll-slide-title">${slide.title}</h3>
+        ${slide.subtitle ? `<p class="scroll-slide-subtitle">${slide.subtitle}</p>` : ''}
         ${priceHtml}
         ${linkHtml}
       </div>
     `;
     
-    sliderContainer.appendChild(slideEl);
+    wrapper.appendChild(slideEl);
   });
   
-  const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
-  const totalSlides = slides.length;
-  let previousIndex = 0;
+  const slides = wrapper.querySelectorAll('.scroll-slide');
   
-  // Находим кнопку "Посмотреть весь автопарк"
-  const buttonContainer = section.querySelector('.popular-equipment-button');
+  // Коэффициенты для плавной интерполяции (можно настроить)
+  const CONFIG = {
+    scaleRange: 0.25,      // Разница масштаба между активным и неактивным слайдом
+    translateYRange: 120,  // Диапазон смещения по Y (в процентах)
+    opacityRange: 1.0,     // Диапазон прозрачности
+    blurRange: 8,          // Максимальное размытие (px)
+    zIndexBase: 10         // Базовый z-index
+  };
   
-  // Функция плавного обновления позиций слайдов на основе прогресса
-  function updateSlidePositions(progress) {
-    // progress: 0.0 - 1.0 (прогресс прокрутки секции)
+  /**
+   * Вычисляет прогресс прокрутки внутри секции (0.0 - 1.0)
+   */
+  function calculateScrollProgress() {
+    const rect = section.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const sectionTop = rect.top;
+    const sectionHeight = rect.height; // 400vh
     
-    // Первый слайд показывается дольше (30% прогресса)
-    const firstSlideDelay = 0.3;
-    
-    // Вычисляем текущий индекс слайда и прогресс внутри перехода
-    let slideIndex;
-    let transitionProgress = 0; // 0.0 - 1.0 (прогресс перехода между слайдами)
-    
-    if (progress < firstSlideDelay) {
-      // 0% - 30% прогресса = слайд 1 (индекс 0)
-      slideIndex = 0;
-      transitionProgress = progress / firstSlideDelay; // 0.0 - 1.0 внутри первого слайда
-    } else if (progress < 0.5) {
-      // 30% - 50% прогресса = переход от слайда 1 к слайду 2
-      slideIndex = 0; // Текущий слайд
-      const rangeStart = firstSlideDelay; // 0.3
-      const rangeEnd = 0.5;
-      transitionProgress = (progress - rangeStart) / (rangeEnd - rangeStart); // 0.0 - 1.0
-    } else if (progress < 0.7) {
-      // 50% - 70% прогресса = переход от слайда 2 к слайду 3
-      slideIndex = 1; // Текущий слайд
-      const rangeStart = 0.5;
-      const rangeEnd = 0.7;
-      transitionProgress = (progress - rangeStart) / (rangeEnd - rangeStart); // 0.0 - 1.0
-    } else {
-      // 70% - 100% прогресса = слайд 4 (индекс 3)
-      slideIndex = totalSlides - 1; // Последний слайд
-      const rangeStart = 0.7;
-      transitionProgress = (progress - rangeStart) / (1 - rangeStart); // 0.0 - 1.0
+    // Когда секция еще не достигла верха экрана
+    if (sectionTop > windowHeight) {
+      return 0;
     }
     
-    // Обновляем позиции всех слайдов с плавной интерполяцией
+    // Когда секция полностью прокручена
+    if (sectionTop < -sectionHeight + windowHeight) {
+      return 1;
+    }
+    
+    // Нормализуем прогресс от 0 до 1
+    const startPoint = windowHeight;
+    const endPoint = -sectionHeight + windowHeight;
+    const scrolled = startPoint - sectionTop;
+    const totalScroll = startPoint - endPoint;
+    
+    return Math.max(0, Math.min(1, scrolled / totalScroll));
+  }
+  
+  /**
+   * Вычисляет позицию слайда на основе прогресса
+   * position: 0.0 = первый слайд, slidesCount - 1 = последний слайд
+   */
+  function getSlidePosition(progress) {
+    return progress * (slidesCount - 1);
+  }
+  
+  /**
+   * Вычисляет расстояние слайда от текущей позиции
+   * distance: 0 = активный, отрицательное = прошедший, положительное = будущий
+   */
+  function getSlideDistance(slideIndex, position) {
+    return slideIndex - position;
+  }
+  
+  /**
+   * Вычисляет стили слайда на основе distance
+   */
+  function getSlideStyles(distance) {
+    // Ограничиваем distance для плавности
+    const clampedDistance = Math.max(-2, Math.min(2, distance));
+    
+    // Активный слайд (distance ≈ 0)
+    if (Math.abs(clampedDistance) < 0.5) {
+      const activeProgress = Math.abs(clampedDistance) * 2; // 0-1
+      return {
+        translateY: -50 + (clampedDistance * 15), // Небольшое смещение
+        scale: 1 - (activeProgress * CONFIG.scaleRange * 0.3),
+        opacity: 1 - (activeProgress * 0.2),
+        blur: activeProgress * CONFIG.blurRange * 0.3,
+        zIndex: CONFIG.zIndexBase + slidesCount
+      };
+    }
+    
+    // Прошедшие слайды (distance < 0)
+    if (clampedDistance < 0) {
+      const absDistance = Math.abs(clampedDistance);
+      return {
+        translateY: -50 - (absDistance * 80), // Уходит вверх
+        scale: 1 - (absDistance * CONFIG.scaleRange),
+        opacity: Math.max(0, 1 - (absDistance * CONFIG.opacityRange)),
+        blur: Math.min(CONFIG.blurRange, absDistance * CONFIG.blurRange),
+        zIndex: CONFIG.zIndexBase + slidesCount - Math.floor(absDistance)
+      };
+    }
+    
+    // Будущие слайды (distance > 0)
+    const absDistance = clampedDistance;
+    return {
+      translateY: -50 + (absDistance * CONFIG.translateYRange), // Снизу
+      scale: 1 - (absDistance * CONFIG.scaleRange),
+      opacity: Math.max(0, 1 - (absDistance * CONFIG.opacityRange)),
+      blur: Math.min(CONFIG.blurRange, absDistance * CONFIG.blurRange),
+      zIndex: CONFIG.zIndexBase + Math.floor(absDistance)
+    };
+  }
+  
+  /**
+   * Обновляет позиции всех слайдов на основе прогресса прокрутки
+   */
+  function updateSlides() {
+    const progress = calculateScrollProgress();
+    const position = getSlidePosition(progress);
+    
     slides.forEach((slide, index) => {
-      let translateY = 0;
-      let scale = 1;
-      let opacity = 1;
-      let zIndex = 1;
+      const distance = getSlideDistance(index, position);
+      const styles = getSlideStyles(distance);
       
-      if (index < slideIndex) {
-        // Прошедшие слайды - уходят наверх
-        translateY = -50 - 80; // translateY(calc(-50% - 80vh))
-        scale = 0.85;
-        opacity = 0;
-        zIndex = totalSlides - (slideIndex - index);
-      } else if (index === slideIndex) {
-        // Текущий активный слайд - плавно переходит от позиции снизу к центру
-        if (slideIndex === 0 && progress < firstSlideDelay) {
-          // Первый слайд - появляется снизу
-          translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
-          scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
-          opacity = transitionProgress; // От 0 до 1
-        } else if (slideIndex === totalSlides - 1 && progress >= 0.7) {
-          // Последний слайд - полностью виден
-          translateY = -50; // По центру
-          scale = 1;
-          opacity = 1;
-        } else {
-          // Переход: текущий слайд уходит вверх
-          translateY = -50 - (80 * transitionProgress); // От -50% до -50% - 80vh
-          scale = 1 - (0.15 * transitionProgress); // От 1 до 0.85
-          opacity = 1 - transitionProgress; // От 1 до 0
-        }
-        zIndex = totalSlides + 1;
-      } else if (index === slideIndex + 1) {
-        // Следующий слайд - появляется снизу и поднимается к центру
-        translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
-        scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
-        opacity = transitionProgress; // От 0 до 1
-        zIndex = totalSlides;
-      } else {
-        // Будущие слайды - остаются внизу
-        translateY = -50 + 100; // translateY(calc(-50% + 100%))
-        scale = 0.95;
-        opacity = 0;
-        zIndex = 1;
-      }
-      
-      // Применяем стили напрямую для плавной анимации
-      slide.style.transform = `translateX(-50%) translateY(${translateY}%) scale(${scale})`;
-      slide.style.opacity = Math.max(0, Math.min(1, opacity));
-      slide.style.zIndex = zIndex;
+      // Применяем стили
+      slide.style.transform = `translateX(-50%) translateY(${styles.translateY}%) scale(${styles.scale})`;
+      slide.style.opacity = styles.opacity;
+      slide.style.filter = `blur(${styles.blur}px)`;
+      slide.style.zIndex = styles.zIndex;
     });
     
-    // Показываем кнопку когда показывается последний слайд
+    // Показываем кнопку на последнем слайде
     if (buttonContainer) {
-      if (progress >= 0.7) {
+      if (progress >= 0.85) {
         buttonContainer.classList.add('visible');
       } else {
         buttonContainer.classList.remove('visible');
       }
     }
-    
-    previousIndex = progress;
   }
   
-  // Функция вычисления прогресса прокрутки
-  function calculateProgress() {
-    const rect = section.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    const sectionTop = rect.top;
-    const sectionHeight = rect.height; // 300vh
-    
-    // Прогресс от 0 до 1 в зависимости от того, насколько прокручена секция
-    const startPoint = windowHeight; // когда верх секции достигает верха экрана
-    const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
-    
-    // Нормализуем прогресс от 0 до 1
-    const scrolled = startPoint - sectionTop;
-    const totalScroll = startPoint - endPoint;
-    let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
-    
-    return progress; // 0.0 = начало, 0.5 = середина, 1.0 = конец
-  }
-  
-  // Функция обновления слайда на основе прогресса с плавной интерполяцией
-  function updateSlideFromScroll() {
-    const progress = calculateProgress(); // 0.0 - 1.0
-    
-    // Обновляем позиции всех слайдов с плавной интерполяцией
-    updateSlidePositions(progress);
-  }
-  
-  // Обработчик прокрутки - используем Lenis, если доступен
-  let ticking = false;
+  // Обработчик прокрутки с requestAnimationFrame
+  let rafId = null;
   function handleScroll() {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        updateSlideFromScroll();
-        ticking = false;
-      });
-      ticking = true;
-    }
+    if (rafId) return;
+    
+    rafId = window.requestAnimationFrame(() => {
+      updateSlides();
+      rafId = null;
+    });
   }
   
-  // Подключаем обработчик прокрутки
+  // Подключаем обработчик
   function setupScrollHandler() {
     if (window.lenis) {
-      // Используем Lenis события
       window.lenis.on('scroll', handleScroll);
     } else {
-      // Fallback на нативный scroll
       window.addEventListener('scroll', handleScroll, { passive: true });
     }
   }
@@ -1854,34 +1802,19 @@ async function initOurCapabilitiesSlider() {
   setupScrollHandler();
   
   // Переключимся на Lenis, когда он загрузится
-  const checkLenisSlider = setInterval(() => {
+  const checkLenis = setInterval(() => {
     if (window.lenis) {
       window.removeEventListener('scroll', handleScroll);
       window.lenis.on('scroll', handleScroll);
-      clearInterval(checkLenisSlider);
+      clearInterval(checkLenis);
     }
   }, 100);
   
-  // Инициализация при загрузке
-  updateSlideFromScroll();
+  // Инициализация
+  updateSlides();
   
-  // Дополнительная проверка: если секция уже прокручена, показываем кнопку
-  if (buttonContainer) {
-    const rect = section.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    // Если секция уже прошла (верх секции выше верха экрана), показываем кнопку
-    if (rect.top < windowHeight * 0.5) {
-      const progress = calculateProgress();
-      if (progress >= 0.7) {
-        buttonContainer.classList.add('visible');
-      }
-    }
-  }
-  
-  // Также обновляем при изменении размера окна
-  window.addEventListener('resize', () => {
-    updateSlideFromScroll();
-  }, { passive: true });
+  // Обновление при изменении размера окна
+  window.addEventListener('resize', updateSlides, { passive: true });
 }
 
 // Обработчик формы быстрой заявки
@@ -1992,9 +1925,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   try {
-    initOurCapabilitiesSlider();
+    initScrollSlides();
   } catch (error) {
-    console.error('Error initializing slider:', error);
+    console.error('Error initializing scroll slides:', error);
   }
   
   try {

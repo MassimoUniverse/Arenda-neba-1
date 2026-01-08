@@ -1222,61 +1222,44 @@ input[type='number'] {
 }
 
 /* =============================================
-   OUR CAPABILITIES SLIDER (Scroll-driven)
+   SCROLL-DRIVEN SLIDES (Плавная интерполяция)
    ============================================= */
-.our-capabilities-section {
+.scroll-slides-section {
   position: relative;
-  height: 300vh; /* Увеличена высота для большего пространства прокрутки */
+  height: 400vh; /* 4 высоты экрана для плавной прокрутки */
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-.our-capabilities-section .section-header {
+.scroll-slides-section .section-header {
   margin-bottom: 0;
   padding-top: 10px;
 }
 
-.our-capabilities-section .section-header h2 {
+.scroll-slides-section .section-header h2 {
   margin-bottom: 2px;
 }
 
-.our-capabilities-description {
+.scroll-slides-description {
   text-align: center;
   margin-bottom: 0;
   padding-bottom: 0;
 }
 
-.our-capabilities-description p {
+.scroll-slides-description p {
   font-size: 17px;
   color: var(--text-muted);
   max-width: 600px;
   margin: 0 auto;
 }
 
-.popular-equipment-button {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, visibility 0.6s ease, transform 0.6s ease;
-  pointer-events: none;
+.scroll-slides-container {
   position: relative;
-  z-index: 10;
-  text-align: center;
-  margin-top: 20px;
-  margin-bottom: 40px;
   width: 100%;
-  flex-shrink: 0;
 }
 
-.popular-equipment-button.visible {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: translateY(0) !important;
-  pointer-events: auto !important;
-}
-
-.our-capabilities-sticky {
+.scroll-slides-sticky {
   position: sticky;
   top: 80px;
   width: 100%;
@@ -1290,7 +1273,7 @@ input[type='number'] {
   padding: 0;
 }
 
-.our-capabilities-slider {
+.scroll-slides-wrapper {
   position: relative;
   width: 100%;
   height: 100vh;
@@ -1303,9 +1286,10 @@ input[type='number'] {
   overflow: visible;
 }
 
-.our-capabilities-slide {
+.scroll-slide {
   position: absolute;
   left: 50%;
+  top: 50%;
   width: 100%;
   height: 80vh;
   max-height: 850px;
@@ -1313,77 +1297,48 @@ input[type='number'] {
   border-radius: 32px;
   overflow: hidden;
   pointer-events: none;
-  will-change: transform, opacity, z-index;
-  top: 50%;
-  /* Базовые значения - будут обновляться через JS для плавной интерполяции */
-  transform: translateX(-50%) translateY(calc(-50% + 100%)) scale(0.95);
+  will-change: transform, opacity, filter, z-index;
+  /* Базовые значения - обновляются через JS */
+  transform: translateX(-50%) translateY(-50%) scale(0.95);
   opacity: 0;
+  filter: blur(8px);
   z-index: 1;
-  /* Плавные переходы для небольших изменений */
-  transition: transform 0.1s ease-out, 
-              opacity 0.1s ease-out,
-              scale 0.1s ease-out;
+  /* Убираем CSS transitions - используем только JS для плавной интерполяции */
+  transition: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.our-capabilities-slide.active {
-  pointer-events: auto;
-}
-
-.our-capabilities-slide-bg {
+.scroll-slide-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.our-capabilities-slide-bg img {
+.scroll-slide-bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transform: scale(1.1);
-  transition: transform 2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.our-capabilities-slide.active .our-capabilities-slide-bg img {
-  transform: scale(1);
-}
-
-.our-capabilities-slide-gradient {
+.scroll-slide-gradient {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 100%);
   pointer-events: none;
 }
 
-.our-capabilities-slide-content {
+.scroll-slide-content {
   position: absolute;
   bottom: 40px;
   left: 40px;
   right: 40px;
   max-width: 600px;
   z-index: 2;
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s,
-              transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
 }
 
-.our-capabilities-slide.active .our-capabilities-slide-content {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.our-capabilities-slide-label {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 12px;
-}
-
-.our-capabilities-slide-title {
+.scroll-slide-title {
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 800;
   line-height: 1.2;
@@ -1391,7 +1346,7 @@ input[type='number'] {
   margin-bottom: 16px;
 }
 
-.our-capabilities-slide-text {
+.scroll-slide-subtitle {
   font-size: clamp(15px, 2vw, 18px);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
@@ -1399,35 +1354,7 @@ input[type='number'] {
   max-width: 550px;
 }
 
-.our-capabilities-slide-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.our-capabilities-slide-bullets li {
-  font-size: clamp(14px, 1.8vw, 16px);
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
-  padding-left: 20px;
-  position: relative;
-}
-
-.our-capabilities-slide-bullets li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.our-capabilities-slide-price {
+.scroll-slide-price {
   font-size: clamp(18px, 2.2vw, 24px);
   font-weight: 700;
   color: var(--accent);
@@ -1435,7 +1362,7 @@ input[type='number'] {
   margin-bottom: 12px;
 }
 
-.our-capabilities-slide-link {
+.scroll-slide-link {
   display: inline-block;
   font-size: clamp(14px, 1.8vw, 16px);
   font-weight: 600;
@@ -1449,13 +1376,13 @@ input[type='number'] {
   margin-top: 8px;
 }
 
-.our-capabilities-slide-link:hover {
+.scroll-slide-link:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
 }
 
-.our-capabilities-slide-counter {
+.scroll-slide-counter {
   position: absolute;
   top: 24px;
   right: 24px;
@@ -1471,22 +1398,37 @@ input[type='number'] {
   pointer-events: none;
   letter-spacing: 0.05em;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.our-capabilities-slide.active .our-capabilities-slide-counter {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+.scroll-slides-button {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, visibility 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.scroll-slides-button.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
 }
 
 /* Мобильная версия */
 @media (max-width: 768px) {
-  .our-capabilities-section {
-    height: 200vh;
+  .scroll-slides-section {
+    height: 300vh; /* Меньше высоты на мобилке */
   }
   
-  .our-capabilities-sticky {
+  .scroll-slides-sticky {
     top: 70px;
     height: 100vh;
     min-height: 100vh;
@@ -1494,45 +1436,41 @@ input[type='number'] {
     overflow: visible;
   }
   
-  .our-capabilities-slider {
+  .scroll-slides-wrapper {
     padding: 0 16px;
     height: 100vh;
     overflow: visible;
   }
   
-  .popular-equipment-button {
+  .scroll-slides-button {
     margin-top: 10px;
     margin-bottom: 20px;
   }
   
-  .our-capabilities-slide {
+  .scroll-slide {
     height: 80vh;
     max-height: 800px;
     min-height: 650px;
   }
   
-  .our-capabilities-slide-content {
+  .scroll-slide-content {
     bottom: 24px;
     left: 24px;
     right: 24px;
     max-width: 100%;
   }
   
-  .our-capabilities-slide-title {
+  .scroll-slide-title {
     font-size: 24px;
     margin-bottom: 12px;
   }
   
-  .our-capabilities-slide-text {
+  .scroll-slide-subtitle {
     font-size: 15px;
     margin-bottom: 16px;
   }
   
-  .our-capabilities-slide-bullets li {
-    font-size: 14px;
-  }
-  
-  .our-capabilities-slide-counter {
+  .scroll-slide-counter {
     top: 16px;
     right: 16px;
     font-size: 12px;
