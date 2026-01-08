@@ -1618,11 +1618,13 @@ async function initOurCapabilitiesSlider() {
           const bullets = specs.split(',').filter(s => s.trim()).map(s => s.trim());
           
           // Определяем изображение по URL или используем из базы данных
-          let slideImage = service.image_url || '/images/avtovyshka-13m.png';
+          // Используем ту же функцию, что и для других мест - она правильно обрабатывает localhost URL
+          let slideImage = getImageForService(service);
           const serviceUrl = (service.url || '').toLowerCase();
           
-          if (!service.image_url) {
-            // Если нет изображения в базе, используем локальные файлы
+          // Если функция вернула fallback изображение, но у нас есть специфичное для этого URL, используем его
+          if (slideImage === '/images/avtovyshka-13m.png' && !service.image_url && !(service.images && service.images.length > 0)) {
+            // Если нет изображения в базе, используем локальные файлы по URL
             if (serviceUrl.includes('13m')) {
               slideImage = '/images/avtovyshka-13m.png';
             } else if (serviceUrl.includes('18m')) {
@@ -1631,8 +1633,6 @@ async function initOurCapabilitiesSlider() {
               slideImage = '/images/avtovyshka-21m.png';
             } else if (serviceUrl.includes('29m')) {
               slideImage = '/images/avtovyshka-29m.png';
-            } else {
-              slideImage = '/images/avtovyshka-13m.png';
             }
           }
           
