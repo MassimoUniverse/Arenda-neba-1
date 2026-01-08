@@ -1551,14 +1551,67 @@ async function initOurCapabilitiesSlider() {
     '/equipment/avtovyshka-25m.html'
   ];
   
-  // ВСЕГДА используем данные из POPULAR_EQUIPMENT_SLIDES для популярных слайдов
-  // Это гарантирует правильное отображение независимо от данных в базе
-  // НЕ загружаем данные из базы для популярных слайдов - используем только константу
-  const slidesData = POPULAR_EQUIPMENT_SLIDES;
+  // Загружаем популярные слайды из базы данных
+  let slidesData = [];
   
-  // Отладка: проверяем данные слайдов
-  console.log('🎯 Popular Equipment Slides Data:', slidesData);
-  console.log('🎯 Slide titles:', slidesData.map(s => s.title));
+  try {
+    const response = await fetch('/api/services');
+    if (response.ok) {
+      const services = await response.json();
+      // Фильтруем только популярные слайды и сортируем по popular_order
+      const popularServices = services
+        .filter(service => service.is_popular === 1 || service.is_popular === true)
+        .sort((a, b) => (a.popular_order || 999) - (b.popular_order || 999))
+        .slice(0, 4); // Максимум 4 слайда
+      
+      if (popularServices.length > 0) {
+        slidesData = popularServices.map((service, index) => {
+          // Парсим specifications для получения характеристик (bullets)
+          const bullets = service.specifications 
+            ? service.specifications.split(',').filter(s => s.trim()).map(s => s.trim())
+            : [];
+          
+          // Определяем изображение
+          let slideImage = service.image_url || '/images/avtovyshka-13m.png';
+          const serviceUrl = (service.url || '').toLowerCase();
+          if (!service.image_url) {
+            if (serviceUrl.includes('13m')) {
+              slideImage = '/images/avtovyshka-13m.png';
+            } else if (serviceUrl.includes('16m')) {
+              slideImage = '/images/avtovyshka-18m.png';
+            } else if (serviceUrl.includes('21m')) {
+              slideImage = '/images/avtovyshka-21m.png';
+            } else if (serviceUrl.includes('25m')) {
+              slideImage = '/images/avtovyshka-25m.png';
+            }
+          }
+          
+          // Убеждаемся, что цена начинается с "от"
+          let price = service.price || '';
+          if (price && !price.toLowerCase().startsWith('от')) {
+            price = 'от ' + price;
+          }
+          
+          return {
+            id: String(index + 1),
+            index: String(index + 1).padStart(2, '0'),
+            title: service.title || '',
+            bullets: bullets,
+            image: slideImage,
+            url: service.url || '',
+            price: price
+          };
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error loading popular equipment:', error);
+  }
+  
+  // Если нет популярных слайдов в базе, используем fallback данные
+  if (slidesData.length === 0) {
+    slidesData = POPULAR_EQUIPMENT_SLIDES;
+  }
   
   // Создаём слайды
   slidesData.forEach((slide, index) => {

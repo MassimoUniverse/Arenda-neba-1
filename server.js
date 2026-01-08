@@ -753,6 +753,19 @@ const db = new sqlite3.Database('./database.db', (err) => {
       }
     });
     
+    // Добавляем поля для популярных слайдов
+    db.run(`ALTER TABLE services ADD COLUMN is_popular INTEGER DEFAULT 0`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding is_popular column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN popular_order INTEGER`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding popular_order column:', err);
+      }
+    });
+    
     // Create homepage table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS homepage (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1781,7 +1794,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   const { title, description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
-          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km } = req.body;
+          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
+          is_popular, popular_order } = req.body;
   
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -1874,8 +1888,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   }
   
   db.run(
-    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ? WHERE id = ?',
-    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, req.params.id],
+    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ? WHERE id = ?',
+    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular ? 1 : 0, popular_order || null, req.params.id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });

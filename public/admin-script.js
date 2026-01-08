@@ -515,6 +515,18 @@ function showServiceModal(id = null) {
                     <input type="number" id="serviceOrder" name="order_num" value="0" min="0">
                     <small class="form-hint">Чем меньше число, тем выше в списке</small>
             </div>
+            <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="serviceIsPopular" name="is_popular" value="1">
+                        Показать на главной странице (популярные слайды)
+                    </label>
+                    <small class="form-hint">Отметьте, чтобы показать эту услугу в слайдере на главной странице</small>
+            </div>
+            <div class="form-group" id="popularOrderGroup" style="display: none;">
+                    <label for="servicePopularOrder">Порядок в слайдере</label>
+                    <input type="number" id="servicePopularOrder" name="popular_order" value="0" min="0" max="4">
+                    <small class="form-hint">Порядок отображения в слайдере на главной (1-4, где 1 - первый слайд)</small>
+            </div>
             </div>
 
             <div class="form-section">
@@ -670,6 +682,15 @@ function showServiceModal(id = null) {
         if (!form) {
             console.error('Form not found');
             return;
+        }
+        
+        // Обработчик для чекбокса популярных слайдов
+        const isPopularCheckbox = document.getElementById('serviceIsPopular');
+        const popularOrderGroup = document.getElementById('popularOrderGroup');
+        if (isPopularCheckbox && popularOrderGroup) {
+            isPopularCheckbox.addEventListener('change', function() {
+                popularOrderGroup.style.display = this.checked ? 'block' : 'none';
+            });
         }
         
         // НЕ клонируем форму, чтобы не потерять обработчики событий на динамически созданных элементах
@@ -864,6 +885,23 @@ async function loadServiceData(id) {
         if (service) {
             document.getElementById('serviceTitle').value = service.title;
             document.getElementById('serviceDescription').value = service.description;
+            
+            // Загружаем поля популярных слайдов
+            const isPopularCheckbox = document.getElementById('serviceIsPopular');
+            const popularOrderGroup = document.getElementById('popularOrderGroup');
+            const popularOrderInput = document.getElementById('servicePopularOrder');
+            
+            if (isPopularCheckbox) {
+                isPopularCheckbox.checked = service.is_popular === 1 || service.is_popular === true;
+                // Показываем/скрываем поле порядка в зависимости от чекбокса
+                if (popularOrderGroup) {
+                    popularOrderGroup.style.display = isPopularCheckbox.checked ? 'block' : 'none';
+                }
+            }
+            
+            if (popularOrderInput && service.popular_order !== null && service.popular_order !== undefined) {
+                popularOrderInput.value = service.popular_order;
+            }
             // Парсим цену из формата "от X ₽/полсмена, от Y ₽/смена" или "от Y ₽/смена"
             const priceStr = service.price || '';
             
