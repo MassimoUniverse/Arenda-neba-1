@@ -1655,6 +1655,12 @@ async function initOurCapabilitiesSlider() {
     slidesData = POPULAR_EQUIPMENT_SLIDES;
   }
   
+  // Если все еще нет слайдов, выходим
+  if (slidesData.length === 0) {
+    console.warn('No slides data available');
+    return;
+  }
+  
   // Создаём слайды
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
