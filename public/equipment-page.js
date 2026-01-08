@@ -267,17 +267,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         correctImageByUrl = '../images/avtovyshka-13m.png';
       }
       
-      // Используем правильное изображение по URL, если нашли
+      // Используем правильное изображение по URL, если нашли (это приоритет)
       if (correctImageByUrl) {
         allImages.push(correctImageByUrl);
         console.log('  ✅ Added correct image by URL:', correctImageByUrl);
-      } else if (service.image_url && !service.image_url.includes('localhost')) {
-        // Используем image_url из базы только если нет определения по URL и это не localhost
-        allImages.push(service.image_url);
-        console.log('  ✅ Added image_url from database:', service.image_url);
+        
+        // НЕ добавляем image_url из базы, если уже определили по URL
+        // Это предотвращает дубликаты
+      } else {
+        // Только если не нашли по URL, используем image_url из базы
+        if (service.image_url && !service.image_url.includes('localhost')) {
+          // Нормализуем путь (добавляем ../ если нужно для страниц оборудования)
+          let normalizedImageUrl = service.image_url;
+          if (!normalizedImageUrl.startsWith('http') && !normalizedImageUrl.startsWith('../') && !normalizedImageUrl.startsWith('/')) {
+            normalizedImageUrl = '../' + normalizedImageUrl;
+          } else if (normalizedImageUrl.startsWith('/images/')) {
+            normalizedImageUrl = '..' + normalizedImageUrl;
+          }
+          allImages.push(normalizedImageUrl);
+          console.log('  ✅ Added image_url from database:', normalizedImageUrl);
+        }
       }
       
-      // Обрабатываем массив изображений
+      // Обрабатываем массив изображений (дополнительные фото)
       if (service.images) {
         let imagesArray = [];
         
@@ -302,10 +314,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (Array.isArray(imagesArray) && imagesArray.length > 0) {
           imagesArray.forEach(imgUrl => {
             // Нормализуем URL (убираем лишние пробелы)
-            const normalizedUrl = typeof imgUrl === 'string' ? imgUrl.trim() : (imgUrl.url || imgUrl).trim();
-            if (normalizedUrl && normalizedUrl !== service.image_url && !allImages.includes(normalizedUrl)) {
+            let normalizedUrl = typeof imgUrl === 'string' ? imgUrl.trim() : (imgUrl.url || imgUrl).trim();
+            
+            // Преобразуем абсолютные пути в относительные для страниц оборудования
+            if (normalizedUrl.startsWith('/images/')) {
+              normalizedUrl = '..' + normalizedUrl;
+            } else if (!normalizedUrl.startsWith('http') && !normalizedUrl.startsWith('../') && !normalizedUrl.startsWith('/')) {
+              normalizedUrl = '../' + normalizedUrl;
+            }
+            
+            // Проверяем, что это не дубликат основного изображения
+            const isDuplicate = allImages.some(existing => {
+              // Сравниваем без учета ../ и /
+              const existingClean = existing.replace(/^\.\.\//, '').replace(/^\//, '');
+              const normalizedClean = normalizedUrl.replace(/^\.\.\//, '').replace(/^\//, '');
+              return existingClean === normalizedClean;
+            });
+            
+            if (normalizedUrl && !isDuplicate) {
               allImages.push(normalizedUrl);
-              console.log('  ✅ Added image:', normalizedUrl);
+              console.log('  ✅ Added additional image:', normalizedUrl);
             }
           });
         }
