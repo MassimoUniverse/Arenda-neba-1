@@ -123,6 +123,11 @@ function generateEquipmentPageHTML(service) {
     ? description.substring(0, 150) + '...' 
     : description || `Аренда ${title.toLowerCase()} в Санкт-Петербурге. ☎ +7 (991) 000-91-11`;
   
+  // Формируем полные URL
+  const serviceUrlPath = url || '/equipment/' + generateUrlFromTitle(title);
+  const pageUrl = `https://arendaneba.ru${serviceUrlPath.startsWith('/') ? serviceUrlPath : '/' + serviceUrlPath}`;
+  const imageUrlFull = imageUrl.startsWith('http') ? imageUrl : `https://arendaneba.ru${imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl}`;
+  
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -130,6 +135,25 @@ function generateEquipmentPageHTML(service) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} - Аренда в СПб | Аренда Неба</title>
     <meta name="description" content="${metaDescription}">
+    <meta name="keywords" content="аренда ${title.toLowerCase()}, аренда автовышки СПб, ${title.toLowerCase()} в аренду, аренда автовышки цена">
+    <link rel="canonical" href="${pageUrl}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${pageUrl}">
+    <meta property="og:title" content="${title} - Аренда в СПб | Аренда Неба">
+    <meta property="og:description" content="${metaDescription}">
+    <meta property="og:image" content="${imageUrlFull}">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Аренда Неба">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="${pageUrl}">
+    <meta name="twitter:title" content="${title} - Аренда в СПб | Аренда Неба">
+    <meta name="twitter:description" content="${metaDescription}">
+    <meta name="twitter:image" content="${imageUrlFull}">
+    
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
     
@@ -208,6 +232,53 @@ function generateEquipmentPageHTML(service) {
             <span>${breadcrumbTitle}</span>
         </div>
     </div>
+    
+    <!-- Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "${title}",
+      "description": "${metaDescription.replace(/"/g, '\\"')}",
+      "image": "${imageUrlFull}",
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "RUB",
+        "availability": "https://schema.org/InStock",
+        "url": "${pageUrl}"
+      },
+      "brand": {
+        "@type": "Brand",
+        "name": "Аренда Неба"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Главная",
+          "item": "https://arendaneba.ru/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Автопарк",
+          "item": "https://arendaneba.ru/#services"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "${title.replace(/"/g, '\\"')}",
+          "item": "${pageUrl}"
+        }
+      ]
+    }
+    </script>
 
     <!-- Equipment Detail -->
     <section class="equipment-detail">
@@ -1123,6 +1194,47 @@ app.get('/api/homepage', (req, res) => {
       subtitle: row.subtitle || '',
       video_url: row.video_url || 'video.mp4'
     });
+  });
+});
+
+// Sitemap.xml endpoint
+app.get('/sitemap.xml', (req, res) => {
+  db.all('SELECT * FROM services WHERE active = 1', [], (err, services) => {
+    if (err) {
+      console.error('Error fetching services for sitemap:', err);
+      return res.status(500).send('Error generating sitemap');
+    }
+    
+    const baseUrl = 'https://arendaneba.ru';
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>`;
+    
+    services.forEach(service => {
+      if (service.url) {
+        const serviceUrl = service.url.startsWith('/') ? service.url : '/' + service.url;
+        sitemap += `
+  <url>
+    <loc>${baseUrl}${serviceUrl}</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      }
+    });
+    
+    sitemap += `
+</urlset>`;
+    
+    res.set('Content-Type', 'application/xml');
+    res.send(sitemap);
   });
 });
 
