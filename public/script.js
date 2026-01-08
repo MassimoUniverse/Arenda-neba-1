@@ -1715,27 +1715,26 @@ async function initOurCapabilitiesSlider() {
     let transitionProgress = 0; // 0.0 - 1.0 (прогресс перехода между слайдами)
     
     if (progress < firstSlideDelay) {
-      // 0% - 30% прогресса = слайд 1
+      // 0% - 30% прогресса = слайд 1 (индекс 0)
       slideIndex = 0;
       transitionProgress = progress / firstSlideDelay; // 0.0 - 1.0 внутри первого слайда
+    } else if (progress < 0.5) {
+      // 30% - 50% прогресса = переход от слайда 1 к слайду 2
+      slideIndex = 0; // Текущий слайд
+      const rangeStart = firstSlideDelay; // 0.3
+      const rangeEnd = 0.5;
+      transitionProgress = (progress - rangeStart) / (rangeEnd - rangeStart); // 0.0 - 1.0
+    } else if (progress < 0.7) {
+      // 50% - 70% прогресса = переход от слайда 2 к слайду 3
+      slideIndex = 1; // Текущий слайд
+      const rangeStart = 0.5;
+      const rangeEnd = 0.7;
+      transitionProgress = (progress - rangeStart) / (rangeEnd - rangeStart); // 0.0 - 1.0
     } else {
-      // Остальные слайды распределяются равномерно по оставшемуся прогрессу
-      const remainingProgress = progress - firstSlideDelay;
-      const remainingRange = 1 - firstSlideDelay; // 0.7
-      const slideProgress = remainingProgress / remainingRange; // 0.0 - 1.0
-      
-      // Вычисляем индекс слайда (1, 2, 3 для 4 слайдов)
-      const slidesInRemaining = totalSlides - 1; // 3 слайда
-      slideIndex = Math.min(
-        totalSlides - 1,
-        Math.floor(1 + slideProgress * slidesInRemaining)
-      );
-      
-      // Прогресс перехода внутри текущего диапазона слайда
-      const slideRange = 1 / slidesInRemaining; // 0.333 для 3 слайдов
-      const slideStart = (slideIndex - 1) * slideRange;
-      transitionProgress = (slideProgress - slideStart) / slideRange;
-      transitionProgress = Math.max(0, Math.min(1, transitionProgress));
+      // 70% - 100% прогресса = слайд 4 (индекс 3)
+      slideIndex = totalSlides - 1; // Последний слайд
+      const rangeStart = 0.7;
+      transitionProgress = (progress - rangeStart) / (1 - rangeStart); // 0.0 - 1.0
     }
     
     // Обновляем позиции всех слайдов с плавной интерполяцией
@@ -1752,24 +1751,29 @@ async function initOurCapabilitiesSlider() {
         opacity = 0;
         zIndex = totalSlides - (slideIndex - index);
       } else if (index === slideIndex) {
-        // Текущий активный слайд
-        if (index === 0) {
+        // Текущий активный слайд - плавно переходит от позиции снизу к центру
+        if (slideIndex === 0 && progress < firstSlideDelay) {
           // Первый слайд - появляется снизу
           translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
           scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
           opacity = transitionProgress; // От 0 до 1
+        } else if (slideIndex === totalSlides - 1 && progress >= 0.7) {
+          // Последний слайд - полностью виден
+          translateY = -50; // По центру
+          scale = 1;
+          opacity = 1;
         } else {
-          // Остальные слайды - переходят от позиции снизу к центру
-          translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
-          scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
-          opacity = transitionProgress; // От 0 до 1
+          // Переход: текущий слайд уходит вверх
+          translateY = -50 - (80 * transitionProgress); // От -50% до -50% - 80vh
+          scale = 1 - (0.15 * transitionProgress); // От 1 до 0.85
+          opacity = 1 - transitionProgress; // От 1 до 0
         }
         zIndex = totalSlides + 1;
       } else if (index === slideIndex + 1) {
-        // Следующий слайд - появляется снизу
+        // Следующий слайд - появляется снизу и поднимается к центру
         translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
         scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
-        opacity = 1 - transitionProgress; // От 1 до 0 (пока еще не виден)
+        opacity = transitionProgress; // От 0 до 1
         zIndex = totalSlides;
       } else {
         // Будущие слайды - остаются внизу
