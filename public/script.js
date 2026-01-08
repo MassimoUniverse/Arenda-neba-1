@@ -1703,42 +1703,98 @@ async function initOurCapabilitiesSlider() {
   // Находим кнопку "Посмотреть весь автопарк"
   const buttonContainer = section.querySelector('.popular-equipment-button');
   
-  // Функция обновления активного слайда с эффектом колоды карт
-  function updateActiveSlide(activeIndex) {
-    if (activeIndex < 0 || activeIndex >= totalSlides) return;
+  // Функция плавного обновления позиций слайдов на основе прогресса
+  function updateSlidePositions(progress) {
+    // progress: 0.0 - 1.0 (прогресс прокрутки секции)
     
-    // Если индекс не изменился, не обновляем
-    if (activeIndex === previousIndex) return;
+    // Первый слайд показывается дольше (30% прогресса)
+    const firstSlideDelay = 0.3;
     
-    // Плавное переключение без задержек для более быстрого отклика
-    slides.forEach((slide, index) => {
-      slide.classList.remove('active', 'prev');
+    // Вычисляем текущий индекс слайда и прогресс внутри перехода
+    let slideIndex;
+    let transitionProgress = 0; // 0.0 - 1.0 (прогресс перехода между слайдами)
+    
+    if (progress < firstSlideDelay) {
+      // 0% - 30% прогресса = слайд 1
+      slideIndex = 0;
+      transitionProgress = progress / firstSlideDelay; // 0.0 - 1.0 внутри первого слайда
+    } else {
+      // Остальные слайды распределяются равномерно по оставшемуся прогрессу
+      const remainingProgress = progress - firstSlideDelay;
+      const remainingRange = 1 - firstSlideDelay; // 0.7
+      const slideProgress = remainingProgress / remainingRange; // 0.0 - 1.0
       
-      if (index === activeIndex) {
-        // Текущий активный слайд - появляется снизу
-        slide.classList.add('active');
-      } else if (index < activeIndex) {
-        // Прошедшие слайды уходят наверх и исчезают
-        slide.classList.add('prev');
+      // Вычисляем индекс слайда (1, 2, 3 для 4 слайдов)
+      const slidesInRemaining = totalSlides - 1; // 3 слайда
+      slideIndex = Math.min(
+        totalSlides - 1,
+        Math.floor(1 + slideProgress * slidesInRemaining)
+      );
+      
+      // Прогресс перехода внутри текущего диапазона слайда
+      const slideRange = 1 / slidesInRemaining; // 0.333 для 3 слайдов
+      const slideStart = (slideIndex - 1) * slideRange;
+      transitionProgress = (slideProgress - slideStart) / slideRange;
+      transitionProgress = Math.max(0, Math.min(1, transitionProgress));
+    }
+    
+    // Обновляем позиции всех слайдов с плавной интерполяцией
+    slides.forEach((slide, index) => {
+      let translateY = 0;
+      let scale = 1;
+      let opacity = 1;
+      let zIndex = 1;
+      
+      if (index < slideIndex) {
+        // Прошедшие слайды - уходят наверх
+        translateY = -50 - 80; // translateY(calc(-50% - 80vh))
+        scale = 0.85;
+        opacity = 0;
+        zIndex = totalSlides - (slideIndex - index);
+      } else if (index === slideIndex) {
+        // Текущий активный слайд
+        if (index === 0) {
+          // Первый слайд - появляется снизу
+          translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
+          scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
+          opacity = transitionProgress; // От 0 до 1
+        } else {
+          // Остальные слайды - переходят от позиции снизу к центру
+          translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
+          scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
+          opacity = transitionProgress; // От 0 до 1
+        }
+        zIndex = totalSlides + 1;
+      } else if (index === slideIndex + 1) {
+        // Следующий слайд - появляется снизу
+        translateY = -50 + (50 * (1 - transitionProgress)); // От -50% + 50% до -50%
+        scale = 0.95 + (0.05 * transitionProgress); // От 0.95 до 1
+        opacity = 1 - transitionProgress; // От 1 до 0 (пока еще не виден)
+        zIndex = totalSlides;
+      } else {
+        // Будущие слайды - остаются внизу
+        translateY = -50 + 100; // translateY(calc(-50% + 100%))
+        scale = 0.95;
+        opacity = 0;
+        zIndex = 1;
       }
-      // Будущие слайды остаются внизу (translateY(100%))
+      
+      // Применяем стили напрямую для плавной анимации
+      slide.style.transform = `translateX(-50%) translateY(${translateY}%) scale(${scale})`;
+      slide.style.opacity = Math.max(0, Math.min(1, opacity));
+      slide.style.zIndex = zIndex;
     });
     
-    // Показываем кнопку когда показывается последний слайд (индекс 3 из 4)
+    // Показываем кнопку когда показывается последний слайд
     if (buttonContainer) {
-      if (activeIndex >= totalSlides - 1) {
-        // Последний слайд - показываем кнопку
+      if (progress >= 0.7) {
         buttonContainer.classList.add('visible');
-      } else if (activeIndex < totalSlides - 2) {
-        // Не предпоследний и не последний слайд - скрываем кнопку
+      } else {
         buttonContainer.classList.remove('visible');
       }
     }
     
-    // Обновляем счётчики на слайдах (они уже есть в HTML каждого слайда)
-    // Счётчики обновляются автоматически, так как они встроены в каждый слайд
-    
-    previousIndex = activeIndex;
+    previousIndex = progress;
   }
   
   // Функция вычисления прогресса прокрутки
@@ -1746,63 +1802,26 @@ async function initOurCapabilitiesSlider() {
     const rect = section.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const sectionTop = rect.top;
-    const sectionHeight = rect.height;
+    const sectionHeight = rect.height; // 300vh
     
-    // Если секция еще не достигла верха экрана, прогресс = 0
-    if (sectionTop > windowHeight) {
-      return 0;
-    }
-    
-    // Вычисляем прогресс: когда секция входит в viewport (top < windowHeight)
-    // и прокручивается до конца (top < -sectionHeight + windowHeight)
+    // Прогресс от 0 до 1 в зависимости от того, насколько прокручена секция
     const startPoint = windowHeight; // когда верх секции достигает верха экрана
     const endPoint = -sectionHeight + windowHeight; // когда низ секции достигает верха экрана
     
-    // Добавляем большую задержку для первого слайда - он должен показываться дольше
-    // Вычитаем 80% высоты окна из начала, чтобы можно было прокрутить ниже перед началом слайдов
-    const delayOffset = windowHeight * 0.8; // 80% высоты экрана задержки - можно прокрутить ниже
-    const adjustedStartPoint = startPoint - delayOffset;
-    
-    // Нормализуем прогресс от 0 до 1 с учетом задержки
-    const scrolled = adjustedStartPoint - sectionTop;
-    const totalScroll = adjustedStartPoint - endPoint;
+    // Нормализуем прогресс от 0 до 1
+    const scrolled = startPoint - sectionTop;
+    const totalScroll = startPoint - endPoint;
     let progress = Math.max(0, Math.min(1, scrolled / totalScroll));
     
-    // Если прогресс еще в зоне задержки, возвращаем 0 (первый слайд)
-    if (sectionTop > adjustedStartPoint) {
-      progress = 0;
-    }
-    
-    return progress;
+    return progress; // 0.0 = начало, 0.5 = середина, 1.0 = конец
   }
   
-  // Функция обновления слайда на основе прогресса
+  // Функция обновления слайда на основе прогресса с плавной интерполяцией
   function updateSlideFromScroll() {
-    const progress = calculateProgress();
+    const progress = calculateProgress(); // 0.0 - 1.0
     
-    // Вычисляем индекс слайда на основе прогресса
-    // Первый слайд должен показываться дольше - добавляем задержку
-    // Для 4 слайдов: первые 30% прогресса = слайд 0, затем равномерно распределяем остальные
-    const firstSlideDelay = 0.3; // 30% прогресса для первого слайда - больше времени на чтение
-    let slideProgress;
-    
-    if (progress < firstSlideDelay) {
-      // Первый слайд - показываем его дольше
-      slideProgress = 0;
-    } else {
-      // Остальные слайды - распределяем равномерно по оставшемуся прогрессу
-      const remainingProgress = progress - firstSlideDelay;
-      const remainingSlides = totalSlides - 1;
-      slideProgress = 1 + (remainingProgress / (1 - firstSlideDelay)) * remainingSlides;
-    }
-    
-    // Используем плавное округление для более естественного переключения
-    const activeIndex = Math.min(
-      totalSlides - 1,
-      Math.max(0, Math.floor(slideProgress + 0.1)) // Небольшое смещение для более раннего переключения
-    );
-    
-    updateActiveSlide(activeIndex);
+    // Обновляем позиции всех слайдов с плавной интерполяцией
+    updateSlidePositions(progress);
   }
   
   // Обработчик прокрутки - используем Lenis, если доступен
