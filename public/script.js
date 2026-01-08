@@ -82,7 +82,7 @@ const FALLBACK_SERVICES = [
     title: 'Автовышка-платформа 16 метров',
     price: 'от 20 000 ₽/смена',
     short: 'Оптимальна для сервисных и монтажных работ. Платформа 2x4м, грузоподъемность 1000 кг',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-15m.png',
     url: '/equipment/avtovyshka-16m.html',
   },
   {
@@ -103,7 +103,7 @@ const FALLBACK_SERVICES = [
     title: 'Автовышка 25 метров',
     price: 'от 21 000 ₽/смена',
     short: 'Работы на высоте до 8–9 этажа',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-25m.png',
     url: '/equipment/avtovyshka-25m.html',
   },
   {
@@ -117,14 +117,14 @@ const FALLBACK_SERVICES = [
     title: 'Автовышка 45 метров',
     price: 'от 22 000 ₽/смена',
     short: 'Крупные объекты, промышленные площадки',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-29m.png',
     url: '/equipment/avtovyshka-45m.html',
   },
   {
     title: 'Автовышка-вездеход 30 метров',
     price: 'от 28 000 ₽/смена',
     short: 'Работа там, где обычная техника не проедет',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-vezdehod-30m.png',
     url: '/equipment/avtovyshka-vezdehod-35m.html',
   },
   {
@@ -162,7 +162,7 @@ const STATIC_CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-vezdehod-30m.png',
   },
   self: {
     name: 'Самоходная автовышка',
@@ -201,7 +201,7 @@ let CALC_EQUIPMENT = {
     height: 15,
     capacity: 200,
     boom: 8,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-15m.png',
   },
   16: {
     name: 'Автовышка 16 м',
@@ -212,7 +212,7 @@ let CALC_EQUIPMENT = {
     height: 16,
     capacity: 200,
     boom: 9,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-15m.png',
   },
   17: {
     name: 'Автовышка 17 м',
@@ -223,7 +223,7 @@ let CALC_EQUIPMENT = {
     height: 17,
     capacity: 200,
     boom: 10,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-18m.png',
   },
   18: {
     name: 'Автовышка 18 м',
@@ -275,7 +275,7 @@ let CALC_EQUIPMENT = {
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-29m.png',
   },
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
@@ -285,7 +285,7 @@ let CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-vezdehod-30m.png',
   },
   self: {
     name: 'Самоходная автовышка',
