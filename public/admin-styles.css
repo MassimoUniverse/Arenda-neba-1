@@ -543,7 +543,9 @@ body {
     width: 100%;
     max-width: 900px;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-header {
@@ -577,6 +579,9 @@ body {
 
 .modal-body {
     padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .modal-body form {
@@ -608,16 +613,8 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
-    position: sticky;
-    bottom: 0;
     background: var(--bg-white);
-    z-index: 10;
-    margin-top: auto;
-}
-
-.modal-body {
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
+    flex-shrink: 0;
 }
 
 /* File Upload */
