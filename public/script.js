@@ -451,10 +451,9 @@ async function loadCalculatorEquipmentFromAPI() {
       const url = (service.url || '').toLowerCase();
       const title = (service.title || '').toLowerCase();
       
-      // Сначала проверяем, является ли это самоходной, вездеходом или погрузчиком
+      // Сначала проверяем, является ли это самоходной или вездеходом
       const isSamohodnaya = url.includes('samohodnaya') || url.includes('самоходная') || title.includes('самоходная');
       const isVezdehod = url.includes('vezdehod') || url.includes('вездеход') || title.includes('вездеход');
-      const isPogruzchik = url.includes('pogruzchik') || url.includes('погрузчик') || title.includes('погрузчик');
       
       let key;
       let height = null;
@@ -462,9 +461,6 @@ async function loadCalculatorEquipmentFromAPI() {
       if (isSamohodnaya) {
         // Самоходная вышка - всегда используем ключ 'self'
         key = 'self';
-      } else if (isPogruzchik) {
-        // Телескопический погрузчик - используем ключ 'loader'
-        key = 'loader';
       } else if (isVezdehod) {
         // Вездеход - всегда используем ключ '30offroad', даже если есть высота в названии
         key = '30offroad';
@@ -573,12 +569,7 @@ function populateCalculatorSelect() {
   selectEl.innerHTML = '';
   
   // Сортируем ключи по высоте (числовые значения)
-  // Погрузчик ('loader') всегда в конце списка
   const sortedKeys = Object.keys(CALC_EQUIPMENT).sort((a, b) => {
-    // Погрузчик всегда в конце
-    if (a === 'loader') return 1;
-    if (b === 'loader') return -1;
-    
     const numA = parseInt(a) || 999;
     const numB = parseInt(b) || 999;
     if (numA !== 999 && numB !== 999) return numA - numB;
