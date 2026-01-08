@@ -212,7 +212,7 @@ let CALC_EQUIPMENT = {
     height: 16,
     capacity: 200,
     boom: 9,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-16m.png',
   },
   17: {
     name: 'Автовышка 17 м',
@@ -223,7 +223,7 @@ let CALC_EQUIPMENT = {
     height: 17,
     capacity: 200,
     boom: 10,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-18m.png', // Используем 18м как fallback
   },
   18: {
     name: 'Автовышка 18 м',
@@ -364,12 +364,12 @@ function getImageForService(service) {
   if (url.includes('13m')) return '/images/avtovyshka-13m.png';
   if (url.includes('15m')) return '/images/avtovyshka-15m.png';
   if (url.includes('16m')) return '/images/avtovyshka-16m.png';
-  if (url.includes('17m')) return '/images/avtovyshka-17m.png';
+  if (url.includes('17m')) return '/images/avtovyshka-18m.png'; // Fallback на 18м
   if (url.includes('18m')) return '/images/avtovyshka-18m.png';
   if (url.includes('21m')) return '/images/avtovyshka-21m.png';
   if (url.includes('25m')) return '/images/avtovyshka-25m.png';
   if (url.includes('29m')) return '/images/avtovyshka-29m.png';
-  if (url.includes('45m')) return '/images/avtovyshka-45m.png';
+  if (url.includes('45m')) return '/images/avtovyshka-29m.png'; // Fallback на 29м, пока нет 45м
   if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
   if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
   
@@ -1097,9 +1097,25 @@ function initCalculator() {
         ease: 'power2.in',
         onComplete: () => {
           // Обновляем контент
-          previewImage.src = config.image;
+          // Убеждаемся, что путь к изображению правильный
+          let imagePath = config.image || '/images/avtovyshka-13m.png';
+          if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+            imagePath = '/' + imagePath;
+          }
+          previewImage.src = imagePath;
           previewImage.alt = config.name;
           previewTitle.textContent = config.name;
+          
+          // Обработка ошибок загрузки изображения
+          previewImage.onerror = function() {
+            console.warn('❌ Failed to load image:', imagePath);
+            // Используем fallback изображение
+            const fallbackImage = '/images/avtovyshka-13m.png';
+            if (this.src !== fallbackImage) {
+              this.src = fallbackImage;
+            }
+            this.onerror = null; // Предотвращаем бесконечный цикл
+          };
 
           if (specsList) {
             specsList.innerHTML = '';
@@ -1128,9 +1144,25 @@ function initCalculator() {
       });
     } else {
       // Fallback без анимации, если контейнер не найден или GSAP недоступен
-      previewImage.src = config.image;
+      // Убеждаемся, что путь к изображению правильный
+      let imagePath = config.image || '/images/avtovyshka-13m.png';
+      if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+        imagePath = '/' + imagePath;
+      }
+      previewImage.src = imagePath;
       previewImage.alt = config.name;
       previewTitle.textContent = config.name;
+      
+      // Обработка ошибок загрузки изображения
+      previewImage.onerror = function() {
+        console.warn('❌ Failed to load image:', imagePath);
+        // Используем fallback изображение
+        const fallbackImage = '/images/avtovyshka-13m.png';
+        if (this.src !== fallbackImage) {
+          this.src = fallbackImage;
+        }
+        this.onerror = null; // Предотвращаем бесконечный цикл
+      };
 
       if (specsList) {
         specsList.innerHTML = '';
