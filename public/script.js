@@ -1558,10 +1558,21 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // POPULAR EQUIPMENT SLIDER - инициализация
 // =============================================
 async function initOurCapabilitiesSlider() {
+  console.log('🔄 Initializing slider...');
   const section = document.getElementById('popular-equipment');
   const sliderContainer = document.getElementById('our-capabilities-slider');
   
-  if (!section || !sliderContainer) return;
+  if (!section) {
+    console.error('❌ Section #popular-equipment not found');
+    return;
+  }
+  
+  if (!sliderContainer) {
+    console.error('❌ Slider container #our-capabilities-slider not found');
+    return;
+  }
+  
+  console.log('✅ Section and container found');
   
   // Определяем URL популярных машин
   const popularUrls = [
@@ -1678,6 +1689,17 @@ async function initOurCapabilitiesSlider() {
     // Используем FALLBACK данные
   }
   
+  // Проверяем данные слайдов
+  if (!slidesData || slidesData.length === 0) {
+    console.error('❌ No slides data available');
+    return;
+  }
+  
+  console.log('✅ Slides data loaded:', slidesData.length, 'slides');
+  
+  // Очищаем контейнер перед созданием слайдов
+  sliderContainer.innerHTML = '';
+  
   // Создаём слайды
   slidesData.forEach((slide, index) => {
     const slideEl = document.createElement('div');
@@ -1715,6 +1737,12 @@ async function initOurCapabilitiesSlider() {
   });
   
   const slides = sliderContainer.querySelectorAll('.our-capabilities-slide');
+  console.log('✅ Slides created:', slides.length);
+  
+  if (slides.length === 0) {
+    console.error('❌ No slides were created');
+    return;
+  }
   const totalSlides = slides.length;
   let previousIndex = 0;
   
