@@ -349,8 +349,21 @@ async function initScrollSlides() {
     updateSlides();
   }, { passive: true });
   
-  // Также обновляем после небольшой задержки для надежности
+  // Также обновляем после небольших задержек для надежности
   setTimeout(() => {
     updateSlides();
   }, 100);
+  
+  setTimeout(() => {
+    updateSlides();
+  }, 300);
+  
+  // Обновляем когда страница полностью загружена
+  if (document.readyState === 'complete') {
+    updateSlides();
+  } else {
+    window.addEventListener('load', () => {
+      updateSlides();
+    });
+  }
 }
