@@ -1102,19 +1102,28 @@ function initCalculator() {
           if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
             imagePath = '/' + imagePath;
           }
+          console.log('🖼️ Setting image:', imagePath, 'for equipment:', config.name);
           previewImage.src = imagePath;
           previewImage.alt = config.name;
           previewTitle.textContent = config.name;
           
           // Обработка ошибок загрузки изображения
           previewImage.onerror = function() {
-            console.warn('❌ Failed to load image:', imagePath);
+            console.error('❌ Failed to load image:', imagePath);
+            console.error('   Trying fallback image');
             // Используем fallback изображение
             const fallbackImage = '/images/avtovyshka-13m.png';
             if (this.src !== fallbackImage) {
+              console.log('   Using fallback:', fallbackImage);
               this.src = fallbackImage;
+            } else {
+              console.error('   Fallback also failed!');
             }
             this.onerror = null; // Предотвращаем бесконечный цикл
+          };
+          
+          previewImage.onload = function() {
+            console.log('✅ Image loaded successfully:', imagePath);
           };
 
           if (specsList) {
@@ -1149,19 +1158,28 @@ function initCalculator() {
       if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
         imagePath = '/' + imagePath;
       }
+      console.log('🖼️ Setting image (fallback):', imagePath, 'for equipment:', config.name);
       previewImage.src = imagePath;
       previewImage.alt = config.name;
       previewTitle.textContent = config.name;
       
       // Обработка ошибок загрузки изображения
       previewImage.onerror = function() {
-        console.warn('❌ Failed to load image:', imagePath);
+        console.error('❌ Failed to load image:', imagePath);
+        console.error('   Trying fallback image');
         // Используем fallback изображение
         const fallbackImage = '/images/avtovyshka-13m.png';
         if (this.src !== fallbackImage) {
+          console.log('   Using fallback:', fallbackImage);
           this.src = fallbackImage;
+        } else {
+          console.error('   Fallback also failed!');
         }
         this.onerror = null; // Предотвращаем бесконечный цикл
+      };
+      
+      previewImage.onload = function() {
+        console.log('✅ Image loaded successfully:', imagePath);
       };
 
       if (specsList) {
