@@ -515,18 +515,6 @@ function showServiceModal(id = null) {
                     <input type="number" id="serviceOrder" name="order_num" value="0" min="0">
                     <small class="form-hint">Чем меньше число, тем выше в списке</small>
             </div>
-            <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" id="serviceIsPopular" name="is_popular" value="1" style="width: auto; margin: 0;">
-                        <span>Показать на главной странице (популярные слайды)</span>
-                    </label>
-                    <small class="form-hint">Отметьте, чтобы показать эту услугу в слайдере на главной странице</small>
-            </div>
-            <div class="form-group" id="popularOrderGroup" style="display: none;">
-                    <label for="servicePopularOrder">Порядок в слайдере</label>
-                    <input type="number" id="servicePopularOrder" name="popular_order" value="0" min="0" max="4">
-                    <small class="form-hint">Порядок отображения в слайдере на главной (1-4, где 1 - первый слайд)</small>
-            </div>
             </div>
 
             <div class="form-section">
@@ -649,30 +637,9 @@ function showServiceModal(id = null) {
             </div>
             </div>
             
-            <div class="form-section" id="specsSection" style="display: none;">
-                <h3 class="form-section-title">Характеристики для слайдера</h3>
-                <small class="form-hint" style="display: block; margin-bottom: 1rem; color: var(--text-light);">Эти характеристики будут отображаться в слайдере на главной странице. Можно указать до 4 характеристик.</small>
-                <div class="form-group">
-                    <label for="serviceSpec1">Характеристика 1</label>
-                    <input type="text" id="serviceSpec1" name="spec1" placeholder="Например: Большая корзина 2/4 метра">
-                </div>
-                <div class="form-group">
-                    <label for="serviceSpec2">Характеристика 2</label>
-                    <input type="text" id="serviceSpec2" name="spec2" placeholder="Например: Грузоподъёмность 1000 кг">
-                </div>
-                <div class="form-group">
-                    <label for="serviceSpec3">Характеристика 3 (необязательно)</label>
-                    <input type="text" id="serviceSpec3" name="spec3" placeholder="Например: Высота подъёма 21 метр">
-                </div>
-                <div class="form-group">
-                    <label for="serviceSpec4">Характеристика 4 (необязательно)</label>
-                    <input type="text" id="serviceSpec4" name="spec4" placeholder="Например: Вылет стрелы до 11 метров">
-                </div>
-            </div>
-            
             <div class="form-group" style="display: none;">
-                <label for="serviceSpecs">Характеристики (скрытое поле для совместимости)</label>
-                <textarea id="serviceSpecs" name="specifications" rows="1"></textarea>
+                <label for="serviceSpecs">Характеристики (старое поле, для совместимости)</label>
+                <textarea id="serviceSpecs" name="specifications" rows="2"></textarea>
             </div>
             <div class="form-group" style="display: none;">
                 <label for="serviceReachDiagram">URL схемы вылета стрелы (старый формат, для совместимости)</label>
@@ -704,51 +671,6 @@ function showServiceModal(id = null) {
             console.error('Form not found');
             return;
         }
-        
-        // Обработчик для чекбокса популярных слайдов
-        const isPopularCheckbox = document.getElementById('serviceIsPopular');
-        const popularOrderGroup = document.getElementById('popularOrderGroup');
-        const specsSection = document.getElementById('specsSection');
-        
-        if (isPopularCheckbox) {
-            const togglePopularFields = function() {
-                const isChecked = isPopularCheckbox.checked;
-                if (popularOrderGroup) {
-                    popularOrderGroup.style.display = isChecked ? 'block' : 'none';
-                }
-                if (specsSection) {
-                    specsSection.style.display = isChecked ? 'block' : 'none';
-                }
-            };
-            
-            // Устанавливаем начальное состояние
-            togglePopularFields();
-            
-            // Добавляем обработчик изменения
-            isPopularCheckbox.addEventListener('change', togglePopularFields);
-        }
-        
-        // Синхронизация полей характеристик со скрытым полем
-        const syncSpecs = () => {
-            const spec1 = document.getElementById('serviceSpec1')?.value?.trim() || '';
-            const spec2 = document.getElementById('serviceSpec2')?.value?.trim() || '';
-            const spec3 = document.getElementById('serviceSpec3')?.value?.trim() || '';
-            const spec4 = document.getElementById('serviceSpec4')?.value?.trim() || '';
-            const specsInput = document.getElementById('serviceSpecs');
-            if (specsInput) {
-                const allSpecs = [spec1, spec2, spec3, spec4].filter(s => s).join(', ');
-                specsInput.value = allSpecs;
-            }
-        };
-        
-        // Добавляем обработчики на поля характеристик
-        ['serviceSpec1', 'serviceSpec2', 'serviceSpec3', 'serviceSpec4'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('input', syncSpecs);
-                input.addEventListener('change', syncSpecs);
-            }
-        });
         
         // НЕ клонируем форму, чтобы не потерять обработчики событий на динамически созданных элементах
         // Просто добавляем обработчик submit на форму
@@ -942,29 +864,6 @@ async function loadServiceData(id) {
         if (service) {
             document.getElementById('serviceTitle').value = service.title;
             document.getElementById('serviceDescription').value = service.description;
-            
-            // Загружаем поля популярных слайдов
-            const isPopularCheckbox = document.getElementById('serviceIsPopular');
-            const popularOrderGroup = document.getElementById('popularOrderGroup');
-            const popularOrderInput = document.getElementById('servicePopularOrder');
-            const specsSection = document.getElementById('specsSection');
-            
-            if (isPopularCheckbox) {
-                isPopularCheckbox.checked = service.is_popular === 1 || service.is_popular === true;
-                const isChecked = isPopularCheckbox.checked;
-                
-                // Показываем/скрываем поля в зависимости от чекбокса
-                if (popularOrderGroup) {
-                    popularOrderGroup.style.display = isChecked ? 'block' : 'none';
-                }
-                if (specsSection) {
-                    specsSection.style.display = isChecked ? 'block' : 'none';
-                }
-            }
-            
-            if (popularOrderInput && service.popular_order !== null && service.popular_order !== undefined) {
-                popularOrderInput.value = service.popular_order;
-            }
             // Парсим цену из формата "от X ₽/полсмена, от Y ₽/смена" или "от Y ₽/смена"
             const priceStr = service.price || '';
             
@@ -1035,29 +934,8 @@ async function loadServiceData(id) {
             if (basketRotationAngleInput) basketRotationAngleInput.value = service.basket_rotation_angle || '';
             
             // Старое поле для совместимости
-            // Загружаем характеристики в отдельные поля
             const specsInput = document.getElementById('serviceSpecs');
-            const spec1Input = document.getElementById('serviceSpec1');
-            const spec2Input = document.getElementById('serviceSpec2');
-            const spec3Input = document.getElementById('serviceSpec3');
-            const spec4Input = document.getElementById('serviceSpec4');
-            
-            // Парсим характеристики из строки (разделенные запятыми)
-            if (service.specifications) {
-                const specs = service.specifications.split(',').map(s => s.trim()).filter(s => s);
-                if (spec1Input) spec1Input.value = specs[0] || '';
-                if (spec2Input) spec2Input.value = specs[1] || '';
-                if (spec3Input) spec3Input.value = specs[2] || '';
-                if (spec4Input) spec4Input.value = specs[3] || '';
-            }
-            
-            // Сохраняем в скрытое поле для совместимости
-            if (specsInput) {
-                const allSpecs = [spec1Input?.value, spec2Input?.value, spec3Input?.value, spec4Input?.value]
-                    .filter(s => s && s.trim())
-                    .join(', ');
-                specsInput.value = allSpecs;
-            }
+            if (specsInput) specsInput.value = service.specifications || '';
             
             document.getElementById('serviceImage').value = service.image_url || '';
             document.getElementById('serviceUrl').value = service.url || '';
@@ -1312,25 +1190,6 @@ window.saveService = async function(event, id) {
     data.boom_rotation_angle = document.getElementById('serviceBoomRotationAngle')?.value || '';
     data.basket_rotation_angle = document.getElementById('serviceBasketRotationAngle')?.value || '';
     data.delivery_per_km = parseInt(document.getElementById('serviceDeliveryPerKm')?.value || '85');
-    
-    // Добавляем поля популярных слайдов
-    const isPopularCheckbox = document.getElementById('serviceIsPopular');
-    data.is_popular = isPopularCheckbox?.checked ? 1 : 0;
-    data.popular_order = document.getElementById('servicePopularOrder')?.value || null;
-    
-    // Собираем характеристики из отдельных полей (до 4 штук)
-    const spec1 = document.getElementById('serviceSpec1')?.value?.trim() || '';
-    const spec2 = document.getElementById('serviceSpec2')?.value?.trim() || '';
-    const spec3 = document.getElementById('serviceSpec3')?.value?.trim() || '';
-    const spec4 = document.getElementById('serviceSpec4')?.value?.trim() || '';
-    
-    // Объединяем характеристики через запятую
-    const allSpecs = [spec1, spec2, spec3, spec4].filter(s => s).join(', ');
-    data.specifications = allSpecs;
-    
-    // Обновляем скрытое поле для совместимости
-    const specsInput = document.getElementById('serviceSpecs');
-    if (specsInput) specsInput.value = allSpecs;
 
     // Handle images URLs from textarea
     const imagesUrlsText = document.getElementById('serviceImagesUrls')?.value || '';
@@ -1851,6 +1710,7 @@ function renderImagesPreview(previewContainer, container) {
             imgWrapper.style.width = '150px';
             imgWrapper.style.height = '150px';
             imgWrapper.style.marginBottom = '10px';
+            imgWrapper.style.marginRight = '10px';
             
             const img = document.createElement('img');
             img.src = url;
@@ -1860,6 +1720,14 @@ function renderImagesPreview(previewContainer, container) {
             img.style.objectFit = 'cover';
             img.style.border = '1px solid #ddd';
             img.style.borderRadius = '4px';
+            img.style.display = 'block';
+            
+            // Обработка ошибок загрузки изображения
+            img.onerror = function() {
+                console.error('❌ Failed to load image:', url);
+                img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                img.alt = 'Изображение не загружено';
+            };
             
             const removeBtn = document.createElement('button');
             removeBtn.textContent = '×';
@@ -1883,9 +1751,14 @@ function renderImagesPreview(previewContainer, container) {
             imgWrapper.appendChild(removeBtn);
             previewContainer.appendChild(imgWrapper);
         });
+        
+        // Убеждаемся, что контейнер виден
         container.style.display = 'block';
+        previewContainer.style.display = 'flex';
+        previewContainer.style.flexWrap = 'wrap';
     } else {
         container.style.display = 'none';
+        previewContainer.style.display = 'none';
     }
 }
 
@@ -1984,6 +1857,7 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
     // Show loading state
     container.style.display = 'block';
     previewContainer.innerHTML = '<p>Загрузка изображений...</p>';
+    previewContainer.style.display = 'flex';
     
     // Upload all files
     const uploadedUrls = [];
@@ -1995,6 +1869,7 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
             }
         } catch (error) {
             console.error('Error uploading image:', error);
+            alert(`Ошибка при загрузке файла "${file.name}": ${error.message}`);
         }
     }
     
@@ -2015,12 +1890,18 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
     console.log('📸 Images array updated. Total unique images:', serviceImagesArray.length);
     
     // Display previews
-    renderImagesPreview(previewContainer, container);
-    
-    // Привязываем обработчики после отрисовки
-    setTimeout(() => {
-        attachImageRemoveHandlers(previewContainer);
-    }, 50);
+    if (serviceImagesArray.length > 0) {
+        renderImagesPreview(previewContainer, container);
+        // Привязываем обработчики после отрисовки
+        setTimeout(() => {
+            attachImageRemoveHandlers(previewContainer);
+        }, 50);
+    } else {
+        container.style.display = 'none';
+        previewContainer.innerHTML = '';
+        previewContainer.style.display = 'none';
+        fileInput.value = '';
+    }
 }
 
 // Handle multiple reach diagrams upload

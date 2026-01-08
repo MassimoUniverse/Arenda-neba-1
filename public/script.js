@@ -1647,7 +1647,7 @@ async function initOurCapabilitiesSlider() {
             if (serviceUrl.includes('13m')) {
               slideImage = '/images/avtovyshka-13m.png';
             } else if (serviceUrl.includes('16m')) {
-              slideImage = '/images/avtovyshka-18m.png';
+              slideImage = '/images/avtovyshka-16m.png';
             } else if (serviceUrl.includes('21m')) {
               slideImage = '/images/avtovyshka-21m.png';
             } else if (serviceUrl.includes('25m')) {
