@@ -1278,6 +1278,7 @@ input[type='number'] {
   margin: 0;
   /* важно: увеличиваем высоту родителя через padding-bottom,
      чтобы sticky держался дольше и карточки реально наслаивались */
+  /* ВСЕ карточки, включая первую, должны иметь padding-bottom для sticky */
   padding: 0 0 var(--stack-pad) 0;
 }
 
@@ -1288,6 +1289,7 @@ input[type='number'] {
 }
 
 .stack-cards .card:last-child {
+  /* Последняя карточка не нуждается в padding-bottom, так как после неё нет других карточек */
   padding-bottom: 0;
 }
 
@@ -1303,7 +1305,8 @@ input[type='number'] {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
   transform-origin: 50% 0%;
   will-change: transform;
-  /* z-index должен быть на sticky элементе, чтобы карточки правильно наслаивались */
+  /* z-index: последняя карточка должна быть поверх первой
+     index0: 0,1,2,3 -> z-index: 1,2,3,4 (правильно: последняя поверх первой) */
   z-index: calc(var(--i, 0) + 1);
 }
 
