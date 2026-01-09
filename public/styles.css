@@ -1243,6 +1243,9 @@ input[type='number'] {
 
 .popular-cards-wrap {
   margin-top: 24px;
+  /* Убеждаемся, что контейнер не мешает sticky */
+  position: relative;
+  overflow: visible;
 }
 
 /* Кнопка "Посмотреть весь автопарк" — всегда видима для stacking cards */
