@@ -81,9 +81,9 @@ function generateUrlFromTitle(title) {
 
 // Function to generate equipment page HTML
 function generateEquipmentPageHTML(service) {
-  const title = service.title || 'Автовышка';
-  const description = service.description || '';
-  const price = service.price || '';
+  const title = service.title ? fixEncoding(service.title) : 'Автовышка';
+  const description = service.description ? fixEncoding(service.description) : '';
+  const price = service.price ? fixEncoding(service.price) : '';
   const imageUrl = service.image_url || '/images/avtovyshka-13m.png';
   const url = service.url || '';
   
