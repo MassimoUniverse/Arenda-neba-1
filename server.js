@@ -1181,16 +1181,27 @@ function processServiceRow(row, res) {
         images = JSON.parse(imagesStr);
       }
     } catch (e) {
-      console.error(`❌ Error parsing images JSON for service ${row.id || row.title}:`, e.message);
-      console.error(`   Raw images value:`, row.images?.substring(0, 100));
+      console.error(`❌ Error parsing images JSON for service ${row.id || row.title || 'unknown'}:`, e.message);
+      console.error(`   Raw images value (first 200 chars):`, String(row.images)?.substring(0, 200));
       // Пробуем разбить по переносу строки или запятой как fallback
       try {
-        const urls = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
-        if (urls.length > 0) {
-          images = urls;
-          console.log(`   Converted to array:`, urls.length, 'items');
+        const imagesStr = String(row.images).trim();
+        // Удаляем возможные проблемные символы в начале/конце
+        const cleaned = imagesStr.replace(/^[^\[]*\[/, '[').replace(/\][^\]]*$/, ']');
+        if (cleaned !== imagesStr) {
+          console.log(`   Attempting to fix malformed JSON by cleaning...`);
+          images = JSON.parse(cleaned);
+        } else {
+          const urls = imagesStr.split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
+          if (urls.length > 0) {
+            images = urls;
+            console.log(`   Converted to array:`, urls.length, 'items');
+          } else {
+            images = [];
+          }
         }
       } catch (e2) {
+        console.error(`   Fallback parsing also failed:`, e2.message);
         images = [];
       }
     }
