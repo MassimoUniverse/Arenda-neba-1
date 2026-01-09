@@ -7,12 +7,17 @@ function fixEncoding(text) {
   try {
     let fixed = text;
     
-    // Универсальная функция для удаления искаженных последовательностей
+    // Удаляем только явно искаженные последовательности, сохраняя нормальные пробелы
     const removeCorruptedSequences = (str) => {
+      // Удаляем последовательности типа: РС"РС, PjPC-PC, PC"PC и т.д. (без пробелов между словами)
       str = str.replace(/[РС]"[РС][^А-Яа-яЁё\s]*/g, '');
       str = str.replace(/P[SCj]PC[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
       str = str.replace(/\[PjPC[^\]]*\][^А-Яа-яЁё\s]*/g, '');
-      str = str.replace(/([А-Яа-яЁёA-Za-z0-9]+)[РС"РС•РС\-\[\],\sPjPC-PC[•P\sB»\-\[\],]+/g, '$1');
+      
+      // Удаляем искаженные последовательности после нормальных слов, но сохраняем пробелы между словами
+      // Ищем нормальное слово, за которым идет искаженная последовательность БЕЗ нормального текста после
+      str = str.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],PjPC-PC[•PB»\-\[\],]+)(?![А-Яа-яЁёA-Za-z0-9])/g, '$1');
+      
       str = str.replace(/\[[^\]]*[РСPjPC][^\]]*\][\s,•\-]*/g, '');
       str = str.replace(/[РС]{2,}[^А-Яа-яЁё\s]*/g, '');
       str = str.replace(/P[SCj]{2,}P[SCj]*[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
@@ -25,14 +30,17 @@ function fixEncoding(text) {
     
     // Проверяем признаки неправильной кодировки
     const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || 
-                          /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed) ||
                           /P[SC]P/.test(fixed) || /PC"PC/.test(fixed) || /PµPSP/.test(fixed) ||
                           /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed) ||
                           /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
     
     if (hasBadEncoding) {
-      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-      fixed = fixed.replace(/([PC])\s+([PC])/g, '$1$2');
+      // Удаляем пробелы ТОЛЬКО между символами двойной кодировки (Р С -> РС), но НЕ между словами
+      // Это должно быть только для случаев типа "Р С" где оба символа являются частью одной буквы
+      // НЕ удаляем пробелы между разными словами
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
+      fixed = fixed.replace(/([PC])\s+([PC])(?![a-zA-Z])/g, '$1$2');
+      
       fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/g, '');
       fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
       fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
@@ -69,8 +77,9 @@ function fixEncoding(text) {
     fixed = fixed.replace(/Телескопический[РС"РС•РС\-\[\],\s]*/gi, 'Телескопический');
     fixed = fixed.replace(/Телескопический\[PjPC-PC[•P\sB»\-\[\],]*/gi, 'Телескопический');
     
-    // Финальная универсальная очистка
-    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],\sPjPC-PC[•P\sB»\-\[\],]+)/g, '$1');
+    // Финальная универсальная очистка - удаляем только искаженные последовательности
+    // НЕ удаляем пробелы между нормальными словами
+    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],PjPC-PC[•PB»\-\[\],]+)(?![А-Яа-яЁёA-Za-z0-9])/g, '$1');
     fixed = fixed.replace(/[РС]"[РС][^А-Яа-яЁё\s]*/g, '');
     fixed = fixed.replace(/P[SCj]PC[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
     fixed = fixed.replace(/\[[^\]]*[РСPjPC][^\]]*\][\s,•\-]*/g, '');
@@ -79,9 +88,10 @@ function fixEncoding(text) {
     fixed = fixed.replace(/[РС]"[РС]/g, '');
     fixed = fixed.replace(/PjPC-PC/g, '');
     fixed = fixed.replace(/PC"PC/g, '');
-    fixed = fixed.replace(/[РСPjPC][•\-\[\],\s]+/g, '');
+    // Удаляем только искаженные символы с спецсимволами, но сохраняем нормальные пробелы
+    fixed = fixed.replace(/[РСPjPC][•\-\[\],]+/g, '');
     
-    // Удаляем множественные пробелы
+    // Удаляем только множественные пробелы (2+), сохраняя одинарные пробелы между словами
     fixed = fixed.replace(/\s{2,}/g, ' ').trim();
     
     return fixed;

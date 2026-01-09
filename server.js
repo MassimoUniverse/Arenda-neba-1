@@ -828,9 +828,10 @@ function fixEncoding(text) {
                           /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
     
     if (hasBadEncoding) {
-      // Удаляем пробелы между символами, которые могут быть результатом двойной кодировки
-      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-      fixed = fixed.replace(/([PC])\s+([PC])/g, '$1$2');
+      // Удаляем пробелы ТОЛЬКО между символами двойной кодировки (Р С -> РС), но НЕ между словами
+      // Используем negative lookahead чтобы не удалять пробелы между разными словами
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
+      fixed = fixed.replace(/([PC])\s+([PC])(?![a-zA-Z])/g, '$1$2');
       
       // Удаляем проблемные последовательности перед декодированием
       fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/g, '');
@@ -858,9 +859,9 @@ function fixEncoding(text) {
       // Если все еще есть проблемы, пробуем через win1251
       if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /P[SC]P/.test(fixed)) {
         try {
-          // Удаляем пробелы и проблемные последовательности перед декодированием
-          let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-          cleaned = cleaned.replace(/([PC])\s+([PC])/g, '$1$2');
+          // Удаляем пробелы ТОЛЬКО между символами двойной кодировки, но НЕ между словами
+          let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
+          cleaned = cleaned.replace(/([PC])\s+([PC])(?![a-zA-Z])/g, '$1$2');
           cleaned = cleaned.replace(/PC"PC[PC\s-\[\],]*/g, '');
           cleaned = cleaned.replace(/P[SC]P[°µPSPJPIPCЏ\s]*/g, '');
           
@@ -897,8 +898,8 @@ function fixEncoding(text) {
     const hasDoubleEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed);
     
     if (hasDoubleEncoding) {
-      // Удаляем пробелы между символами перед декодированием
-      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      // Удаляем пробелы ТОЛЬКО между символами двойной кодировки, но НЕ между словами
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
       
       try {
         const utf8Bytes = Buffer.from(fixed, 'utf8');
@@ -910,11 +911,13 @@ function fixEncoding(text) {
         // Игнорируем ошибки
       }
       
-      if (/Р[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
+      if (/Р[Р-Я]/.test(fixed)) {
         try {
-          const buffer = Buffer.from(fixed, 'latin1');
+          // Удаляем пробелы только между символами двойной кодировки перед декодированием
+          let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
+          const buffer = Buffer.from(cleaned, 'latin1');
           const decoded = buffer.toString('utf8');
-          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
             fixed = decoded;
           }
         } catch (e2) {
@@ -931,9 +934,9 @@ function fixEncoding(text) {
                                 /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
     
     if (stillHasBadEncoding) {
-      // Удаляем пробелы между символами и проблемные последовательности
-      let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-      cleaned = cleaned.replace(/([PC])\s+([PC])/g, '$1$2');
+      // Удаляем пробелы ТОЛЬКО между символами двойной кодировки, но НЕ между словами
+      let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])(?![а-яёА-ЯЁ])/g, '$1$2');
+      cleaned = cleaned.replace(/([PC])\s+([PC])(?![a-zA-Z])/g, '$1$2');
       cleaned = cleaned.replace(/PC"PC[PC\s-\[\],•]*/g, '');
       cleaned = cleaned.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
       cleaned = cleaned.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
@@ -1023,7 +1026,8 @@ function fixEncoding(text) {
     // и удаляем их, оставляя только нормальный текст
     
     // Удаляем последовательности после нормальных слов, которые содержат искаженные символы
-    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],\sPjPC-PC[•P\sB»\-\[\],]+)/g, '$1');
+    // НО сохраняем пробелы между нормальными словами - используем negative lookahead
+    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],PjPC-PC[•PB»\-\[\],]+)(?![А-Яа-яЁёA-Za-z0-9])/g, '$1');
     
     // Удаляем все последовательности, которые содержат смесь Р/С и P/C с кавычками, дефисами, скобками
     fixed = fixed.replace(/[РС]"[РС][^А-Яа-яЁё\s]*/g, '');
