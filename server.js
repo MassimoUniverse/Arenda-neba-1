@@ -104,16 +104,16 @@ function generateEquipmentPageHTML(service) {
     }
   }
   
-  // Характеристики из новых полей
-  const heightLift = service.height_lift || '';
-  const maxReach = service.max_reach || '';
-  const maxCapacity = service.max_capacity || '';
-  const liftType = service.lift_type || '';
-  const transportLength = service.transport_length || '';
-  const transportHeight = service.transport_height || '';
-  const width = service.width || '';
-  const boomRotationAngle = service.boom_rotation_angle || '';
-  const basketRotationAngle = service.basket_rotation_angle || '';
+  // Характеристики из новых полей (применяем fixEncoding)
+  const heightLift = service.height_lift ? fixEncoding(service.height_lift) : '';
+  const maxReach = service.max_reach ? fixEncoding(service.max_reach) : '';
+  const maxCapacity = service.max_capacity ? fixEncoding(service.max_capacity) : '';
+  const liftType = service.lift_type ? fixEncoding(service.lift_type) : '';
+  const transportLength = service.transport_length ? fixEncoding(service.transport_length) : '';
+  const transportHeight = service.transport_height ? fixEncoding(service.transport_height) : '';
+  const width = service.width ? fixEncoding(service.width) : '';
+  const boomRotationAngle = service.boom_rotation_angle ? fixEncoding(service.boom_rotation_angle) : '';
+  const basketRotationAngle = service.basket_rotation_angle ? fixEncoding(service.basket_rotation_angle) : '';
   
   // Формируем breadcrumb
   const breadcrumbTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
@@ -1245,6 +1245,12 @@ app.get('/api/services', (req, res) => {
         height_lift: row.height_lift ? fixEncoding(row.height_lift) : '',
         max_reach: row.max_reach ? fixEncoding(row.max_reach) : '',
         max_capacity: row.max_capacity ? fixEncoding(row.max_capacity) : '',
+        lift_type: row.lift_type ? fixEncoding(row.lift_type) : '',
+        transport_length: row.transport_length ? fixEncoding(row.transport_length) : '',
+        transport_height: row.transport_height ? fixEncoding(row.transport_height) : '',
+        width: row.width ? fixEncoding(row.width) : '',
+        boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
+        basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
         delivery_per_km: row.delivery_per_km || 85
       };
     });
