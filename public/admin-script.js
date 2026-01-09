@@ -550,6 +550,29 @@ function showServiceModal(id = null) {
             </div>
 
             <div class="form-section">
+                <h3 class="form-section-title">Популярная техника</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="serviceIsPopular" name="is_popular" value="1">
+                        Отображать в секции "Популярная техника" на главной
+                    </label>
+                </div>
+                <div class="form-group" id="popularOrderGroup" style="display: none;">
+                    <label for="servicePopularOrder">Порядок в популярных (1-4)</label>
+                    <input type="number" id="servicePopularOrder" name="popular_order" min="1" max="10" value="1">
+                    <small class="form-hint">Меньшее число = выше в списке</small>
+                </div>
+                <div class="form-group" id="cardBulletsGroup" style="display: none;">
+                    <label for="serviceCardBullets">Пункты для карточки (по одному на строку)</label>
+                    <textarea id="serviceCardBullets" name="card_bullets" rows="5" placeholder="Высота подъёма: 29 м
+Вылет стрелы: до 14 м
+Грузоподъёмность: 200 кг
+Проезд в арку: 3300 мм"></textarea>
+                    <small class="form-hint">Укажите 4 пункта - каждый с новой строки</small>
+                </div>
+            </div>
+
+            <div class="form-section">
                 <h3 class="form-section-title">Изображения</h3>
                 <div class="form-group">
                     <label for="serviceImage">Основное изображение (URL)</label>
@@ -626,6 +649,19 @@ function showServiceModal(id = null) {
     
     // Устанавливаем обработчики после того, как форма добавлена в DOM
     setTimeout(() => {
+        // Обработчик чекбокса "Популярная техника"
+        const isPopularCheckbox = document.getElementById('serviceIsPopular');
+        const popularOrderGroup = document.getElementById('popularOrderGroup');
+        const cardBulletsGroup = document.getElementById('cardBulletsGroup');
+        
+        if (isPopularCheckbox) {
+            isPopularCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                popularOrderGroup.style.display = isChecked ? 'block' : 'none';
+                cardBulletsGroup.style.display = isChecked ? 'block' : 'none';
+            });
+        }
+        
         const form = document.getElementById('serviceForm');
         const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
         
@@ -906,6 +942,37 @@ async function loadServiceData(id) {
             if (boomRotationAngleInput) boomRotationAngleInput.value = service.boom_rotation_angle || '';
             if (basketRotationAngleInput) basketRotationAngleInput.value = service.basket_rotation_angle || '';
             
+            // Загружаем данные популярных карточек
+            const isPopularCheckbox = document.getElementById('serviceIsPopular');
+            const popularOrderInput = document.getElementById('servicePopularOrder');
+            const cardBulletsTextarea = document.getElementById('serviceCardBullets');
+            const popularOrderGroup = document.getElementById('popularOrderGroup');
+            const cardBulletsGroup = document.getElementById('cardBulletsGroup');
+            
+            if (isPopularCheckbox) {
+                isPopularCheckbox.checked = service.is_popular === 1;
+                // Показываем/скрываем дополнительные поля
+                const isChecked = service.is_popular === 1;
+                if (popularOrderGroup) popularOrderGroup.style.display = isChecked ? 'block' : 'none';
+                if (cardBulletsGroup) cardBulletsGroup.style.display = isChecked ? 'block' : 'none';
+            }
+            if (popularOrderInput) popularOrderInput.value = service.popular_order || 1;
+            if (cardBulletsTextarea) {
+                // Парсим card_bullets из JSON
+                let bullets = [];
+                if (service.card_bullets) {
+                    try {
+                        bullets = typeof service.card_bullets === 'string' 
+                            ? JSON.parse(service.card_bullets) 
+                            : service.card_bullets;
+                    } catch (e) {
+                        console.error('Error parsing card_bullets:', e);
+                        bullets = [];
+                    }
+                }
+                cardBulletsTextarea.value = Array.isArray(bullets) ? bullets.join('\n') : '';
+            }
+            
             // Старое поле для совместимости
             const specsInput = document.getElementById('serviceSpecs');
             if (specsInput) specsInput.value = service.specifications || '';
@@ -1163,6 +1230,17 @@ window.saveService = async function(event, id) {
     data.boom_rotation_angle = document.getElementById('serviceBoomRotationAngle')?.value || '';
     data.basket_rotation_angle = document.getElementById('serviceBasketRotationAngle')?.value || '';
     data.delivery_per_km = parseInt(document.getElementById('serviceDeliveryPerKm')?.value || '85');
+    
+    // Добавляем поля популярных карточек
+    data.is_popular = document.getElementById('serviceIsPopular')?.checked ? 1 : 0;
+    data.popular_order = parseInt(document.getElementById('servicePopularOrder')?.value || '0');
+    
+    // Обрабатываем card_bullets
+    const cardBulletsText = document.getElementById('serviceCardBullets')?.value || '';
+    const cardBullets = cardBulletsText.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+    data.card_bullets = cardBullets;
 
     // Handle images URLs from textarea
     const imagesUrlsText = document.getElementById('serviceImagesUrls')?.value || '';
