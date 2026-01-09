@@ -996,10 +996,32 @@ app.get('/api/services', (req, res) => {
       let images = [];
       if (row.images) {
         try {
-          images = JSON.parse(row.images);
+          // Очищаем строку от возможных проблемных символов перед парсингом
+          let imagesStr = String(row.images).trim();
+          // Если строка не начинается с [ или {, возможно это просто список URL через запятую или перенос строки
+          if (!imagesStr.startsWith('[') && !imagesStr.startsWith('{')) {
+            // Пробуем разбить по переносу строки или запятой
+            const urls = imagesStr.split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
+            if (urls.length > 0) {
+              images = urls;
+              console.log(`⚠️ Service ${row.id || row.title}: images field is not JSON, converted to array:`, urls.length, 'items');
+            }
+          } else {
+            images = JSON.parse(imagesStr);
+          }
         } catch (e) {
-          console.error('Error parsing images JSON:', e);
-          images = [];
+          console.error(`❌ Error parsing images JSON for service ${row.id || row.title}:`, e.message);
+          console.error(`   Raw images value:`, row.images?.substring(0, 100));
+          // Пробуем разбить по переносу строки или запятой как fallback
+          try {
+            const urls = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
+            if (urls.length > 0) {
+              images = urls;
+              console.log(`   Converted to array:`, urls.length, 'items');
+            }
+          } catch (e2) {
+            images = [];
+          }
         }
       }
       let reach_diagrams = [];
@@ -1145,10 +1167,32 @@ function processServiceRow(row, res) {
   let images = [];
   if (row.images) {
     try {
-      images = JSON.parse(row.images);
+      // Очищаем строку от возможных проблемных символов перед парсингом
+      let imagesStr = String(row.images).trim();
+      // Если строка не начинается с [ или {, возможно это просто список URL через запятую или перенос строки
+      if (!imagesStr.startsWith('[') && !imagesStr.startsWith('{')) {
+        // Пробуем разбить по переносу строки или запятой
+        const urls = imagesStr.split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
+        if (urls.length > 0) {
+          images = urls;
+          console.log(`⚠️ Service ${row.id || row.title}: images field is not JSON, converted to array:`, urls.length, 'items');
+        }
+      } else {
+        images = JSON.parse(imagesStr);
+      }
     } catch (e) {
-      console.error('Error parsing images JSON:', e);
-      images = [];
+      console.error(`❌ Error parsing images JSON for service ${row.id || row.title}:`, e.message);
+      console.error(`   Raw images value:`, row.images?.substring(0, 100));
+      // Пробуем разбить по переносу строки или запятой как fallback
+      try {
+        const urls = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(url => url.length > 0);
+        if (urls.length > 0) {
+          images = urls;
+          console.log(`   Converted to array:`, urls.length, 'items');
+        }
+      } catch (e2) {
+        images = [];
+      }
     }
   }
   
