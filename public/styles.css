@@ -1458,10 +1458,7 @@ input[type='number'] {
 }
 
 .card__text {
-  font-size: clamp(13px, 1.6vw, 15px);
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.92);
-  margin: 0 0 14px 0;
+  display: none; /* Скрываем описательный текст, оставляем только bullets */
 }
 
 .card__bullets {
@@ -1494,24 +1491,37 @@ input[type='number'] {
   box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
 }
 
+/* Footer карточки с ценой и кнопкой */
+.card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
 .card__price {
-  font-size: clamp(18px, 2.2vw, 24px);
+  font-size: clamp(16px, 2vw, 20px);
   font-weight: 700;
   color: var(--accent);
-  margin: 0 0 10px 0;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .card__link {
   display: inline-block;
-  font-size: clamp(14px, 1.8vw, 16px);
+  font-size: clamp(13px, 1.6vw, 14px);
   font-weight: 600;
   color: #fff;
   text-decoration: none;
-  padding: 10px 18px;
+  padding: 10px 20px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 10px;
   transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .card__link:hover {
@@ -1619,14 +1629,21 @@ input[type='number'] {
     height: 6px;
   }
   
+  .card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
   .card__price {
-    font-size: clamp(16px, 4vw, 20px);
-    margin-bottom: 8px;
+    font-size: clamp(15px, 3.8vw, 18px);
+    margin-bottom: 0;
   }
   
   .card__link {
-    font-size: clamp(13px, 3.5vw, 15px);
+    font-size: clamp(12px, 3.2vw, 14px);
     padding: 8px 16px;
+    margin-left: 0;
   }
   
   .card__counter {
@@ -1710,14 +1727,21 @@ input[type='number'] {
     height: 5px;
   }
   
+  .card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
   .card__price {
-    font-size: 16px;
-    margin-bottom: 6px;
+    font-size: 15px;
+    margin-bottom: 0;
   }
   
   .card__link {
-    font-size: 12px;
+    font-size: 11px;
     padding: 6px 12px;
+    margin-left: 0;
   }
   
   .card__counter {

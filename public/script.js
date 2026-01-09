@@ -1689,8 +1689,10 @@ async function initOurCapabilitiesSlider() {
           <h3 class="card__title">${slide.title}</h3>
           <p class="card__text">${slide.text}</p>
           ${bulletsHtml}
-          ${priceHtml}
-          ${linkHtml}
+          <div class="card__footer">
+            ${priceHtml}
+            ${linkHtml}
+          </div>
         </div>
       </div>
     `;
