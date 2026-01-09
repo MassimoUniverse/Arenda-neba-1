@@ -908,10 +908,18 @@ function fixEncoding(text) {
       }
       
       // Если все еще есть проблемные последовательности, заменяем их вручную
-      if (/РЎР/.test(fixed) || /PC"PC/.test(fixed)) {
+      if (/РЎР/.test(fixed) || /PC"PC/.test(fixed) || /Р\s*ВµР/.test(fixed) || /-],\s*\[PjPC/.test(fixed)) {
+        // Заменяем известные искаженные последовательности для "Телескопический"
         fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],]*/gi, 'Телескопический');
         fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/gi, '');
         fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓ/gi, 'Телескопический');
+        fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓPC"PC-PC/gi, 'Телескопический');
+        fixed = fixed.replace(/-],\s*\[PjPC-PC-Р\s*В»/gi, '');
+        // Общая замена для "Телескопический" в разных вариантах искажения
+        fixed = fixed.replace(/Р[СЎ]\s*Р\s*[Вµ]\s*Р\s*[В»]\s*Р\s*[Вµ]\s*Р[ЎС]\s*Р[Сѓ][PC"PC\s-\[\],]*/gi, 'Телескопический');
+        // Удаляем остатки искаженных символов
+        fixed = fixed.replace(/PC"PC-PC/gi, '');
+        fixed = fixed.replace(/\[PjPC-PC-Р\s*В»/gi, '');
       }
     }
     
