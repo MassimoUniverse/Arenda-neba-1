@@ -1230,6 +1230,192 @@ input[type='number'] {
   padding: 0;
 }
 
+/* =============================================
+   POPULAR EQUIPMENT (Stacking Cards)
+   ============================================= */
+.popular-cards-section {
+  position: relative;
+  height: auto; /* переопределяем 300vh от старого блока */
+  padding: 80px 0;
+}
+
+.popular-cards-wrap {
+  margin-top: 24px;
+}
+
+/* Кнопка "Посмотреть весь автопарк" — всегда видима для stacking cards */
+.popular-equipment-button--always-visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+.stack-cards {
+  --numcards: 4;
+  --card-top: 110px;
+  --card-radius: 28px;
+  --card-height: min(78vh, 720px);
+  --stack-pad: 45vh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  padding-bottom: calc(var(--numcards) * var(--stack-pad));
+}
+
+.stack-cards .card {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sticky делаем на .card__content (как в демо) */
+.stack-cards .card__content {
+  position: sticky;
+  top: var(--card-top);
+  height: var(--card-height);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  background: #111;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  transform-origin: 50% 0%;
+  will-change: transform;
+}
+
+.stack-cards .card__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.stack-cards .card__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stack-cards .card__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.22) 55%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+
+.stack-cards .card__counter {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  font-variant-numeric: tabular-nums;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.stack-cards .card__body {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 28px;
+  max-width: 640px;
+  z-index: 4;
+}
+
+.stack-cards .card__title {
+  font-size: clamp(26px, 3.6vw, 40px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  margin: 0 0 14px 0;
+}
+
+.stack-cards .card__text {
+  font-size: clamp(15px, 1.9vw, 18px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 18px 0;
+}
+
+.stack-cards .card__bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stack-cards .card__bullets li {
+  font-size: clamp(14px, 1.8vw, 16px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.86);
+  padding-left: 18px;
+  position: relative;
+}
+
+.stack-cards .card__bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.stack-cards .card__price {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 700;
+  color: var(--accent);
+  margin: 18px 0 10px 0;
+}
+
+.stack-cards .card__link {
+  display: inline-block;
+  font-size: clamp(14px, 1.8vw, 16px);
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.stack-cards .card__link:hover {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .popular-cards-section {
+    padding: 60px 0;
+  }
+  .stack-cards {
+    --card-top: 86px;
+    --card-height: min(74vh, 640px);
+    --stack-pad: 40vh;
+    padding: 0 16px;
+    padding-bottom: calc(var(--numcards) * var(--stack-pad));
+  }
+  .stack-cards .card__body {
+    left: 22px;
+    right: 22px;
+    bottom: 20px;
+    max-width: 100%;
+  }
+}
+
 .our-capabilities-section .section-header {
   margin-bottom: 0;
   padding-top: 10px;
