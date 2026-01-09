@@ -1715,9 +1715,9 @@ function initStackCardsEffect(element) {
 
   // Get card properties
   const cardStyle = window.getComputedStyle(items[0]);
-  const cardTop = parseFloat(cardStyle.top);
+  const cardTop = parseFloat(cardStyle.top) || 90; // Default to 90px if not set
   const cardHeight = items[0].offsetHeight;
-  const cardMarginBottom = parseFloat(cardStyle.marginBottom);
+  const cardMarginBottom = parseFloat(cardStyle.marginBottom) || 24;
 
   let scrollingListener = null;
   let scrolling = false;

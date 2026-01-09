@@ -1264,7 +1264,7 @@ input[type='number'] {
 /* Individual Card Item */
 .stack-cards__item {
   position: sticky;
-  top: 24px; /* offset from top when fixed */
+  top: 90px; /* offset from top when fixed - below header */
   margin-bottom: 24px;
   transform-origin: center top;
   will-change: transform;
@@ -1417,7 +1417,7 @@ input[type='number'] {
   }
   
   .stack-cards__item {
-    top: 16px;
+    top: 80px;
     margin-bottom: 16px;
   }
   
@@ -1486,7 +1486,7 @@ input[type='number'] {
   }
   
   .stack-cards__item {
-    top: 12px;
+    top: 76px;
     margin-bottom: 12px;
   }
   
