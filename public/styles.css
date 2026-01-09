@@ -1458,38 +1458,40 @@ input[type='number'] {
 }
 
 .card__text {
-  font-size: clamp(15px, 1.9vw, 18px);
-  line-height: 1.6;
+  font-size: clamp(13px, 1.6vw, 15px);
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.92);
-  margin: 0 0 18px 0;
+  margin: 0 0 14px 0;
 }
 
 .card__bullets {
   list-style: none;
   padding: 0;
-  margin: 0 0 18px 0;
+  margin: 0 0 16px 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .card__bullets li {
-  font-size: clamp(14px, 1.8vw, 16px);
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.86);
-  padding-left: 18px;
+  font-size: clamp(13px, 1.6vw, 14px);
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.90);
+  padding-left: 20px;
   position: relative;
+  font-weight: 400;
 }
 
 .card__bullets li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 9px;
-  width: 6px;
-  height: 6px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
 }
 
 .card__price {
@@ -1596,24 +1598,25 @@ input[type='number'] {
   }
   
   .card__text {
-    font-size: clamp(14px, 3.5vw, 16px);
-    margin-bottom: 12px;
+    font-size: clamp(13px, 3.2vw, 14px);
+    margin-bottom: 10px;
   }
   
   .card__bullets {
-    margin-bottom: 12px;
-    gap: 8px;
+    margin-bottom: 10px;
+    gap: 6px;
   }
   
   .card__bullets li {
-    font-size: clamp(13px, 3.2vw, 15px);
-    padding-left: 16px;
+    font-size: clamp(12px, 3vw, 13px);
+    padding-left: 18px;
+    line-height: 1.3;
   }
   
   .card__bullets li::before {
-    top: 7px;
-    width: 5px;
-    height: 5px;
+    top: 5px;
+    width: 6px;
+    height: 6px;
   }
   
   .card__price {
@@ -1685,26 +1688,26 @@ input[type='number'] {
   }
   
   .card__text {
-    font-size: 13px;
+    font-size: 12px;
     margin-bottom: 8px;
-    line-height: 1.4;
+    line-height: 1.3;
   }
   
   .card__bullets {
     margin-bottom: 8px;
-    gap: 4px;
+    gap: 5px;
   }
   
   .card__bullets li {
-    font-size: 12px;
-    padding-left: 14px;
+    font-size: 11px;
+    padding-left: 16px;
     line-height: 1.3;
   }
   
   .card__bullets li::before {
-    top: 5px;
-    width: 4px;
-    height: 4px;
+    top: 4px;
+    width: 5px;
+    height: 5px;
   }
   
   .card__price {
