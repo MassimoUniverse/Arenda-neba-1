@@ -706,6 +706,8 @@ a.logo:hover {
 .section {
   padding: 100px 0;
   position: relative;
+  /* Убеждаемся, что секции не обрезают контент (особенно важно для stacking cards) */
+  overflow: visible;
 }
 
 .section-header {
@@ -1239,6 +1241,8 @@ input[type='number'] {
   /* Высота = высота карточки + (количество карточек - 1) * stack-pad + отступы */
   min-height: calc(min(78vh, 720px) + 3 * 80vh + 160px);
   padding: 80px 0;
+  /* Убеждаемся, что секция не обрезает карточки */
+  overflow: visible;
 }
 
 .popular-cards-wrap {
