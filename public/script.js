@@ -1582,15 +1582,47 @@ async function initOurCapabilitiesSlider() {
   let slidesData = POPULAR_EQUIPMENT_SLIDES;
   
   try {
-    const response = await fetch('/api/services');
-    if (response.ok) {
-      const services = await response.json();
-      // Фильтруем популярные машины по URL
-      const popularServices = services.filter(service => 
-        popularUrls.includes(service.url)
-      );
-      
-      if (popularServices.length > 0) {
+    // Сначала пробуем загрузить из нового API для популярных карточек
+    const popularResponse = await fetch('/api/popular-cards');
+    if (popularResponse.ok) {
+      const popularCards = await popularResponse.json();
+      if (popularCards.length > 0) {
+        // Используем данные из базы для популярных карточек
+        slidesData = popularCards.map((service, index) => {
+          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
+          
+          // Используем card_bullets из базы или fallback
+          let bullets = service.card_bullets || [];
+          if (bullets.length < 4 && fallbackSlide && fallbackSlide.bullets) {
+            bullets = fallbackSlide.bullets;
+          }
+          
+          const slideImage = getImageForService(service);
+          const cleanedPrice = extractShiftPrice(service.price || '');
+          
+          return {
+            id: String(service.id),
+            index: String(index + 1).padStart(2, '0'),
+            title: service.title,
+            text: service.description,
+            bullets: bullets,
+            image: slideImage,
+            url: service.url,
+            price: cleanedPrice || service.price
+          };
+        });
+      }
+    } else {
+      // Fallback: используем старый метод с фильтрацией по URL
+      const response = await fetch('/api/services');
+      if (response.ok) {
+        const services = await response.json();
+        // Фильтруем популярные машины по URL
+        const popularServices = services.filter(service => 
+          popularUrls.includes(service.url)
+        );
+        
+        if (popularServices.length > 0) {
         // Преобразуем данные из API в формат карточек (без Buffer/iconv — чистый браузерный код)
         slidesData = popularServices.map((service, index) => {
           // Fallback данные
@@ -1655,6 +1687,7 @@ async function initOurCapabilitiesSlider() {
             price: cleanedPrice || price
           };
         });
+        }
       }
     }
   } catch (error) {

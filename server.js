@@ -576,6 +576,25 @@ const db = new sqlite3.Database('./database.db', (err) => {
       }
     });
     
+    // Add popular card settings
+    db.run(`ALTER TABLE services ADD COLUMN is_popular INTEGER DEFAULT 0`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding is_popular column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN popular_order INTEGER DEFAULT 0`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding popular_order column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN card_bullets TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding card_bullets column:', err);
+      }
+    });
+    
     // Add equipment specifications columns
     db.run(`ALTER TABLE services ADD COLUMN height_lift TEXT`, (err) => {
       if (err && !err.message.includes('duplicate column name')) {
@@ -1183,6 +1202,46 @@ app.get('/api/homepage', (req, res) => {
   });
 });
 
+// Get popular cards
+app.get('/api/popular-cards', (req, res) => {
+  db.all('SELECT * FROM services WHERE active = 1 AND is_popular = 1 ORDER BY popular_order', [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    const fixedRows = rows.map(row => {
+      let card_bullets = [];
+      if (row.card_bullets) {
+        try {
+          card_bullets = JSON.parse(row.card_bullets);
+        } catch (e) {
+          // Если не JSON, пробуем разбить по переносам
+          card_bullets = String(row.card_bullets).split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+        }
+      }
+      
+      let images = [];
+      if (row.images) {
+        try {
+          images = JSON.parse(row.images);
+        } catch (e) {
+          images = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(Boolean);
+        }
+      }
+      
+      return {
+        ...row,
+        title: fixEncoding(row.title),
+        description: fixEncoding(row.description),
+        price: row.price ? fixEncoding(row.price) : row.price,
+        card_bullets: card_bullets,
+        images: images
+      };
+    });
+    res.json(fixedRows);
+  });
+});
+
 app.get('/api/services', (req, res) => {
   db.all('SELECT * FROM services WHERE active = 1 ORDER BY order_num', [], (err, rows) => {
     if (err) {
@@ -1729,7 +1788,8 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
 app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('📥 POST /api/admin/services - Creating new service');
   const { title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, 
-          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km } = req.body;
+          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
+          is_popular, popular_order, card_bullets } = req.body;
   
   console.log('📋 Service data received:', {
     title,
@@ -1829,10 +1889,18 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
     console.warn('⚠️ Page creation returned null, using original URL:', finalUrl);
   }
   
+  // Convert card_bullets to JSON
+  let cardBulletsJson = '';
+  if (Array.isArray(card_bullets)) {
+    cardBulletsJson = JSON.stringify(card_bullets);
+  } else if (typeof card_bullets === 'string') {
+    cardBulletsJson = card_bullets;
+  }
+  
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
-    'INSERT INTO services (title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, price, specifications || '', image_url || '', order_num || 0, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85],
+    'INSERT INTO services (title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [title, description, price, specifications || '', image_url || '', order_num || 0, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -1847,7 +1915,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   const { title, description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
-          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km } = req.body;
+          height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
+          is_popular, popular_order, card_bullets } = req.body;
   
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -1939,9 +2008,17 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     console.warn('⚠️ Failed to regenerate equipment page');
   }
   
+  // Convert card_bullets to JSON
+  let cardBulletsJson = '';
+  if (Array.isArray(card_bullets)) {
+    cardBulletsJson = JSON.stringify(card_bullets);
+  } else if (typeof card_bullets === 'string') {
+    cardBulletsJson = card_bullets;
+  }
+  
   db.run(
-    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ? WHERE id = ?',
-    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, req.params.id],
+    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ? WHERE id = ?',
+    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, req.params.id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
