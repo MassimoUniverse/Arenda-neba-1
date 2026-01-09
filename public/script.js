@@ -1593,6 +1593,9 @@ async function initOurCapabilitiesSlider() {
       if (popularServices.length > 0) {
         // Преобразуем данные из API в формат карточек (без Buffer/iconv — чистый браузерный код)
         slidesData = popularServices.map((service, index) => {
+          // Fallback данные
+          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
+          
           // Парсим specifications для получения характеристик
           const specs = String(service.specifications || '');
           let bullets = specs
@@ -1602,7 +1605,6 @@ async function initOurCapabilitiesSlider() {
             .slice(0, 6);
           
           // Если bullets меньше 4, используем fallback
-          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
           if (bullets.length < 4 && fallbackSlide && fallbackSlide.bullets) {
             bullets = fallbackSlide.bullets;
           }
@@ -1627,7 +1629,6 @@ async function initOurCapabilitiesSlider() {
             /Р[Р-Я]/.test(text) || /С[Р-Я]/.test(text) ||
             /Р[Р-Я]/.test(price) || /С[Р-Я]/.test(price);
 
-          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
           if (hasBadEncoding && fallbackSlide) {
             const cleanedFallbackPrice = extractShiftPrice(fallbackSlide.price);
             return {
