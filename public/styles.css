@@ -1235,7 +1235,8 @@ input[type='number'] {
    ============================================= */
 .popular-cards-section {
   position: relative;
-  height: auto; /* переопределяем 300vh от старого блока */
+  /* Важно: секция должна иметь достаточную высоту для sticky */
+  min-height: 100vh;
   padding: 80px 0;
 }
 
@@ -1266,6 +1267,8 @@ input[type='number'] {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
+  /* Общая высота контейнера = высота карточки + (количество карточек - 1) * stack-pad */
+  min-height: calc(var(--card-height) + (var(--numcards) - 1) * var(--stack-pad));
   padding-bottom: calc(var(--numcards) * var(--stack-pad));
 }
 
@@ -1279,8 +1282,11 @@ input[type='number'] {
 }
 
 .stack-cards .card:not(:first-child) {
-  /* Ключ к “стеку”: следующий блок начинается поверх предыдущего, а не после него */
+  /* Ключ к "стеку": следующий блок начинается поверх предыдущего, а не после него */
+  /* Вычитаем высоту карточки и добавляем небольшой зазор для визуального эффекта */
   margin-top: calc((var(--card-height) * -1) + var(--stack-gap));
+  /* Убеждаемся, что карточка действительно перекрывает предыдущую */
+  position: relative;
 }
 
 .stack-cards .card:last-child {
