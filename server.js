@@ -790,15 +790,18 @@ function fixEncoding(text) {
   try {
     let fixed = text;
     
-    // Сначала проверяем, есть ли признаки неправильной кодировки
-    const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed);
+    // Проверяем, есть ли признаки неправильной кодировки (включая пробелы между символами)
+    const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed);
     
     if (hasBadEncoding) {
+      // Удаляем пробелы между символами, которые могут быть результатом двойной кодировки
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      
       // Пробуем исправить через декодирование из latin1 в utf8
       try {
         const buffer = Buffer.from(fixed, 'latin1');
         const decoded = buffer.toString('utf8');
-        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
+        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
           fixed = decoded;
         }
       } catch (e) {
@@ -806,11 +809,13 @@ function fixEncoding(text) {
       }
       
       // Если все еще есть проблемы, пробуем через win1251
-      if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed)) {
+      if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
         try {
-          const utf8Bytes = Buffer.from(fixed, 'utf8');
+          // Удаляем пробелы перед декодированием
+          const cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+          const utf8Bytes = Buffer.from(cleaned, 'utf8');
           const decoded = iconv.decode(utf8Bytes, 'win1251');
-          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
             fixed = decoded;
           }
         } catch (e) {
@@ -837,25 +842,28 @@ function fixEncoding(text) {
     fixed = fixed.replace(/РІ,Р/gi, '₽');
     fixed = fixed.replace(/РІ,РЅ/gi, '₽');
     
-    // Проверяем, есть ли признаки двойной кодировки
-    const hasDoubleEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed);
+    // Проверяем, есть ли признаки двойной кодировки (включая пробелы)
+    const hasDoubleEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed);
     
     if (hasDoubleEncoding) {
+      // Удаляем пробелы между символами перед декодированием
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      
       try {
         const utf8Bytes = Buffer.from(fixed, 'utf8');
         const decoded = iconv.decode(utf8Bytes, 'win1251');
-        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
+        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
           fixed = decoded;
         }
       } catch (e) {
         // Игнорируем ошибки
       }
       
-      if (/Р[Р-Я]/.test(fixed)) {
+      if (/Р[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
         try {
           const buffer = Buffer.from(fixed, 'latin1');
           const decoded = buffer.toString('utf8');
-          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded)) {
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
             fixed = decoded;
           }
         } catch (e2) {
@@ -863,6 +871,44 @@ function fixEncoding(text) {
         }
       }
     }
+    
+    // Финальная проверка - если все еще есть искаженные символы, пробуем более агрессивное исправление
+    if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
+      // Пробуем декодировать как будто это UTF-8, который был неправильно интерпретирован как Windows-1251
+      try {
+        const cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+        // Пробуем разные варианты декодирования
+        const attempts = [
+          () => {
+            const buf = Buffer.from(cleaned, 'utf8');
+            return iconv.decode(buf, 'win1251');
+          },
+          () => {
+            const buf = Buffer.from(cleaned, 'latin1');
+            return buf.toString('utf8');
+          },
+          () => {
+            // Пробуем декодировать через CP1251
+            return iconv.decode(Buffer.from(cleaned, 'utf8'), 'win1251');
+          }
+        ];
+        
+        for (const attempt of attempts) {
+          try {
+            const decoded = attempt();
+            if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
+              fixed = decoded;
+              break;
+            }
+          } catch (e) {
+            // Продолжаем попытки
+          }
+        }
+      } catch (e) {
+        // Если ничего не помогло, возвращаем исходный текст
+      }
+    }
+    
     return fixed;
   } catch (error) {
     return text;
