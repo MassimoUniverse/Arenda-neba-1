@@ -1251,15 +1251,40 @@ input[type='number'] {
 /* LEFT SIDEBAR */
 .popular-cards-sidebar {
   position: relative;
+  /* Sidebar должен иметь высоту контента справа, чтобы sticky работал до конца */
+  min-height: 100%;
 }
 
 .popular-cards-sidebar-sticky {
   position: sticky;
   top: 110px;
+  /* Высота sticky блока должна помещаться в viewport */
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
   padding: 40px;
   background: var(--bg-white);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
+  /* Скрываем scrollbar для чистого вида */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.popular-cards-sidebar-sticky::-webkit-scrollbar {
+  width: 4px;
+}
+
+.popular-cards-sidebar-sticky::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.popular-cards-sidebar-sticky::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.popular-cards-sidebar-sticky::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .sidebar-title {
