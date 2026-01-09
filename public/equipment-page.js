@@ -580,35 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             thumb.onclick = function(e) {
               e.stopPropagation();
               // Устанавливаем главное изображение по индексу
-              const mainImageContainer = imgEl?.parentElement;
-              if (mainImageContainer) {
-                // Находим текущий индекс изображения
-                const imageIndex = allImages.findIndex(img => {
-                  const normalized = normalizeImageUrl(img);
-                  return normalized === normalizedUrl || img === normalizedUrl;
-                });
-                if (imageIndex >= 0) {
-                  // Используем функцию setMainImage из замыкания
-                  const setMainImage = (idx) => {
-                    if (idx < 0 || idx >= allImages.length) return;
-                    const imgUrl = normalizeImageUrl(allImages[idx]);
-                    if (imgEl) {
-                      imgEl.src = imgUrl;
-                      imgEl.alt = `${service.title} - вид ${idx + 1}`;
-                    }
-                    // Обновляем активную миниатюру
-                    thumbsContainer.querySelectorAll('img').forEach((t, i) => {
-                      t.classList.toggle('active', i === idx);
-                    });
-                    // Обновляем состояние кнопок навигации главного изображения
-                    const prevBtn = mainImageContainer.querySelector('.main-image-nav.prev');
-                    const nextBtn = mainImageContainer.querySelector('.main-image-nav.next');
-                    if (prevBtn) prevBtn.disabled = idx === 0;
-                    if (nextBtn) nextBtn.disabled = idx === allImages.length - 1;
-                  };
-                  setMainImage(imageIndex);
-                }
-              }
+              setMainImage(index);
             };
             thumb.onerror = function() {
               console.warn('Failed to load thumbnail:', normalizedUrl);
