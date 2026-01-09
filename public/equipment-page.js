@@ -398,26 +398,100 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Если есть изображения, отображаем их
       if (allImages.length > 0) {
+        // Текущий индекс изображения
+        let currentImageIndex = 0;
+        
+        // Функция для нормализации URL изображения
+        const normalizeImageUrl = (url) => {
+          if (!url) return url;
+          if (url.startsWith('http')) return url;
+          if (url.startsWith('/') || url.startsWith('../')) return url;
+          return '/' + url;
+        };
+        
+        // Функция для установки главного изображения
+        const setMainImage = (index) => {
+          if (index < 0 || index >= allImages.length) return;
+          currentImageIndex = index;
+          
+          if (imgEl) {
+            const imageUrl = normalizeImageUrl(allImages[index]);
+            imgEl.src = imageUrl;
+            imgEl.alt = `${service.title} - вид ${index + 1}`;
+            
+            // Обновляем активную миниатюру
+            if (thumbsContainer) {
+              const thumbs = thumbsContainer.querySelectorAll('img');
+              thumbs.forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+              });
+            }
+            
+            // Обновляем состояние кнопок навигации
+            updateMainImageNav();
+          }
+        };
+        
+        // Функция для обновления состояния кнопок навигации главного изображения
+        const updateMainImageNav = () => {
+          const mainImageContainer = imgEl?.parentElement;
+          if (!mainImageContainer) return;
+          
+          const prevBtn = mainImageContainer.querySelector('.main-image-nav.prev');
+          const nextBtn = mainImageContainer.querySelector('.main-image-nav.next');
+          
+          if (prevBtn) prevBtn.disabled = currentImageIndex === 0;
+          if (nextBtn) nextBtn.disabled = currentImageIndex === allImages.length - 1;
+        };
+        
         // Устанавливаем первое изображение как главное
         if (imgEl) {
-          // Убеждаемся, что URL правильный (добавляем / если нужно)
-          let mainImageUrl = allImages[0];
-          if (mainImageUrl && !mainImageUrl.startsWith('http') && !mainImageUrl.startsWith('/') && !mainImageUrl.startsWith('../')) {
-            mainImageUrl = '/' + mainImageUrl;
+          const mainImageContainer = imgEl.parentElement;
+          
+          // Создаем кнопки навигации для главного изображения, если их еще нет
+          let mainPrevBtn = mainImageContainer.querySelector('.main-image-nav.prev');
+          let mainNextBtn = mainImageContainer.querySelector('.main-image-nav.next');
+          
+          if (!mainPrevBtn && allImages.length > 1) {
+            mainPrevBtn = document.createElement('button');
+            mainPrevBtn.className = 'main-image-nav prev';
+            mainPrevBtn.innerHTML = '‹';
+            mainPrevBtn.setAttribute('aria-label', 'Предыдущее фото');
+            mainPrevBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (currentImageIndex > 0) {
+                setMainImage(currentImageIndex - 1);
+              }
+            };
+            mainImageContainer.appendChild(mainPrevBtn);
           }
-          imgEl.src = mainImageUrl;
-          imgEl.alt = service.title;
-          console.log('✅ Set main image:', mainImageUrl);
+          
+          if (!mainNextBtn && allImages.length > 1) {
+            mainNextBtn = document.createElement('button');
+            mainNextBtn.className = 'main-image-nav next';
+            mainNextBtn.innerHTML = '›';
+            mainNextBtn.setAttribute('aria-label', 'Следующее фото');
+            mainNextBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (currentImageIndex < allImages.length - 1) {
+                setMainImage(currentImageIndex + 1);
+              }
+            };
+            mainImageContainer.appendChild(mainNextBtn);
+          }
+          
+          // Устанавливаем первое изображение
+          setMainImage(0);
           
           // Добавляем обработчик клика для просмотра в полноэкранном режиме
           imgEl.style.cursor = 'pointer';
           imgEl.addEventListener('click', function() {
-            openImageFullscreen(allImages, 0, service.title);
+            openImageFullscreen(allImages, currentImageIndex, service.title);
           });
           
           // Обработка ошибок загрузки изображения
           imgEl.onerror = function() {
-            console.warn('❌ Failed to load main image:', mainImageUrl);
+            console.warn('❌ Failed to load main image:', this.src);
             // Используем fallback изображение
             const fallbackImage = '../images/avtovyshka-13m.png';
             if (this.src !== fallbackImage) {
@@ -426,7 +500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             this.onerror = null; // Предотвращаем бесконечный цикл
           };
           imgEl.onload = function() {
-            console.log('✅ Main image loaded successfully:', mainImageUrl);
+            console.log('✅ Main image loaded successfully:', this.src);
           };
         }
         
@@ -505,14 +579,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             thumb.style.cursor = 'pointer';
             thumb.onclick = function(e) {
               e.stopPropagation();
-              // Убираем active класс со всех миниатюр
-              thumbsContainer.querySelectorAll('img').forEach(t => t.classList.remove('active'));
-              // Добавляем active класс к выбранной
-              thumb.classList.add('active');
-              // Меняем главное изображение (БЕЗ открытия lightbox)
-              if (imgEl) {
-                imgEl.src = normalizedUrl;
-                imgEl.alt = `${service.title} - вид ${index + 1}`;
+              // Устанавливаем главное изображение по индексу
+              const mainImageContainer = imgEl?.parentElement;
+              if (mainImageContainer) {
+                // Находим текущий индекс изображения
+                const imageIndex = allImages.findIndex(img => {
+                  const normalized = normalizeImageUrl(img);
+                  return normalized === normalizedUrl || img === normalizedUrl;
+                });
+                if (imageIndex >= 0) {
+                  // Используем функцию setMainImage из замыкания
+                  const setMainImage = (idx) => {
+                    if (idx < 0 || idx >= allImages.length) return;
+                    const imgUrl = normalizeImageUrl(allImages[idx]);
+                    if (imgEl) {
+                      imgEl.src = imgUrl;
+                      imgEl.alt = `${service.title} - вид ${idx + 1}`;
+                    }
+                    // Обновляем активную миниатюру
+                    thumbsContainer.querySelectorAll('img').forEach((t, i) => {
+                      t.classList.toggle('active', i === idx);
+                    });
+                    // Обновляем состояние кнопок навигации главного изображения
+                    const prevBtn = mainImageContainer.querySelector('.main-image-nav.prev');
+                    const nextBtn = mainImageContainer.querySelector('.main-image-nav.next');
+                    if (prevBtn) prevBtn.disabled = idx === 0;
+                    if (nextBtn) nextBtn.disabled = idx === allImages.length - 1;
+                  };
+                  setMainImage(imageIndex);
+                }
               }
             };
             thumb.onerror = function() {
