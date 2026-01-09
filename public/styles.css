@@ -1245,8 +1245,9 @@ input[type='number'] {
   visibility: visible !important;
   transform: none !important;
   pointer-events: auto !important;
-  margin-top: 24px;
-  margin-bottom: 0;
+  margin-top: 60px;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 /* Stacking Cards Container */
@@ -1427,6 +1428,20 @@ input[type='number'] {
     max-height: 60vh;
   }
   
+  .our-capabilities-description {
+    margin-top: 8px;
+  }
+  
+  .our-capabilities-description p {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  
+  .popular-equipment-button--always-visible {
+    margin-top: 40px;
+    margin-bottom: 20px;
+  }
+  
   .card__body {
     max-width: 100%;
   }
@@ -1546,8 +1561,18 @@ input[type='number'] {
     padding: 5px 8px;
   }
   
+  .our-capabilities-description {
+    margin-top: 6px;
+  }
+  
+  .our-capabilities-description p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
   .popular-equipment-button--always-visible {
-    margin-top: 16px;
+    margin-top: 32px;
+    margin-bottom: 16px;
   }
 }
 
@@ -1564,13 +1589,14 @@ input[type='number'] {
   text-align: center;
   margin-bottom: 0;
   padding-bottom: 0;
+  margin-top: 12px;
 }
 
 .our-capabilities-description p {
   font-size: 17px;
   color: var(--text-muted);
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0 auto 32px;
 }
 
 .popular-equipment-button {
