@@ -408,6 +408,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           imgEl.src = mainImageUrl;
           imgEl.alt = service.title;
           console.log('✅ Set main image:', mainImageUrl);
+          
+          // Добавляем обработчик клика для просмотра в полноэкранном режиме
+          imgEl.style.cursor = 'pointer';
+          imgEl.addEventListener('click', function() {
+            openImageFullscreen(allImages, 0, service.title);
+          });
+          
           // Обработка ошибок загрузки изображения
           imgEl.onerror = function() {
             console.warn('❌ Failed to load main image:', mainImageUrl);
@@ -437,7 +444,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             thumb.alt = `${service.title} - вид ${index + 1}`;
             thumb.className = index === 0 ? 'active' : '';
             thumb.style.cursor = 'pointer';
-            thumb.onclick = function() {
+            thumb.onclick = function(e) {
+              e.stopPropagation();
               // Убираем active класс со всех миниатюр
               thumbsContainer.querySelectorAll('img').forEach(t => t.classList.remove('active'));
               // Добавляем active класс к выбранной
@@ -447,6 +455,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 imgEl.src = normalizedUrl;
                 imgEl.alt = `${service.title} - вид ${index + 1}`;
               }
+              // Открываем в полноэкранном режиме
+              openImageFullscreen(allImages, index, service.title);
             };
             thumb.onerror = function() {
               console.warn('Failed to load thumbnail:', normalizedUrl);
@@ -1567,6 +1577,225 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Функция для открытия диаграммы в полноэкранном режиме
+// Функция для открытия изображений галереи в полноэкранном режиме
+function openImageFullscreen(images, currentIndex, title) {
+  if (!images || images.length === 0) return;
+  
+  const modal = document.createElement('div');
+  modal.className = 'image-fullscreen-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  
+  let currentIdx = currentIndex || 0;
+  
+  // Контейнер для изображения
+  const imageContainer = document.createElement('div');
+  imageContainer.style.cssText = `
+    position: relative;
+    max-width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  `;
+  
+  // Изображение
+  const fullscreenImg = document.createElement('img');
+  fullscreenImg.style.cssText = `
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    cursor: default;
+  `;
+  
+  // Кнопки навигации
+  const prevBtn = document.createElement('button');
+  prevBtn.innerHTML = '‹';
+  prevBtn.style.cssText = `
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 300;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    z-index: 10001;
+  `;
+  
+  const nextBtn = document.createElement('button');
+  nextBtn.innerHTML = '›';
+  nextBtn.style.cssText = prevBtn.style.cssText;
+  nextBtn.style.left = 'auto';
+  nextBtn.style.right = '20px';
+  
+  // Кнопка закрытия
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '×';
+  closeBtn.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 300;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    z-index: 10001;
+  `;
+  
+  // Счетчик изображений
+  const counter = document.createElement('div');
+  counter.style.cssText = `
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    margin-top: 16px;
+  `;
+  
+  function updateImage() {
+    if (currentIdx < 0) currentIdx = images.length - 1;
+    if (currentIdx >= images.length) currentIdx = 0;
+    
+    fullscreenImg.src = images[currentIdx];
+    fullscreenImg.alt = `${title} - фото ${currentIdx + 1}`;
+    counter.textContent = `${currentIdx + 1} / ${images.length}`;
+    
+    prevBtn.style.opacity = images.length > 1 ? '1' : '0.3';
+    nextBtn.style.opacity = images.length > 1 ? '1' : '0.3';
+  }
+  
+  prevBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (images.length > 1) {
+      currentIdx--;
+      updateImage();
+    }
+  };
+  
+  nextBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (images.length > 1) {
+      currentIdx++;
+      updateImage();
+    }
+  };
+  
+  prevBtn.onmouseenter = nextBtn.onmouseenter = closeBtn.onmouseenter = function() {
+    this.style.background = 'rgba(255, 255, 255, 0.3)';
+    this.style.transform = 'scale(1.1)';
+  };
+  
+  prevBtn.onmouseleave = nextBtn.onmouseleave = closeBtn.onmouseleave = function() {
+    this.style.background = 'rgba(255, 255, 255, 0.2)';
+    this.style.transform = 'scale(1)';
+  };
+  
+  // Функция закрытия
+  const closeModal = function() {
+    modal.style.opacity = '0';
+    setTimeout(() => {
+      if (modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+      }
+    }, 300);
+  };
+  
+  closeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    closeModal();
+  });
+  
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+  
+  // Закрытие по Escape
+  const handleEscape = function(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', handleEscape);
+    } else if (e.key === 'ArrowLeft' && images.length > 1) {
+      currentIdx--;
+      updateImage();
+    } else if (e.key === 'ArrowRight' && images.length > 1) {
+      currentIdx++;
+      updateImage();
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+  
+  // Собираем структуру
+  imageContainer.appendChild(fullscreenImg);
+  imageContainer.appendChild(counter);
+  modal.appendChild(imageContainer);
+  modal.appendChild(prevBtn);
+  modal.appendChild(nextBtn);
+  modal.appendChild(closeBtn);
+  
+  // Добавляем в DOM
+  document.body.appendChild(modal);
+  
+  // Инициализируем изображение
+  updateImage();
+  
+  // Анимация появления
+  requestAnimationFrame(() => {
+    modal.style.opacity = '1';
+  });
+  
+  // Предотвращаем клик на изображении от закрытия модального окна
+  fullscreenImg.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+  
+  imageContainer.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+}
+
 function openDiagramFullscreen(imageUrl, title) {
   // Создаем модальное окно для полноэкранного просмотра
   const modal = document.createElement('div');
