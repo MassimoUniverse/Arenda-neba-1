@@ -1254,6 +1254,8 @@ input[type='number'] {
   --n: 4; /* Number of cards */
   --card-height: 60vh;
   --card-margin: calc(var(--card-height) * -1 + 2em);
+  padding: 0;
+  margin: 0;
   padding-bottom: calc(var(--n) * var(--card-height));
   margin-bottom: calc(var(--n) * var(--card-height) * -1);
   max-width: 1100px;
@@ -1297,7 +1299,6 @@ input[type='number'] {
   transform-origin: 50% 0%;
   will-change: transform;
   overflow: hidden;
-  position: relative;
 }
 
 .card__bg {

@@ -1660,6 +1660,8 @@ async function initOurCapabilitiesSlider() {
 
   slidesData.forEach((slide, index0) => {
     const li = document.createElement('li');
+    // Set z-index for proper stacking (later cards on top)
+    li.style.zIndex = String(index0 + 1);
 
     const bullets = Array.isArray(slide.bullets) ? slide.bullets : [];
     const bulletsHtml = bullets.length
