@@ -1236,29 +1236,9 @@ input[type='number'] {
    POPULAR EQUIPMENT (Stacking Cards)
    ============================================= */
 .popular-cards-section {
-  position: relative;
-  /* Важно: секция должна иметь достаточную высоту для sticky */
-  /* Высота = высота карточки + (количество карточек - 1) * stack-pad + отступы */
-  min-height: calc(min(78vh, 720px) + 3 * 80vh + 160px);
   padding: 80px 0;
-  /* Убеждаемся, что секция не обрезает карточки */
-  overflow: visible;
 }
 
-.popular-cards-wrap {
-  margin-top: 24px;
-  /* Убеждаемся, что контейнер не мешает sticky и перекрытию */
-  position: relative;
-  overflow: visible;
-}
-
-/* Убираем padding у container внутри popular-cards-wrap, чтобы карточки могли перекрываться */
-.popular-cards-wrap.container {
-  padding: 0;
-  overflow: visible;
-}
-
-/* Кнопка "Посмотреть весь автопарк" — всегда видима для stacking cards */
 .popular-equipment-button--always-visible {
   opacity: 1 !important;
   visibility: visible !important;
@@ -1268,87 +1248,80 @@ input[type='number'] {
   margin-bottom: 0;
 }
 
-.stack-cards {
-  --numcards: 4;
-  --card-top: 110px;
-  --card-radius: 28px;
-  --card-height: min(78vh, 720px);
-  /* сколько "скролл‑пространства" даём каждой карточке, чтобы следующая успела наложиться поверх */
-  /* Увеличено для комфортного чтения: каждая карточка должна "держаться" достаточно долго */
-  --stack-pad: 80vh;
-  /* визуальный зазор между слоями в стопке */
-  --stack-gap: 22px;
+/* Stacking Cards Container */
+#cards {
+  list-style: none;
+  --n: 4; /* Number of cards */
+  --card-height: 60vh;
+  --card-margin: calc(var(--card-height) * -1 + 2em);
+  padding-bottom: calc(var(--n) * var(--card-height));
+  margin-bottom: calc(var(--n) * var(--card-height) * -1);
   max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  /* Общая высота контейнера = высота карточки + (количество карточек - 1) * stack-pad */
-  min-height: calc(var(--card-height) + (var(--numcards) - 1) * var(--stack-pad));
-  padding-bottom: calc(var(--numcards) * var(--stack-pad));
-  /* Важно: overflow должен быть visible, чтобы карточки могли перекрываться */
-  overflow: visible;
-  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
-.stack-cards .card {
+/* Individual Card Wrapper */
+#cards > li {
   position: relative;
-  margin: 0;
-  /* важно: увеличиваем высоту родителя через padding-bottom,
-     чтобы sticky держался дольше и карточки реально наслаивались */
-  /* ВСЕ карточки, включая первую, должны иметь padding-bottom для sticky */
-  padding: 0 0 var(--stack-pad) 0;
+  padding-bottom: var(--card-height);
 }
 
-.stack-cards .card:not(:first-child) {
-  /* Ключ к "стеку": следующий блок начинается поверх предыдущего, а не после него */
-  /* Вычитаем высоту карточки и добавляем небольшой зазор для визуального эффекта */
-  /* Используем отрицательный margin-top для физического перекрытия */
-  margin-top: calc((var(--card-height) * -1) + var(--stack-gap));
-  /* Убеждаемся, что карточка действительно перекрывает предыдущую */
-  position: relative;
+#cards > li:not(:first-child) {
+  margin-top: var(--card-margin);
 }
 
-.stack-cards .card:last-child {
-  /* Последняя карточка не нуждается в padding-bottom, так как после неё нет других карточек */
+#cards > li:last-child {
   padding-bottom: 0;
 }
 
-/* Sticky делаем на .card__content (как в демо) */
-.stack-cards .card__content {
+/* Sticky Card Content */
+.card__content {
+  --bg: #111;
+  --fg: #fff;
+  
   position: sticky;
-  /* Все карточки "липнут" в одну точку — дальше наслаивание идёт за счёт z-index и длины sticky */
-  top: var(--card-top);
+  top: 2em;
+  padding: 2em;
+  border-radius: 1em;
+  background-color: var(--bg);
+  color: var(--fg);
+  box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.25);
   height: var(--card-height);
-  border-radius: var(--card-radius);
-  overflow: hidden;
-  background: #111;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
   transform-origin: 50% 0%;
   will-change: transform;
-  /* z-index: последняя карточка должна быть поверх первой
-     index0: 0,1,2,3 -> z-index: 1,2,3,4 (правильно: последняя поверх первой) */
-  z-index: calc(var(--i, 0) + 1);
+  overflow: hidden;
+  position: relative;
 }
 
-.stack-cards .card__bg {
+.card__bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
 }
 
-.stack-cards .card__bg img {
+.card__bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.stack-cards .card__gradient {
+.card__gradient {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.22) 55%, rgba(0, 0, 0, 0) 100%);
   pointer-events: none;
+  z-index: 1;
 }
 
-.stack-cards .card__counter {
+.card__counter {
   position: absolute;
   top: 18px;
   right: 18px;
@@ -1364,16 +1337,13 @@ input[type='number'] {
   z-index: 5;
 }
 
-.stack-cards .card__body {
-  position: absolute;
-  left: 32px;
-  right: 32px;
-  bottom: 28px;
+.card__body {
+  position: relative;
+  z-index: 2;
   max-width: 640px;
-  z-index: 4;
 }
 
-.stack-cards .card__title {
+.card__title {
   font-size: clamp(26px, 3.6vw, 40px);
   font-weight: 800;
   line-height: 1.2;
@@ -1381,23 +1351,23 @@ input[type='number'] {
   margin: 0 0 14px 0;
 }
 
-.stack-cards .card__text {
+.card__text {
   font-size: clamp(15px, 1.9vw, 18px);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.92);
   margin: 0 0 18px 0;
 }
 
-.stack-cards .card__bullets {
+.card__bullets {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 18px 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.stack-cards .card__bullets li {
+.card__bullets li {
   font-size: clamp(14px, 1.8vw, 16px);
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.86);
@@ -1405,7 +1375,7 @@ input[type='number'] {
   position: relative;
 }
 
-.stack-cards .card__bullets li::before {
+.card__bullets li::before {
   content: '';
   position: absolute;
   left: 0;
@@ -1416,14 +1386,14 @@ input[type='number'] {
   background: var(--accent);
 }
 
-.stack-cards .card__price {
+.card__price {
   font-size: clamp(18px, 2.2vw, 24px);
   font-weight: 700;
   color: var(--accent);
-  margin: 18px 0 10px 0;
+  margin: 0 0 10px 0;
 }
 
-.stack-cards .card__link {
+.card__link {
   display: inline-block;
   font-size: clamp(14px, 1.8vw, 16px);
   font-weight: 600;
@@ -1436,7 +1406,7 @@ input[type='number'] {
   transition: all 0.25s ease;
 }
 
-.stack-cards .card__link:hover {
+.card__link:hover {
   background: rgba(255, 255, 255, 0.26);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
@@ -1446,18 +1416,18 @@ input[type='number'] {
   .popular-cards-section {
     padding: 60px 0;
   }
-  .stack-cards {
-    --card-top: 86px;
-    --card-height: min(74vh, 640px);
-    --stack-pad: 70vh;
-    --stack-gap: 14px;
-    padding: 0 16px;
-    padding-bottom: calc(var(--numcards) * var(--stack-pad));
+  
+  #cards {
+    --card-height: 70vh;
+    padding-left: 16px;
+    padding-right: 16px;
   }
-  .stack-cards .card__body {
-    left: 22px;
-    right: 22px;
-    bottom: 20px;
+  
+  .card__content {
+    padding: 1.5em;
+  }
+  
+  .card__body {
     max-width: 100%;
   }
 }

@@ -1659,10 +1659,7 @@ async function initOurCapabilitiesSlider() {
   const totalCardsStr = String(slidesData.length).padStart(2, '0');
 
   slidesData.forEach((slide, index0) => {
-    const card = document.createElement('article');
-    card.className = 'card';
-    // индекс для CSS (стэкинг + z-index)
-    card.style.setProperty('--i', String(index0));
+    const li = document.createElement('li');
 
     const bullets = Array.isArray(slide.bullets) ? slide.bullets : [];
     const bulletsHtml = bullets.length
@@ -1679,7 +1676,7 @@ async function initOurCapabilitiesSlider() {
 
     const counter = `${String(index0 + 1).padStart(2, '0')}/${totalCardsStr}`;
 
-    card.innerHTML = `
+    li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
           <img src="${slide.image}" alt="${slide.title}" loading="lazy" />
@@ -1696,18 +1693,18 @@ async function initOurCapabilitiesSlider() {
       </div>
     `;
 
-    cardsWrapper.appendChild(card);
+    cardsWrapper.appendChild(li);
   });
 
-  // Передаём количество карточек в CSS
-  const cards = cardsWrapper.querySelectorAll('.card__content');
-  const numCards = cards.length || 1;
-  cardsWrapper.style.setProperty('--numcards', String(numCards));
+  // Pass the number of cards to the CSS because it needs it to add some extra padding.
+  const $cards = cardsWrapper.querySelectorAll('.card__content');
+  const numCards = $cards.length || 1;
+  cardsWrapper.style.setProperty('--n', String(numCards));
 
   // Scroll-linked animation с fallback
   let hasViewTimeline = false;
   
-  if (typeof ViewTimeline !== 'undefined' && cards.length > 0) {
+  if (typeof ViewTimeline !== 'undefined' && $cards.length > 0) {
     try {
       // Each card should only shrink when it's at the top.
       // We can't use exit on the els for this (as they are sticky)
@@ -1717,14 +1714,7 @@ async function initOurCapabilitiesSlider() {
         axis: 'block',
       });
 
-      const percent = (value) => {
-        if (typeof CSS !== 'undefined' && typeof CSS.percent === 'function') {
-          return CSS.percent(value);
-        }
-        return `${value}%`;
-      };
-
-      cards.forEach(($card, index0) => {
+      $cards.forEach(($card, index0) => {
         const index = index0 + 1;
         const reverseIndex = numCards - index0;
         const reverseIndex0 = numCards - index;
@@ -1738,8 +1728,8 @@ async function initOurCapabilitiesSlider() {
           {
             timeline: viewTimeline,
             fill: 'forwards',
-            rangeStart: `exit-crossing ${percent((index0 / numCards) * 100)}`,
-            rangeEnd: `exit-crossing ${percent((index / numCards) * 100)}`,
+            rangeStart: `exit-crossing ${CSS.percent(index0 / numCards * 100)}`,
+            rangeEnd: `exit-crossing ${CSS.percent(index / numCards * 100)}`,
           }
         );
       });
@@ -1751,7 +1741,7 @@ async function initOurCapabilitiesSlider() {
   }
   
   // Fallback: анимация через scroll events (если ViewTimeline не работает)
-  if (!hasViewTimeline && cards.length > 0) {
+  if (!hasViewTimeline && $cards.length > 0) {
     const section = document.getElementById('popular-equipment');
     if (!section) return;
     
@@ -1776,7 +1766,7 @@ async function initOurCapabilitiesSlider() {
         }
         
         // Для каждой карточки вычисляем её прогресс
-        cards.forEach(($card, index0) => {
+        $cards.forEach(($card, index0) => {
           const index = index0 + 1;
           const reverseIndex0 = numCards - index;
           
