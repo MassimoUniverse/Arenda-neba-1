@@ -873,39 +873,45 @@ function fixEncoding(text) {
     }
     
     // Финальная проверка - если все еще есть искаженные символы, пробуем более агрессивное исправление
-    if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
-      // Пробуем декодировать как будто это UTF-8, который был неправильно интерпретирован как Windows-1251
-      try {
-        const cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-        // Пробуем разные варианты декодирования
-        const attempts = [
-          () => {
-            const buf = Buffer.from(cleaned, 'utf8');
-            return iconv.decode(buf, 'win1251');
-          },
-          () => {
-            const buf = Buffer.from(cleaned, 'latin1');
-            return buf.toString('utf8');
-          },
-          () => {
-            // Пробуем декодировать через CP1251
-            return iconv.decode(Buffer.from(cleaned, 'utf8'), 'win1251');
-          }
-        ];
-        
-        for (const attempt of attempts) {
-          try {
-            const decoded = attempt();
-            if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
-              fixed = decoded;
-              break;
-            }
-          } catch (e) {
-            // Продолжаем попытки
-          }
+    if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /РЎР/.test(fixed) || /PC"PC/.test(fixed)) {
+      // Удаляем пробелы между символами и проблемные последовательности
+      let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      cleaned = cleaned.replace(/PC"PC/g, '');
+      cleaned = cleaned.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ/g, 'Телескопический');
+      
+      // Пробуем разные варианты декодирования
+      const attempts = [
+        () => {
+          const buf = Buffer.from(cleaned, 'utf8');
+          return iconv.decode(buf, 'win1251');
+        },
+        () => {
+          const buf = Buffer.from(cleaned, 'latin1');
+          return buf.toString('utf8');
+        },
+        () => {
+          // Пробуем декодировать через CP1251
+          return iconv.decode(Buffer.from(cleaned, 'utf8'), 'win1251');
         }
-      } catch (e) {
-        // Если ничего не помогло, возвращаем исходный текст
+      ];
+      
+      for (const attempt of attempts) {
+        try {
+          const decoded = attempt();
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded) && !/PC"PC/.test(decoded)) {
+            fixed = decoded;
+            break;
+          }
+        } catch (e) {
+          // Продолжаем попытки
+        }
+      }
+      
+      // Если все еще есть проблемные последовательности, заменяем их вручную
+      if (/РЎР/.test(fixed) || /PC"PC/.test(fixed)) {
+        fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],]*/gi, 'Телескопический');
+        fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/gi, '');
+        fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓ/gi, 'Телескопический');
       }
     }
     

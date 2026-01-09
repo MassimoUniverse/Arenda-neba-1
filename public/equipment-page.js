@@ -432,16 +432,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Обновляем миниатюры с навигацией
         if (thumbsContainer) {
-          // Создаем обертку для миниатюр с навигацией
-          const galleryWrapper = thumbsContainer.parentElement;
+          // Проверяем, есть ли уже обертка
+          let galleryWrapper = thumbsContainer.parentElement;
           if (!galleryWrapper.classList.contains('gallery-thumbnails-wrapper')) {
             const wrapper = document.createElement('div');
             wrapper.className = 'gallery-thumbnails-wrapper';
             thumbsContainer.parentElement.insertBefore(wrapper, thumbsContainer);
             wrapper.appendChild(thumbsContainer);
+            galleryWrapper = wrapper;
           }
           
-          thumbsContainer.innerHTML = '';
+          // Очищаем только миниатюры, не трогая кнопки
+          const existingThumbs = thumbsContainer.querySelectorAll('img');
+          existingThumbs.forEach(thumb => thumb.remove());
           
           // Создаем кнопки навигации, если их еще нет
           let prevBtn = galleryWrapper.querySelector('.gallery-thumbnails-nav.prev');
@@ -480,12 +483,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           const updateNavButtons = () => {
             const canScrollLeft = thumbsContainer.scrollLeft > 0;
             const canScrollRight = thumbsContainer.scrollLeft < (thumbsContainer.scrollWidth - thumbsContainer.clientWidth - 1);
-            prevBtn.disabled = !canScrollLeft;
-            nextBtn.disabled = !canScrollRight;
+            if (prevBtn) prevBtn.disabled = !canScrollLeft;
+            if (nextBtn) nextBtn.disabled = !canScrollRight;
           };
           
-          prevBtn.onclick = () => scrollThumbnails('prev');
-          nextBtn.onclick = () => scrollThumbnails('next');
+          if (prevBtn) prevBtn.onclick = () => scrollThumbnails('prev');
+          if (nextBtn) nextBtn.onclick = () => scrollThumbnails('next');
           thumbsContainer.addEventListener('scroll', updateNavButtons);
           
           // Создаем миниатюры
@@ -523,6 +526,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             thumbsContainer.appendChild(thumb);
           });
+          
+          // Убеждаемся, что контейнер видим
+          thumbsContainer.style.display = 'flex';
           
           // Инициализируем состояние кнопок
           setTimeout(updateNavButtons, 100);
