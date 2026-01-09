@@ -1236,7 +1236,8 @@ input[type='number'] {
 .popular-cards-section {
   position: relative;
   /* Важно: секция должна иметь достаточную высоту для sticky */
-  min-height: 100vh;
+  /* Высота = высота карточки + (количество карточек - 1) * stack-pad + отступы */
+  min-height: calc(min(78vh, 720px) + 3 * 80vh + 160px);
   padding: 80px 0;
 }
 
@@ -1278,15 +1279,12 @@ input[type='number'] {
   /* важно: увеличиваем высоту родителя через padding-bottom,
      чтобы sticky держался дольше и карточки реально наслаивались */
   padding: 0 0 var(--stack-pad) 0;
-  z-index: calc(var(--i, 0) + 1);
 }
 
 .stack-cards .card:not(:first-child) {
   /* Ключ к "стеку": следующий блок начинается поверх предыдущего, а не после него */
   /* Вычитаем высоту карточки и добавляем небольшой зазор для визуального эффекта */
   margin-top: calc((var(--card-height) * -1) + var(--stack-gap));
-  /* Убеждаемся, что карточка действительно перекрывает предыдущую */
-  position: relative;
 }
 
 .stack-cards .card:last-child {
@@ -1305,7 +1303,8 @@ input[type='number'] {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
   transform-origin: 50% 0%;
   will-change: transform;
-  z-index: inherit;
+  /* z-index должен быть на sticky элементе, чтобы карточки правильно наслаивались */
+  z-index: calc(var(--i, 0) + 1);
 }
 
 .stack-cards .card__bg {
