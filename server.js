@@ -790,18 +790,31 @@ function fixEncoding(text) {
   try {
     let fixed = text;
     
-    // Проверяем, есть ли признаки неправильной кодировки (включая пробелы между символами)
-    const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed);
+    // Проверяем, есть ли признаки неправильной кодировки (включая пробелы между символами и сложные случаи)
+    const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || 
+                          /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed) ||
+                          /P[SC]P/.test(fixed) || /PC"PC/.test(fixed) || /PµPSP/.test(fixed) ||
+                          /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed);
     
     if (hasBadEncoding) {
       // Удаляем пробелы между символами, которые могут быть результатом двойной кодировки
       fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      fixed = fixed.replace(/([PC])\s+([PC])/g, '$1$2');
+      
+      // Удаляем проблемные последовательности перед декодированием
+      fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/g, '');
+      fixed = fixed.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/g, '');
+      fixed = fixed.replace(/CŕP»CFCFC/g, '');
+      fixed = fixed.replace(/PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*/g, '');
+      fixed = fixed.replace(/PëCЃPEP°PJPµPSPSPsPiPs\s*C/g, '');
+      fixed = fixed.replace(/,PµPECЃC,\s*Po/g, '');
+      fixed = fixed.replace(/C,CЋСЂС‹,/g, '');
       
       // Пробуем исправить через декодирование из latin1 в utf8
       try {
         const buffer = Buffer.from(fixed, 'latin1');
         const decoded = buffer.toString('utf8');
-        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
+        if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded) && !/P[SC]P/.test(decoded)) {
           fixed = decoded;
         }
       } catch (e) {
@@ -809,13 +822,17 @@ function fixEncoding(text) {
       }
       
       // Если все еще есть проблемы, пробуем через win1251
-      if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed)) {
+      if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /P[SC]P/.test(fixed)) {
         try {
-          // Удаляем пробелы перед декодированием
-          const cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+          // Удаляем пробелы и проблемные последовательности перед декодированием
+          let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+          cleaned = cleaned.replace(/([PC])\s+([PC])/g, '$1$2');
+          cleaned = cleaned.replace(/PC"PC[PC\s-\[\],]*/g, '');
+          cleaned = cleaned.replace(/P[SC]P[°µPSPJPIPCЏ\s]*/g, '');
+          
           const utf8Bytes = Buffer.from(cleaned, 'utf8');
           const decoded = iconv.decode(utf8Bytes, 'win1251');
-          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded)) {
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded) && !/P[SC]P/.test(decoded)) {
             fixed = decoded;
           }
         } catch (e) {
@@ -873,10 +890,22 @@ function fixEncoding(text) {
     }
     
     // Финальная проверка - если все еще есть искаженные символы, пробуем более агрессивное исправление
-    if (/Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || /РЎР/.test(fixed) || /PC"PC/.test(fixed)) {
+    const stillHasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || 
+                                /РЎР/.test(fixed) || /PC"PC/.test(fixed) || /P[SC]P/.test(fixed) ||
+                                /PµPSP/.test(fixed) || /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) ||
+                                /CŕP»/.test(fixed) || /PëCЃ/.test(fixed);
+    
+    if (stillHasBadEncoding) {
       // Удаляем пробелы между символами и проблемные последовательности
       let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
-      cleaned = cleaned.replace(/PC"PC/g, '');
+      cleaned = cleaned.replace(/([PC])\s+([PC])/g, '$1$2');
+      cleaned = cleaned.replace(/PC"PC[PC\s-\[\],]*/g, '');
+      cleaned = cleaned.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/g, '');
+      cleaned = cleaned.replace(/CŕP»CFCFC/g, '');
+      cleaned = cleaned.replace(/PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*/g, '');
+      cleaned = cleaned.replace(/PëCЃPEP°PJPµPSPSPsPiPs\s*C/g, '');
+      cleaned = cleaned.replace(/,PµPECЃC,\s*Po/g, '');
+      cleaned = cleaned.replace(/C,CЋСЂС‹,/g, '');
       cleaned = cleaned.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ/g, 'Телескопический');
       
       // Пробуем разные варианты декодирования
@@ -898,7 +927,10 @@ function fixEncoding(text) {
       for (const attempt of attempts) {
         try {
           const decoded = attempt();
-          if (decoded && /[А-Яа-яЁё]/.test(decoded) && !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded) && !/PC"PC/.test(decoded)) {
+          if (decoded && /[А-Яа-яЁё]/.test(decoded) && 
+              !/Р[Р-Я]/.test(decoded) && !/Р\s+[Р-Я]/.test(decoded) && 
+              !/PC"PC/.test(decoded) && !/P[SC]P/.test(decoded) &&
+              !/PµPSP/.test(decoded) && !/CЋСЂС‹/.test(decoded)) {
             fixed = decoded;
             break;
           }
@@ -907,19 +939,35 @@ function fixEncoding(text) {
         }
       }
       
-      // Если все еще есть проблемные последовательности, заменяем их вручную
-      if (/РЎР/.test(fixed) || /PC"PC/.test(fixed) || /Р\s*ВµР/.test(fixed) || /-],\s*\[PjPC/.test(fixed)) {
+      // Если все еще есть проблемные последовательности, заменяем их вручную или удаляем
+      if (/РЎР/.test(fixed) || /PC"PC/.test(fixed) || /Р\s*ВµР/.test(fixed) || 
+          /-],\s*\[PjPC/.test(fixed) || /P[SC]P/.test(fixed) || /PµPSP/.test(fixed) ||
+          /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed)) {
         // Заменяем известные искаженные последовательности для "Телескопический"
         fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],]*/gi, 'Телескопический');
         fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/gi, '');
         fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓ/gi, 'Телескопический');
         fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓPC"PC-PC/gi, 'Телескопический');
         fixed = fixed.replace(/-],\s*\[PjPC-PC-Р\s*В»/gi, '');
+        // Удаляем сложные искаженные последовательности
+        fixed = fixed.replace(/C,CЋСЂС‹,\s*PSCЂP[°PSPJPµPIP°CЏ\s]*СЂР°PjPEP°\s*Pë\s*CŕP»CFCFC/gi, '');
+        fixed = fixed.replace(/€PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*PEP°\s*PëCЃPEP°PJPµPSPSPsPiPs\s*C/gi, '');
+        fixed = fixed.replace(/,PµPECЃC,\s*Po/gi, '');
         // Общая замена для "Телескопический" в разных вариантах искажения
         fixed = fixed.replace(/Р[СЎ]\s*Р\s*[Вµ]\s*Р\s*[В»]\s*Р\s*[Вµ]\s*Р[ЎС]\s*Р[Сѓ][PC"PC\s-\[\],]*/gi, 'Телескопический');
         // Удаляем остатки искаженных символов
         fixed = fixed.replace(/PC"PC-PC/gi, '');
         fixed = fixed.replace(/\[PjPC-PC-Р\s*В»/gi, '');
+        fixed = fixed.replace(/P[SC]P[°µPSPJPIPCЏ\s]*/gi, '');
+        fixed = fixed.replace(/PµPSP[°\s]*/gi, '');
+        fixed = fixed.replace(/CЋСЂС‹/gi, '');
+        fixed = fixed.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/gi, '');
+        fixed = fixed.replace(/CŕP»CFCFC/gi, '');
+        fixed = fixed.replace(/PëCЃPEP°PJPµPSPSPsPiPs/gi, '');
+        // Если после всех замен остались только искаженные символы без нормального текста, возвращаем пустую строку
+        if (!/[А-Яа-яЁёA-Za-z0-9]/.test(fixed) && /[Р-ЯPSCµ€°]/.test(fixed)) {
+          fixed = '';
+        }
       }
     }
     
