@@ -790,11 +790,21 @@ function fixEncoding(text) {
   try {
     let fixed = text;
     
+    // Сначала удаляем известные проблемные последовательности после нормальных слов
+    // Удаляем искаженные последовательности после "Телескопический"
+    fixed = fixed.replace(/Телескопический[РС"РС•РС\-\[\],\s]*/gi, 'Телескопический');
+    fixed = fixed.replace(/Телескопический\[PjPC-PC[•P\sB»\-\[\],]*/gi, 'Телескопический');
+    fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
+    fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
+    fixed = fixed.replace(/РС"РС/g, '');
+    fixed = fixed.replace(/PjPC-PC/g, '');
+    
     // Проверяем, есть ли признаки неправильной кодировки (включая пробелы между символами и сложные случаи)
     const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || 
                           /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed) ||
                           /P[SC]P/.test(fixed) || /PC"PC/.test(fixed) || /PµPSP/.test(fixed) ||
-                          /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed);
+                          /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed) ||
+                          /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
     
     if (hasBadEncoding) {
       // Удаляем пробелы между символами, которые могут быть результатом двойной кодировки
@@ -802,7 +812,10 @@ function fixEncoding(text) {
       fixed = fixed.replace(/([PC])\s+([PC])/g, '$1$2');
       
       // Удаляем проблемные последовательности перед декодированием
-      fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/g, '');
+      fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/g, '');
+      fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
+      fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
+      fixed = fixed.replace(/PjPC-PC[•P\sB»\-\[\],]*/g, '');
       fixed = fixed.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/g, '');
       fixed = fixed.replace(/CŕP»CFCFC/g, '');
       fixed = fixed.replace(/PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*/g, '');
@@ -893,13 +906,17 @@ function fixEncoding(text) {
     const stillHasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /Р\s+[Р-Я]/.test(fixed) || 
                                 /РЎР/.test(fixed) || /PC"PC/.test(fixed) || /P[SC]P/.test(fixed) ||
                                 /PµPSP/.test(fixed) || /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) ||
-                                /CŕP»/.test(fixed) || /PëCЃ/.test(fixed);
+                                /CŕP»/.test(fixed) || /PëCЃ/.test(fixed) ||
+                                /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
     
     if (stillHasBadEncoding) {
       // Удаляем пробелы между символами и проблемные последовательности
       let cleaned = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
       cleaned = cleaned.replace(/([PC])\s+([PC])/g, '$1$2');
-      cleaned = cleaned.replace(/PC"PC[PC\s-\[\],]*/g, '');
+      cleaned = cleaned.replace(/PC"PC[PC\s-\[\],•]*/g, '');
+      cleaned = cleaned.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
+      cleaned = cleaned.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
+      cleaned = cleaned.replace(/PjPC-PC[•P\sB»\-\[\],]*/g, '');
       cleaned = cleaned.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/g, '');
       cleaned = cleaned.replace(/CŕP»CFCFC/g, '');
       cleaned = cleaned.replace(/PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*/g, '');
@@ -907,6 +924,9 @@ function fixEncoding(text) {
       cleaned = cleaned.replace(/,PµPECЃC,\s*Po/g, '');
       cleaned = cleaned.replace(/C,CЋСЂС‹,/g, '');
       cleaned = cleaned.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ/g, 'Телескопический');
+      // Удаляем искаженные последовательности после "Телескопический"
+      cleaned = cleaned.replace(/Телескопический[РС"РС•РС\-\[\],\s]*/gi, 'Телескопический');
+      cleaned = cleaned.replace(/Телескопический\[PjPC-PC[•P\sB»\-\[\],]*/gi, 'Телескопический');
       
       // Пробуем разные варианты декодирования
       const attempts = [
@@ -944,17 +964,23 @@ function fixEncoding(text) {
           /-],\s*\[PjPC/.test(fixed) || /P[SC]P/.test(fixed) || /PµPSP/.test(fixed) ||
           /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed)) {
         // Заменяем известные искаженные последовательности для "Телескопический"
-        fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],]*/gi, 'Телескопический');
-        fixed = fixed.replace(/PC"PC[PC\s-\[\],]*/gi, '');
+        fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],•]*/gi, 'Телескопический');
+        fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/gi, '');
+        fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/gi, '');
+        fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/gi, '');
+        fixed = fixed.replace(/PjPC-PC[•P\sB»\-\[\],]*/gi, '');
         fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓ/gi, 'Телескопический');
         fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓPC"PC-PC/gi, 'Телескопический');
         fixed = fixed.replace(/-],\s*\[PjPC-PC-Р\s*В»/gi, '');
+        // Удаляем искаженные последовательности после "Телескопический"
+        fixed = fixed.replace(/Телескопический[РС"РС•РС\-\[\],\s]*/gi, 'Телескопический');
+        fixed = fixed.replace(/Телескопический\[PjPC-PC[•P\sB»\-\[\],]*/gi, 'Телескопический');
         // Удаляем сложные искаженные последовательности
         fixed = fixed.replace(/C,CЋСЂС‹,\s*PSCЂP[°PSPJPµPIP°CЏ\s]*СЂР°PjPEP°\s*Pë\s*CŕP»CFCFC/gi, '');
         fixed = fixed.replace(/€PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*PEP°\s*PëCЃPEP°PJPµPSPSPsPiPs\s*C/gi, '');
         fixed = fixed.replace(/,PµPECЃC,\s*Po/gi, '');
         // Общая замена для "Телескопический" в разных вариантах искажения
-        fixed = fixed.replace(/Р[СЎ]\s*Р\s*[Вµ]\s*Р\s*[В»]\s*Р\s*[Вµ]\s*Р[ЎС]\s*Р[Сѓ][PC"PC\s-\[\],]*/gi, 'Телескопический');
+        fixed = fixed.replace(/Р[СЎ]\s*Р\s*[Вµ]\s*Р\s*[В»]\s*Р\s*[Вµ]\s*Р[ЎС]\s*Р[Сѓ][PC"PC\s-\[\],•]*/gi, 'Телескопический');
         // Удаляем остатки искаженных символов
         fixed = fixed.replace(/PC"PC-PC/gi, '');
         fixed = fixed.replace(/\[PjPC-PC-Р\s*В»/gi, '');
