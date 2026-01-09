@@ -274,15 +274,39 @@ body {
   transform: scale(1.02);
 }
 
+.gallery-thumbnails-wrapper {
+  position: relative;
+  margin-top: 12px;
+}
+
 .gallery-thumbnails {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 30px; /* Место для стрелок */
+}
+
+.gallery-thumbnails::-webkit-scrollbar {
+  height: 4px;
+}
+
+.gallery-thumbnails::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.gallery-thumbnails::-webkit-scrollbar-thumb {
+  background: #ff6b35;
+  border-radius: 2px;
 }
 
 .gallery-thumbnails img {
   width: 80px;
   height: 60px;
+  flex-shrink: 0; /* Важно: миниатюры не сжимаются */
   border-radius: 8px;
   object-fit: cover;
   cursor: pointer;
@@ -290,10 +314,60 @@ body {
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.gallery-thumbnails img.active,
+.gallery-thumbnails img.active {
+  border-color: #ff6b35; /* Оранжевая рамка для активной миниатюры */
+  transform: translateY(-2px);
+}
+
 .gallery-thumbnails img:hover {
   border-color: #ff6b35;
   transform: translateY(-2px);
+}
+
+.gallery-thumbnails-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1f36;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.gallery-thumbnails-nav:hover {
+  background: #ff6b35;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.gallery-thumbnails-nav.prev {
+  left: 0;
+}
+
+.gallery-thumbnails-nav.next {
+  right: 0;
+}
+
+.gallery-thumbnails-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.gallery-thumbnails-nav:disabled:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1f36;
+  transform: translateY(-50%);
 }
 
 .equipment-info .info-section {
