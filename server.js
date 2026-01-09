@@ -997,6 +997,20 @@ function fixEncoding(text) {
       }
     }
     
+    // Финальная очистка - удаляем все оставшиеся искаженные последовательности
+    // Удаляем последовательности типа РС"РС•РС-], и [PjPC-PC•P B»
+    fixed = fixed.replace(/[РС]"РС[•РС\-\[\],\s]*/g, '');
+    fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
+    fixed = fixed.replace(/PjPC-PC[•P\sB»\-\[\],]*/g, '');
+    fixed = fixed.replace(/РС"РС/g, '');
+    // Удаляем искаженные последовательности после нормальных слов
+    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9])[РС"РС•РС\-\[\],\s]+/g, '$1');
+    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9])\[PjPC-PC[•P\sB»\-\[\],]+/g, '$1');
+    // Удаляем последовательности, которые начинаются с квадратных скобок и содержат PjPC
+    fixed = fixed.replace(/\[[^\]]*PjPC[^\]]*\][\s,•]*/g, '');
+    // Удаляем последовательности с РС"РС в любом месте
+    fixed = fixed.replace(/[^\w\s]РС"РС[^\w\s]*/g, '');
+    
     return fixed;
   } catch (error) {
     return text;
