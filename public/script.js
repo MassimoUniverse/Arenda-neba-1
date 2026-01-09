@@ -1709,25 +1709,37 @@ async function initOurCapabilitiesSlider() {
   
   if (typeof ViewTimeline !== 'undefined' && cards.length > 0) {
     try {
-      const viewTimeline = new ViewTimeline({ subject: cardsWrapper, axis: 'block' });
+      // Each card should only shrink when it's at the top.
+      // We can't use exit on the els for this (as they are sticky)
+      // but can track $cardsWrapper instead.
+      const viewTimeline = new ViewTimeline({
+        subject: cardsWrapper,
+        axis: 'block',
+      });
 
       const percent = (value) => {
-        if (typeof CSS !== 'undefined' && typeof CSS.percent === 'function') return CSS.percent(value);
+        if (typeof CSS !== 'undefined' && typeof CSS.percent === 'function') {
+          return CSS.percent(value);
+        }
         return `${value}%`;
       };
 
       cards.forEach(($card, index0) => {
         const index = index0 + 1;
+        const reverseIndex = numCards - index0;
         const reverseIndex0 = numCards - index;
-        const scaleTo = Math.max(0.84, 1 - (0.08 * reverseIndex0));
 
+        // Scroll-Linked Animation
+        // Earlier cards shrink more than later cards
         $card.animate(
-          { transform: [`scale(1)`, `scale(${scaleTo})`] },
+          {
+            transform: [`scale(1)`, `scale(${1 - (0.1 * reverseIndex0)})`],
+          },
           {
             timeline: viewTimeline,
             fill: 'forwards',
             rangeStart: `exit-crossing ${percent((index0 / numCards) * 100)}`,
-            rangeEnd: `exit-crossing ${percent((index / numCards) * 100)}`
+            rangeEnd: `exit-crossing ${percent((index / numCards) * 100)}`,
           }
         );
       });
