@@ -1423,8 +1423,8 @@ input[type='number'] {
   
   .card__content {
     padding: 1.5em;
-    min-height: 70vh;
-    max-height: 75vh;
+    min-height: 55vh;
+    max-height: 60vh;
   }
   
   .card__body {
@@ -1492,8 +1492,8 @@ input[type='number'] {
   
   .card__content {
     padding: 1.2em;
-    min-height: 75vh;
-    max-height: 80vh;
+    min-height: 52vh;
+    max-height: 58vh;
     border-radius: 0.75em;
   }
   
