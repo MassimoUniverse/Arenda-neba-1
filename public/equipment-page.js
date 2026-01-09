@@ -1,5 +1,95 @@
 // Анимации и логика для страниц техники с GSAP и Lenis
 
+// Функция для исправления кодировки текста (аналогично server.js)
+function fixEncoding(text) {
+  if (!text || typeof text !== 'string') return text;
+  
+  try {
+    let fixed = text;
+    
+    // Универсальная функция для удаления искаженных последовательностей
+    const removeCorruptedSequences = (str) => {
+      str = str.replace(/[РС]"[РС][^А-Яа-яЁё\s]*/g, '');
+      str = str.replace(/P[SCj]PC[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
+      str = str.replace(/\[PjPC[^\]]*\][^А-Яа-яЁё\s]*/g, '');
+      str = str.replace(/([А-Яа-яЁёA-Za-z0-9]+)[РС"РС•РС\-\[\],\sPjPC-PC[•P\sB»\-\[\],]+/g, '$1');
+      str = str.replace(/\[[^\]]*[РСPjPC][^\]]*\][\s,•\-]*/g, '');
+      str = str.replace(/[РС]{2,}[^А-Яа-яЁё\s]*/g, '');
+      str = str.replace(/P[SCj]{2,}P[SCj]*[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
+      str = str.replace(/[РС]"[РС][•\-\[\],\s]*/g, '');
+      str = str.replace(/[РС]•[РС][\-\[\],\s]*/g, '');
+      return str;
+    };
+    
+    fixed = removeCorruptedSequences(fixed);
+    
+    // Проверяем признаки неправильной кодировки
+    const hasBadEncoding = /Р[Р-Я]/.test(fixed) || /С[Р-Я]/.test(fixed) || /РІ,Р/.test(fixed) || 
+                          /Р\s+[Р-Я]/.test(fixed) || /С\s+[Р-Я]/.test(fixed) ||
+                          /P[SC]P/.test(fixed) || /PC"PC/.test(fixed) || /PµPSP/.test(fixed) ||
+                          /CЋСЂС‹/.test(fixed) || /PSCЂP/.test(fixed) || /CŕP»/.test(fixed) ||
+                          /РС"РС/.test(fixed) || /PjPC-PC/.test(fixed);
+    
+    if (hasBadEncoding) {
+      fixed = fixed.replace(/([Р-Я])\s+([Р-Я])/g, '$1$2');
+      fixed = fixed.replace(/([PC])\s+([PC])/g, '$1$2');
+      fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/g, '');
+      fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/g, '');
+      fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/g, '');
+      fixed = fixed.replace(/PjPC-PC[•P\sB»\-\[\],]*/g, '');
+      fixed = fixed.replace(/PSCЂP[°PSPJPµPIP°CЏ\s]*/g, '');
+      fixed = fixed.replace(/CŕP»CFCFC/g, '');
+      fixed = fixed.replace(/PµPSP[°\s]*PsP[+CЂР°P+PSC,\s]*/g, '');
+      fixed = fixed.replace(/PëCЃPEP°PJPµPSPSPsPiPs\s*C/g, '');
+      fixed = fixed.replace(/,PµPECЃC,\s*Po/g, '');
+      fixed = fixed.replace(/C,CЋСЂС‹,/g, '');
+    }
+    
+    // Исправляем символ рубля
+    fixed = fixed.replace(/в,Ѕ\/смена/gi, '₽/смена');
+    fixed = fixed.replace(/Р\/смена/gi, '₽/смена');
+    fixed = fixed.replace(/в,Ѕ\/СЃРјРµРЅа/gi, '₽/смена');
+    fixed = fixed.replace(/в,Ѕ\/СЃРјРµРЅР°/gi, '₽/смена');
+    fixed = fixed.replace(/в,Ѕ\/СЃРмРµРЅ/gi, '₽/смен');
+    fixed = fixed.replace(/СЃРјРµРЅа/gi, 'смена');
+    fixed = fixed.replace(/СЃРмРµРЅР°/gi, 'смена');
+    fixed = fixed.replace(/СЃРмРµРЅ/gi, 'смен');
+    fixed = fixed.replace(/в,Ѕ/gi, '₽');
+    fixed = fixed.replace(/Р\//g, '₽/');
+    fixed = fixed.replace(/РІ,Р/gi, '₽');
+    fixed = fixed.replace(/РІ,РЅ/gi, '₽');
+    
+    // Удаляем проблемные последовательности
+    fixed = fixed.replace(/РЎР\s*ВµР\s*В»Р\s*ВµРЎРѓ[PC"PC\s-\[\],•]*/gi, 'Телескопический');
+    fixed = fixed.replace(/PC"PC[PC\s-\[\],•]*/gi, '');
+    fixed = fixed.replace(/РС"РС[•РС\-\[\],\s]*/gi, '');
+    fixed = fixed.replace(/\[PjPC-PC[•P\sB»\-\[\],]*/gi, '');
+    fixed = fixed.replace(/PjPC-PC[•P\sB»\-\[\],]*/gi, '');
+    fixed = fixed.replace(/Р\s*ВµР\s*В»Р\s*ВµРЎРѓ/gi, 'Телескопический');
+    fixed = fixed.replace(/Телескопический[РС"РС•РС\-\[\],\s]*/gi, 'Телескопический');
+    fixed = fixed.replace(/Телескопический\[PjPC-PC[•P\sB»\-\[\],]*/gi, 'Телескопический');
+    
+    // Финальная универсальная очистка
+    fixed = fixed.replace(/([А-Яа-яЁёA-Za-z0-9]+)([РС"РС•РС\-\[\],\sPjPC-PC[•P\sB»\-\[\],]+)/g, '$1');
+    fixed = fixed.replace(/[РС]"[РС][^А-Яа-яЁё\s]*/g, '');
+    fixed = fixed.replace(/P[SCj]PC[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
+    fixed = fixed.replace(/\[[^\]]*[РСPjPC][^\]]*\][\s,•\-]*/g, '');
+    fixed = fixed.replace(/[РС]{2,}[^А-Яа-яЁё\s]*/g, '');
+    fixed = fixed.replace(/P[SCj]{2,}P[SCj]*[^А-Яа-яЁёA-Za-z0-9\s]*/g, '');
+    fixed = fixed.replace(/[РС]"[РС]/g, '');
+    fixed = fixed.replace(/PjPC-PC/g, '');
+    fixed = fixed.replace(/PC"PC/g, '');
+    fixed = fixed.replace(/[РСPjPC][•\-\[\],\s]+/g, '');
+    
+    // Удаляем множественные пробелы
+    fixed = fixed.replace(/\s{2,}/g, ' ').trim();
+    
+    return fixed;
+  } catch (error) {
+    return text;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Инициализация Lenis для плавной прокрутки
   let lenis;
@@ -113,16 +203,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         reach_diagram_url: service.reach_diagram_url
       });
       
+      // Применяем fixEncoding ко всем текстовым полям
+      const fixedService = {
+        ...service,
+        title: service.title ? fixEncoding(service.title) : service.title,
+        description: service.description ? fixEncoding(service.description) : service.description,
+        price: service.price ? fixEncoding(service.price) : service.price,
+        height_lift: service.height_lift ? fixEncoding(service.height_lift) : service.height_lift,
+        max_reach: service.max_reach ? fixEncoding(service.max_reach) : service.max_reach,
+        max_capacity: service.max_capacity ? fixEncoding(service.max_capacity) : service.max_capacity,
+        lift_type: service.lift_type ? fixEncoding(service.lift_type) : service.lift_type,
+        transport_length: service.transport_length ? fixEncoding(service.transport_length) : service.transport_length,
+        transport_height: service.transport_height ? fixEncoding(service.transport_height) : service.transport_height,
+        width: service.width ? fixEncoding(service.width) : service.width,
+        boom_rotation_angle: service.boom_rotation_angle ? fixEncoding(service.boom_rotation_angle) : service.boom_rotation_angle,
+        basket_rotation_angle: service.basket_rotation_angle ? fixEncoding(service.basket_rotation_angle) : service.basket_rotation_angle
+      };
+      
       // Обновляем заголовок страницы
       const titleEl = document.querySelector('.equipment-title, h1');
-      if (titleEl && service.title) {
-        titleEl.textContent = service.title;
+      if (titleEl && fixedService.title) {
+        titleEl.textContent = fixedService.title;
       }
       
       // Обновляем описание
       const descriptionEl = document.querySelector('.equipment-description, .equipment-intro p');
-      if (descriptionEl && service.description) {
-        descriptionEl.textContent = service.description;
+      if (descriptionEl && fixedService.description) {
+        descriptionEl.textContent = fixedService.description;
       }
       
       // Обновляем характеристики из новых полей
@@ -131,15 +238,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         specsGrid.innerHTML = '';
         
         const specs = [
-          { icon: '📏', label: 'Высота подъема люльки', value: service.height_lift },
-          { icon: '📐', label: 'Максимальный вылет', value: service.max_reach },
-          { icon: '⚖️', label: 'Максимальная грузоподъемность', value: service.max_capacity },
-          { icon: '🚗', label: 'Тип подъемника', value: service.lift_type },
-          { icon: '📏', label: 'Длина в транспортном положении', value: service.transport_length },
-          { icon: '📏', label: 'Высота в транспортном положении', value: service.transport_height },
-          { icon: '📏', label: 'Ширина', value: service.width },
-          { icon: '🔄', label: 'Угол поворота стрелы', value: service.boom_rotation_angle },
-          { icon: '🔄', label: 'Угол поворота корзины', value: service.basket_rotation_angle }
+          { icon: '📏', label: 'Высота подъема люльки', value: fixedService.height_lift },
+          { icon: '📐', label: 'Максимальный вылет', value: fixedService.max_reach },
+          { icon: '⚖️', label: 'Максимальная грузоподъемность', value: fixedService.max_capacity },
+          { icon: '🚗', label: 'Тип подъемника', value: fixedService.lift_type },
+          { icon: '📏', label: 'Длина в транспортном положении', value: fixedService.transport_length },
+          { icon: '📏', label: 'Высота в транспортном положении', value: fixedService.transport_height },
+          { icon: '📏', label: 'Ширина', value: fixedService.width },
+          { icon: '🔄', label: 'Угол поворота стрелы', value: fixedService.boom_rotation_angle },
+          { icon: '🔄', label: 'Угол поворота корзины', value: fixedService.basket_rotation_angle }
         ];
         
         specs.forEach(spec => {
@@ -160,18 +267,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Обновляем цены в таблице стоимости
       const pricingTable = document.querySelector('.pricing-table');
-      if (pricingTable && service.price) {
+      if (pricingTable && fixedService.price) {
         // Парсим цены из строки
         let priceHalfShift = '';
         let priceShift = '';
-        const deliveryPerKm = service.delivery_per_km || 85;
+        const deliveryPerKm = fixedService.delivery_per_km || 85;
         
-        const halfShiftMatch = service.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+        const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
         if (halfShiftMatch) {
           priceHalfShift = halfShiftMatch[1].replace(/\s/g, '');
         }
         
-        const shiftMatch = service.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+        const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
         if (shiftMatch) {
           priceShift = shiftMatch[1].replace(/\s/g, '');
         }
@@ -209,9 +316,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Обновляем цену в заголовке (если есть)
       const priceEls = document.querySelectorAll('.price-value');
-      if (priceEls.length && service.price) {
+      if (priceEls.length && fixedService.price) {
         // Показываем только цену за смену в заголовке
-        const shiftMatch = service.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+        const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
         if (shiftMatch) {
           const shiftPrice = parseInt(shiftMatch[1].replace(/\s/g, ''));
           priceEls.forEach(el => {
@@ -219,7 +326,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           });
         } else {
           priceEls.forEach(el => {
-            el.textContent = service.price;
+            el.textContent = fixedService.price;
           });
         }
       }
