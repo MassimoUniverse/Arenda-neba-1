@@ -1595,11 +1595,17 @@ async function initOurCapabilitiesSlider() {
         slidesData = popularServices.map((service, index) => {
           // Парсим specifications для получения характеристик
           const specs = String(service.specifications || '');
-          const bullets = specs
-            .split(',')
+          let bullets = specs
+            .split(/[,\n]/)  // Разделяем по запятой или переносу строки
             .map(s => s.trim())
             .filter(Boolean)
             .slice(0, 6);
+          
+          // Если bullets меньше 4, используем fallback
+          const fallbackSlide = POPULAR_EQUIPMENT_SLIDES[index];
+          if (bullets.length < 4 && fallbackSlide && fallbackSlide.bullets) {
+            bullets = fallbackSlide.bullets;
+          }
 
           // Определяем изображение (с нормализацией localhost URLs)
           let slideImage = getImageForService(service);
