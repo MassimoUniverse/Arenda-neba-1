@@ -1648,7 +1648,7 @@ async function initOurCapabilitiesSlider() {
             index: String(index + 1).padStart(2, '0'),
             title,
             text,
-            bullets: bullets.length > 0 ? bullets : (fallbackSlide?.bullets || []),
+            bullets: bullets.length >= 4 ? bullets : (fallbackSlide?.bullets || []),
             image: slideImage,
             url: service.url || popularUrls[index],
             price: cleanedPrice || price
