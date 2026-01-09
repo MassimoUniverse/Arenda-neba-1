@@ -236,63 +236,98 @@ document.addEventListener('DOMContentLoaded', async () => {
         service_images_type: typeof service.images
       });
       
+      // Функция для получения изображения из базы данных (аналогично getImageForService из script.js)
+      // Но с учетом относительных путей для страниц оборудования
+      function getImageForEquipmentPage(service) {
+        // Приоритет 1: image_url из базы данных
+        if (service.image_url) {
+          let imageUrl = service.image_url;
+          
+          // Преобразуем localhost URL в относительный путь
+          if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
+            imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+          }
+          
+          // Если это полный внешний URL, оставляем как есть
+          if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+            return imageUrl;
+          }
+          
+          // Преобразуем абсолютный путь в относительный для страниц оборудования
+          if (imageUrl.startsWith('/images/')) {
+            return '..' + imageUrl;
+          } else if (imageUrl.startsWith('/uploads/')) {
+            return '..' + imageUrl;
+          } else if (imageUrl.startsWith('/')) {
+            return '..' + imageUrl;
+          } else {
+            return '../' + imageUrl;
+          }
+        }
+        
+        // Приоритет 2: первое изображение из массива images
+        if (service.images && Array.isArray(service.images) && service.images.length > 0) {
+          const firstImage = service.images[0];
+          let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
+          
+          // Преобразуем localhost URL в относительный путь
+          if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
+            imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+          }
+          
+          // Если это полный внешний URL, оставляем как есть
+          if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
+            return imageUrl;
+          }
+          
+          // Преобразуем абсолютный путь в относительный для страниц оборудования
+          if (imageUrl.startsWith('/images/')) {
+            return '..' + imageUrl;
+          } else if (imageUrl.startsWith('/uploads/')) {
+            return '..' + imageUrl;
+          } else if (imageUrl.startsWith('/')) {
+            return '..' + imageUrl;
+          } else {
+            return '../' + imageUrl;
+          }
+        }
+        
+        // Приоритет 3: определяем по URL страницы (fallback)
+        const currentPath = window.location.pathname.toLowerCase();
+        if (currentPath.includes('13m')) {
+          return '../images/avtovyshka-13m.png';
+        } else if (currentPath.includes('15m')) {
+          return '../images/avtovyshka-15m.png';
+        } else if (currentPath.includes('16m')) {
+          return '../images/avtovyshka-15m.png';
+        } else if (currentPath.includes('17m')) {
+          return '../images/avtovyshka-18m.png';
+        } else if (currentPath.includes('18m')) {
+          return '../images/avtovyshka-18m.png';
+        } else if (currentPath.includes('21m')) {
+          return '../images/avtovyshka-21m.png';
+        } else if (currentPath.includes('25m')) {
+          return '../images/avtovyshka-25m.png';
+        } else if (currentPath.includes('29m')) {
+          return '../images/avtovyshka-29m.png';
+        } else if (currentPath.includes('45m')) {
+          return '../images/avtovyshka-29m.png';
+        } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
+          return '../images/avtovyshka-vezdehod-30m.png';
+        } else if (currentPath.includes('samohodnaya') || currentPath.includes('самоходная')) {
+          return '../images/avtovyshka-13m.png';
+        }
+        
+        // Fallback
+        return '../images/avtovyshka-13m.png';
+      }
+      
       // Собираем все изображения: основное + дополнительные
       let allImages = [];
       
-      // Сначала определяем правильное изображение по URL страницы
-      const currentPath = window.location.pathname.toLowerCase();
-      let correctImageByUrl = null;
-      
-      if (currentPath.includes('13m')) {
-        correctImageByUrl = '../images/avtovyshka-13m.png';
-      } else if (currentPath.includes('15m')) {
-        correctImageByUrl = '../images/avtovyshka-15m.png';
-      } else if (currentPath.includes('16m')) {
-        correctImageByUrl = '../images/avtovyshka-15m.png';
-      } else if (currentPath.includes('17m')) {
-        correctImageByUrl = '../images/avtovyshka-18m.png';
-      } else if (currentPath.includes('18m')) {
-        correctImageByUrl = '../images/avtovyshka-18m.png';
-      } else if (currentPath.includes('21m')) {
-        correctImageByUrl = '../images/avtovyshka-21m.png';
-      } else if (currentPath.includes('25m')) {
-        correctImageByUrl = '../images/avtovyshka-25m.png';
-      } else if (currentPath.includes('29m')) {
-        correctImageByUrl = '../images/avtovyshka-29m.png';
-      } else if (currentPath.includes('45m')) {
-        correctImageByUrl = '../images/avtovyshka-29m.png';
-      } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
-        correctImageByUrl = '../images/avtovyshka-vezdehod-30m.png';
-      } else if (currentPath.includes('samohodnaya') || currentPath.includes('самоходная')) {
-        correctImageByUrl = '../images/avtovyshka-13m.png';
-      }
-      
-      // Используем правильное изображение по URL, если нашли (это приоритет)
-      if (correctImageByUrl) {
-        allImages.push(correctImageByUrl);
-        console.log('  ✅ Added correct image by URL:', correctImageByUrl);
-        
-        // НЕ добавляем image_url из базы, если уже определили по URL
-        // Это предотвращает дубликаты
-      } else {
-        // Только если не нашли по URL, используем image_url из базы
-        if (service.image_url && !service.image_url.includes('localhost')) {
-          // Нормализуем путь (добавляем ../ если нужно для страниц оборудования)
-          let normalizedImageUrl = service.image_url;
-          if (!normalizedImageUrl.startsWith('http') && !normalizedImageUrl.startsWith('../') && !normalizedImageUrl.startsWith('/')) {
-            normalizedImageUrl = '../' + normalizedImageUrl;
-          } else if (normalizedImageUrl.startsWith('/images/')) {
-            normalizedImageUrl = '..' + normalizedImageUrl;
-          }
-          allImages.push(normalizedImageUrl);
-          console.log('  ✅ Added image_url from database:', normalizedImageUrl);
-        }
-      }
-      
-      // Обрабатываем массив изображений (дополнительные фото)
+      // Сначала обрабатываем массив изображений (чтобы определить основное)
+      let imagesArray = [];
       if (service.images) {
-        let imagesArray = [];
-        
         // Если это строка (JSON), парсим её
         if (typeof service.images === 'string') {
           try {
@@ -309,34 +344,54 @@ document.addEventListener('DOMContentLoaded', async () => {
           imagesArray = service.images;
           console.log('  ✅ Images is already an array:', imagesArray);
         }
-        
-        // Добавляем дополнительные фото, исключая основное (если оно уже есть)
-        if (Array.isArray(imagesArray) && imagesArray.length > 0) {
-          imagesArray.forEach(imgUrl => {
-            // Нормализуем URL (убираем лишние пробелы)
-            let normalizedUrl = typeof imgUrl === 'string' ? imgUrl.trim() : (imgUrl.url || imgUrl).trim();
-            
+      }
+      
+      // Используем функцию для получения основного изображения из базы данных (приоритет)
+      // Эта функция правильно обрабатывает image_url и массив images
+      const mainImage = getImageForEquipmentPage(service);
+      if (mainImage) {
+        allImages.push(mainImage);
+        console.log('  ✅ Added main image from database:', mainImage);
+      }
+      
+      // Добавляем дополнительные фото из массива images, исключая основное (если оно уже есть)
+      if (Array.isArray(imagesArray) && imagesArray.length > 0) {
+        imagesArray.forEach(imgUrl => {
+          // Нормализуем URL (убираем лишние пробелы)
+          let normalizedUrl = typeof imgUrl === 'string' ? imgUrl.trim() : (imgUrl.url || imgUrl).trim();
+          
+          // Преобразуем localhost URL в относительный путь
+          if (normalizedUrl.startsWith('http://localhost:3000/') || normalizedUrl.startsWith('http://127.0.0.1:3000/')) {
+            normalizedUrl = normalizedUrl.replace(/^https?:\/\/[^\/]+/, '');
+          }
+          
+          // Если это полный внешний URL, оставляем как есть
+          if (!normalizedUrl.startsWith('https://') && !normalizedUrl.startsWith('http://')) {
             // Преобразуем абсолютные пути в относительные для страниц оборудования
             if (normalizedUrl.startsWith('/images/')) {
               normalizedUrl = '..' + normalizedUrl;
-            } else if (!normalizedUrl.startsWith('http') && !normalizedUrl.startsWith('../') && !normalizedUrl.startsWith('/')) {
+            } else if (normalizedUrl.startsWith('/uploads/')) {
+              normalizedUrl = '..' + normalizedUrl;
+            } else if (normalizedUrl.startsWith('/')) {
+              normalizedUrl = '..' + normalizedUrl;
+            } else if (!normalizedUrl.startsWith('../')) {
               normalizedUrl = '../' + normalizedUrl;
             }
-            
-            // Проверяем, что это не дубликат основного изображения
-            const isDuplicate = allImages.some(existing => {
-              // Сравниваем без учета ../ и /
-              const existingClean = existing.replace(/^\.\.\//, '').replace(/^\//, '');
-              const normalizedClean = normalizedUrl.replace(/^\.\.\//, '').replace(/^\//, '');
-              return existingClean === normalizedClean;
-            });
-            
-            if (normalizedUrl && !isDuplicate) {
-              allImages.push(normalizedUrl);
-              console.log('  ✅ Added additional image:', normalizedUrl);
-            }
+          }
+          
+          // Проверяем, что это не дубликат основного изображения
+          const isDuplicate = allImages.some(existing => {
+            // Сравниваем без учета ../, / и домена
+            const existingClean = existing.replace(/^\.\.\//, '').replace(/^\//, '').replace(/^https?:\/\/[^\/]+/, '');
+            const normalizedClean = normalizedUrl.replace(/^\.\.\//, '').replace(/^\//, '').replace(/^https?:\/\/[^\/]+/, '');
+            return existingClean === normalizedClean;
           });
-        }
+          
+          if (normalizedUrl && !isDuplicate) {
+            allImages.push(normalizedUrl);
+            console.log('  ✅ Added additional image:', normalizedUrl);
+          }
+        });
       }
       
       console.log('📸 Final allImages array:', allImages);
