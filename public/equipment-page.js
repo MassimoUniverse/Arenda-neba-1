@@ -430,9 +430,65 @@ document.addEventListener('DOMContentLoaded', async () => {
           };
         }
         
-        // Обновляем миниатюры
+        // Обновляем миниатюры с навигацией
         if (thumbsContainer) {
+          // Создаем обертку для миниатюр с навигацией
+          const galleryWrapper = thumbsContainer.parentElement;
+          if (!galleryWrapper.classList.contains('gallery-thumbnails-wrapper')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'gallery-thumbnails-wrapper';
+            thumbsContainer.parentElement.insertBefore(wrapper, thumbsContainer);
+            wrapper.appendChild(thumbsContainer);
+          }
+          
           thumbsContainer.innerHTML = '';
+          
+          // Создаем кнопки навигации, если их еще нет
+          let prevBtn = galleryWrapper.querySelector('.gallery-thumbnails-nav.prev');
+          let nextBtn = galleryWrapper.querySelector('.gallery-thumbnails-nav.next');
+          
+          if (!prevBtn) {
+            prevBtn = document.createElement('button');
+            prevBtn.className = 'gallery-thumbnails-nav prev';
+            prevBtn.innerHTML = '‹';
+            prevBtn.setAttribute('aria-label', 'Предыдущее фото');
+            galleryWrapper.insertBefore(prevBtn, thumbsContainer);
+          }
+          
+          if (!nextBtn) {
+            nextBtn = document.createElement('button');
+            nextBtn.className = 'gallery-thumbnails-nav next';
+            nextBtn.innerHTML = '›';
+            nextBtn.setAttribute('aria-label', 'Следующее фото');
+            galleryWrapper.appendChild(nextBtn);
+          }
+          
+          // Функция прокрутки миниатюр
+          const scrollThumbnails = (direction) => {
+            const scrollAmount = 200;
+            const currentScroll = thumbsContainer.scrollLeft;
+            const newScroll = direction === 'prev' 
+              ? currentScroll - scrollAmount 
+              : currentScroll + scrollAmount;
+            thumbsContainer.scrollTo({
+              left: newScroll,
+              behavior: 'smooth'
+            });
+          };
+          
+          // Обновляем состояние кнопок
+          const updateNavButtons = () => {
+            const canScrollLeft = thumbsContainer.scrollLeft > 0;
+            const canScrollRight = thumbsContainer.scrollLeft < (thumbsContainer.scrollWidth - thumbsContainer.clientWidth - 1);
+            prevBtn.disabled = !canScrollLeft;
+            nextBtn.disabled = !canScrollRight;
+          };
+          
+          prevBtn.onclick = () => scrollThumbnails('prev');
+          nextBtn.onclick = () => scrollThumbnails('next');
+          thumbsContainer.addEventListener('scroll', updateNavButtons);
+          
+          // Создаем миниатюры
           allImages.forEach((imgUrl, index) => {
             const thumb = document.createElement('img');
             // Убеждаемся, что URL правильный (добавляем / если нужно)
@@ -450,13 +506,11 @@ document.addEventListener('DOMContentLoaded', async () => {
               thumbsContainer.querySelectorAll('img').forEach(t => t.classList.remove('active'));
               // Добавляем active класс к выбранной
               thumb.classList.add('active');
-              // Меняем главное изображение
+              // Меняем главное изображение (БЕЗ открытия lightbox)
               if (imgEl) {
                 imgEl.src = normalizedUrl;
                 imgEl.alt = `${service.title} - вид ${index + 1}`;
               }
-              // Открываем в полноэкранном режиме
-              openImageFullscreen(allImages, index, service.title);
             };
             thumb.onerror = function() {
               console.warn('Failed to load thumbnail:', normalizedUrl);
@@ -465,10 +519,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             thumb.onload = function() {
               console.log('✅ Thumbnail loaded:', normalizedUrl);
+              updateNavButtons(); // Обновляем кнопки после загрузки
             };
             thumbsContainer.appendChild(thumb);
           });
-          console.log('✅ Created', allImages.length, 'thumbnails');
+          
+          // Инициализируем состояние кнопок
+          setTimeout(updateNavButtons, 100);
+          console.log('✅ Created', allImages.length, 'thumbnails with navigation');
         }
       }
       
