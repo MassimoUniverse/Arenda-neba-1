@@ -1240,13 +1240,18 @@ input[type='number'] {
   padding: 80px 0;
 }
 
+/* Button Section */
+.popular-equipment-button-section {
+  padding: 40px 0;
+  background: var(--bg-light);
+}
+
 .popular-equipment-button--always-visible {
   opacity: 1 !important;
   visibility: visible !important;
   transform: none !important;
   pointer-events: auto !important;
-  margin-top: 350px;
-  margin-bottom: 60px;
+  margin: 0;
   text-align: center;
 }
 
@@ -1437,9 +1442,8 @@ input[type='number'] {
     margin-bottom: 24px;
   }
   
-  .popular-equipment-button--always-visible {
-    margin-top: 200px;
-    margin-bottom: 30px;
+  .popular-equipment-button-section {
+    padding: 30px 0;
   }
   
   .card__body {
@@ -1570,9 +1574,8 @@ input[type='number'] {
     margin-bottom: 20px;
   }
   
-  .popular-equipment-button--always-visible {
-    margin-top: 150px;
-    margin-bottom: 24px;
+  .popular-equipment-button-section {
+    padding: 24px 0;
   }
 }
 
