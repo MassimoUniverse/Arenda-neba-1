@@ -1243,8 +1243,14 @@ input[type='number'] {
 
 .popular-cards-wrap {
   margin-top: 24px;
-  /* Убеждаемся, что контейнер не мешает sticky */
+  /* Убеждаемся, что контейнер не мешает sticky и перекрытию */
   position: relative;
+  overflow: visible;
+}
+
+/* Убираем padding у container внутри popular-cards-wrap, чтобы карточки могли перекрываться */
+.popular-cards-wrap.container {
+  padding: 0;
   overflow: visible;
 }
 
@@ -1274,6 +1280,9 @@ input[type='number'] {
   /* Общая высота контейнера = высота карточки + (количество карточек - 1) * stack-pad */
   min-height: calc(var(--card-height) + (var(--numcards) - 1) * var(--stack-pad));
   padding-bottom: calc(var(--numcards) * var(--stack-pad));
+  /* Важно: overflow должен быть visible, чтобы карточки могли перекрываться */
+  overflow: visible;
+  position: relative;
 }
 
 .stack-cards .card {
@@ -1288,7 +1297,10 @@ input[type='number'] {
 .stack-cards .card:not(:first-child) {
   /* Ключ к "стеку": следующий блок начинается поверх предыдущего, а не после него */
   /* Вычитаем высоту карточки и добавляем небольшой зазор для визуального эффекта */
+  /* Используем отрицательный margin-top для физического перекрытия */
   margin-top: calc((var(--card-height) * -1) + var(--stack-gap));
+  /* Убеждаемся, что карточка действительно перекрывает предыдущую */
+  position: relative;
 }
 
 .stack-cards .card:last-child {
