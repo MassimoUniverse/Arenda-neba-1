@@ -1240,6 +1240,92 @@ input[type='number'] {
   padding: 80px 0;
 }
 
+/* Two Column Grid Layout */
+.popular-cards-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+/* LEFT SIDEBAR */
+.popular-cards-sidebar {
+  position: relative;
+}
+
+.popular-cards-sidebar-sticky {
+  position: sticky;
+  top: 110px;
+  padding: 40px;
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar-title {
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  margin: 0 0 16px 0;
+  color: var(--text-dark);
+}
+
+.sidebar-description {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+}
+
+.sidebar-features {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-feature {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.sidebar-feature-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.sidebar-feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-feature-text strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.sidebar-feature-text span {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* RIGHT CONTENT */
+.popular-cards-content {
+  position: relative;
+}
+
 /* Button Section */
 .popular-equipment-button-section {
   padding: 40px 0;
@@ -1260,11 +1346,6 @@ input[type='number'] {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-width: 1100px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 24px;
-  padding-right: 24px;
 }
 
 /* Individual Card Item */
@@ -1417,9 +1498,43 @@ input[type='number'] {
     padding: 40px 0;
   }
   
-  .stack-cards {
-    padding-left: 16px;
-    padding-right: 16px;
+  /* Stack layout on mobile */
+  .popular-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .popular-cards-sidebar-sticky {
+    position: static;
+    padding: 24px;
+  }
+  
+  .sidebar-title {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  
+  .sidebar-description {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  
+  .sidebar-features {
+    gap: 16px;
+  }
+  
+  .sidebar-feature-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+  
+  .sidebar-feature-text strong {
+    font-size: 14px;
+  }
+  
+  .sidebar-feature-text span {
+    font-size: 13px;
   }
   
   .stack-cards__item {
@@ -1499,9 +1614,28 @@ input[type='number'] {
     padding: 30px 0;
   }
   
-  .stack-cards {
-    padding-left: 12px;
-    padding-right: 12px;
+  .popular-cards-grid {
+    gap: 24px;
+  }
+  
+  .popular-cards-sidebar-sticky {
+    padding: 20px;
+  }
+  
+  .sidebar-title {
+    font-size: 24px;
+  }
+  
+  .sidebar-description {
+    font-size: 14px;
+  }
+  
+  .sidebar-features {
+    gap: 14px;
+  }
+  
+  .sidebar-feature {
+    gap: 12px;
   }
   
   .stack-cards__item {
