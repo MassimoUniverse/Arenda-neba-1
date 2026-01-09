@@ -1259,7 +1259,8 @@ input[type='number'] {
   --card-radius: 28px;
   --card-height: min(78vh, 720px);
   /* сколько "скролл‑пространства" даём каждой карточке, чтобы следующая успела наложиться поверх */
-  --stack-pad: 45vh;
+  /* Увеличено для комфортного чтения: каждая карточка должна "держаться" достаточно долго */
+  --stack-pad: 80vh;
   /* визуальный зазор между слоями в стопке */
   --stack-gap: 22px;
   max-width: 1100px;
@@ -1421,7 +1422,7 @@ input[type='number'] {
   .stack-cards {
     --card-top: 86px;
     --card-height: min(74vh, 640px);
-    --stack-pad: 40vh;
+    --stack-pad: 70vh;
     --stack-gap: 14px;
     padding: 0 16px;
     padding-bottom: calc(var(--numcards) * var(--stack-pad));

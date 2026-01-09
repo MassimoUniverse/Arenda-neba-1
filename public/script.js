@@ -1704,31 +1704,109 @@ async function initOurCapabilitiesSlider() {
   const numCards = cards.length || 1;
   cardsWrapper.style.setProperty('--numcards', String(numCards));
 
-  // Scroll-linked animation (если поддерживается)
+  // Scroll-linked animation с fallback
+  let hasViewTimeline = false;
+  
   if (typeof ViewTimeline !== 'undefined' && cards.length > 0) {
-    const viewTimeline = new ViewTimeline({ subject: cardsWrapper, axis: 'block' });
+    try {
+      const viewTimeline = new ViewTimeline({ subject: cardsWrapper, axis: 'block' });
 
-    const percent = (value) => {
-      // CSS.percent доступен не везде — делаем fallback
-      if (typeof CSS !== 'undefined' && typeof CSS.percent === 'function') return CSS.percent(value);
-      return `${value}%`;
-    };
+      const percent = (value) => {
+        if (typeof CSS !== 'undefined' && typeof CSS.percent === 'function') return CSS.percent(value);
+        return `${value}%`;
+      };
 
-    cards.forEach(($card, index0) => {
-      const index = index0 + 1;
-      const reverseIndex0 = numCards - index;
-      const scaleTo = Math.max(0.84, 1 - (0.08 * reverseIndex0));
+      cards.forEach(($card, index0) => {
+        const index = index0 + 1;
+        const reverseIndex0 = numCards - index;
+        const scaleTo = Math.max(0.84, 1 - (0.08 * reverseIndex0));
 
-      $card.animate(
-        { transform: [`scale(1)`, `scale(${scaleTo})`] },
-        {
-          timeline: viewTimeline,
-          fill: 'forwards',
-          rangeStart: `exit-crossing ${percent((index0 / numCards) * 100)}`,
-          rangeEnd: `exit-crossing ${percent((index / numCards) * 100)}`
+        $card.animate(
+          { transform: [`scale(1)`, `scale(${scaleTo})`] },
+          {
+            timeline: viewTimeline,
+            fill: 'forwards',
+            rangeStart: `exit-crossing ${percent((index0 / numCards) * 100)}`,
+            rangeEnd: `exit-crossing ${percent((index / numCards) * 100)}`
+          }
+        );
+      });
+      
+      hasViewTimeline = true;
+    } catch (e) {
+      console.warn('ViewTimeline not supported, using scroll fallback:', e);
+    }
+  }
+  
+  // Fallback: анимация через scroll events (если ViewTimeline не работает)
+  if (!hasViewTimeline && cards.length > 0) {
+    const section = document.getElementById('popular-equipment');
+    if (!section) return;
+    
+    let ticking = false;
+    
+    function updateCardScales() {
+      if (ticking) return;
+      ticking = true;
+      
+      requestAnimationFrame(() => {
+        const rect = section.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const sectionTop = rect.top;
+        const sectionHeight = rect.height;
+        
+        // Вычисляем прогресс прокрутки секции (0 = начало, 1 = конец)
+        let progress = 0;
+        if (sectionTop < windowHeight) {
+          const scrolled = windowHeight - sectionTop;
+          const totalScroll = sectionHeight;
+          progress = Math.max(0, Math.min(1, scrolled / totalScroll));
         }
-      );
-    });
+        
+        // Для каждой карточки вычисляем её прогресс
+        cards.forEach(($card, index0) => {
+          const index = index0 + 1;
+          const reverseIndex0 = numCards - index;
+          
+          // Каждая карточка занимает 1/numCards часть общего прогресса
+          const cardStart = index0 / numCards;
+          const cardEnd = index / numCards;
+          
+          // Локальный прогресс для этой карточки (0-1)
+          let cardProgress = 0;
+          if (progress >= cardStart && progress <= cardEnd) {
+            cardProgress = (progress - cardStart) / (cardEnd - cardStart);
+          } else if (progress > cardEnd) {
+            cardProgress = 1;
+          }
+          
+          // Масштабируем: от 1.0 до меньшего значения
+          const scaleTo = Math.max(0.84, 1 - (0.08 * reverseIndex0));
+          const currentScale = 1 - (cardProgress * (1 - scaleTo));
+          
+          $card.style.transform = `scale(${currentScale})`;
+        });
+        
+        ticking = false;
+      });
+    }
+    
+    // Подключаем обработчик прокрутки
+    function setupScrollHandler() {
+      if (window.lenis) {
+        window.lenis.on('scroll', updateCardScales);
+      } else {
+        window.addEventListener('scroll', updateCardScales, { passive: true });
+      }
+    }
+    
+    setupScrollHandler();
+    
+    // Инициализация при загрузке
+    updateCardScales();
+    
+    // Обновляем при изменении размера окна
+    window.addEventListener('resize', updateCardScales, { passive: true });
   }
 }
 
