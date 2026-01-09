@@ -1234,6 +1234,7 @@ input[type='number'] {
 
 /* =============================================
    POPULAR EQUIPMENT (Stacking Cards)
+   Based on CodyHouse tutorial: https://codyhouse.co/tutorials/how-stacking-cards
    ============================================= */
 .popular-cards-section {
   padding: 80px 0;
@@ -1249,15 +1250,10 @@ input[type='number'] {
 }
 
 /* Stacking Cards Container */
-#cards {
+.stack-cards {
   list-style: none;
-  --n: 4; /* Number of cards */
-  --card-height: 60vh;
-  --card-margin: calc(var(--card-height) * -1 + 2em);
   padding: 0;
   margin: 0;
-  padding-bottom: calc(var(--n) * var(--card-height));
-  margin-bottom: calc(var(--n) * var(--card-height) * -1);
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
@@ -1265,40 +1261,37 @@ input[type='number'] {
   padding-right: 24px;
 }
 
-/* Individual Card Wrapper */
-#cards > li {
-  position: relative;
-  padding-bottom: var(--card-height);
+/* Individual Card Item */
+.stack-cards__item {
+  position: sticky;
+  top: 24px; /* offset from top when fixed */
+  margin-bottom: 24px;
+  transform-origin: center top;
+  will-change: transform;
 }
 
-#cards > li:not(:first-child) {
-  margin-top: var(--card-margin);
+.stack-cards__item:last-child {
+  margin-bottom: 0;
 }
 
-#cards > li:last-child {
-  padding-bottom: 0;
-}
-
-/* Sticky Card Content */
+/* Card Content */
 .card__content {
   --bg: #111;
   --fg: #fff;
   
-  position: sticky;
-  top: 2em;
   padding: 2em;
   border-radius: 1em;
   background-color: var(--bg);
   color: var(--fg);
   box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.25);
-  height: var(--card-height);
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
   transform-origin: 50% 0%;
-  will-change: transform;
   overflow: hidden;
+  position: relative;
 }
 
 .card__bg {

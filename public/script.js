@@ -1566,7 +1566,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
 // =============================================
 async function initOurCapabilitiesSlider() {
   const section = document.getElementById('popular-equipment');
-  const cardsWrapper = document.getElementById('cards');
+  const cardsWrapper = document.querySelector('.js-stack-cards');
   
   if (!section || !cardsWrapper) return;
   
@@ -1660,8 +1660,7 @@ async function initOurCapabilitiesSlider() {
 
   slidesData.forEach((slide, index0) => {
     const li = document.createElement('li');
-    // Set z-index for proper stacking (later cards on top)
-    li.style.zIndex = String(index0 + 1);
+    li.className = 'stack-cards__item js-stack-cards__item';
 
     const bullets = Array.isArray(slide.bullets) ? slide.bullets : [];
     const bulletsHtml = bullets.length
@@ -1698,120 +1697,82 @@ async function initOurCapabilitiesSlider() {
     cardsWrapper.appendChild(li);
   });
 
-  // Pass the number of cards to the CSS because it needs it to add some extra padding.
-  const $cards = cardsWrapper.querySelectorAll('.card__content');
-  const numCards = $cards.length || 1;
-  cardsWrapper.style.setProperty('--n', String(numCards));
+  // Initialize stacking cards effect (CodyHouse method)
+  initStackCardsEffect(cardsWrapper);
+}
 
-  // Scroll-linked animation с fallback
-  let hasViewTimeline = false;
+// Stacking Cards Effect - based on CodyHouse tutorial
+function initStackCardsEffect(element) {
+  const items = element.querySelectorAll('.js-stack-cards__item');
+  if (items.length === 0) return;
+
+  // Check for Intersection Observer support
+  const intersectionObserverSupported = ('IntersectionObserver' in window && 
+    'IntersectionObserverEntry' in window && 
+    'intersectionRatio' in window.IntersectionObserverEntry.prototype);
   
-  if (typeof ViewTimeline !== 'undefined' && $cards.length > 0) {
-    try {
-      // Each card should only shrink when it's at the top.
-      // We can't use exit on the els for this (as they are sticky)
-      // but can track $cardsWrapper instead.
-      const viewTimeline = new ViewTimeline({
-        subject: cardsWrapper,
-        axis: 'block',
-      });
+  if (!intersectionObserverSupported) return;
 
-      $cards.forEach(($card, index0) => {
-        const index = index0 + 1;
-        const reverseIndex = numCards - index0;
-        const reverseIndex0 = numCards - index;
+  // Get card properties
+  const cardStyle = window.getComputedStyle(items[0]);
+  const cardTop = parseFloat(cardStyle.top);
+  const cardHeight = items[0].offsetHeight;
+  const cardMarginBottom = parseFloat(cardStyle.marginBottom);
 
-        // Scroll-Linked Animation
-        // Earlier cards shrink more than later cards
-        $card.animate(
-          {
-            transform: [`scale(1)`, `scale(${1 - (0.1 * reverseIndex0)})`],
-          },
-          {
-            timeline: viewTimeline,
-            fill: 'forwards',
-            rangeStart: `exit-crossing ${CSS.percent(index0 / numCards * 100)}`,
-            rangeEnd: `exit-crossing ${CSS.percent(index / numCards * 100)}`,
-          }
-        );
-      });
+  let scrollingListener = null;
+  let scrolling = false;
+
+  // Intersection Observer callback
+  function stackCardsCallback(entries) {
+    if (entries[0].isIntersecting) {
+      // Cards inside viewport - add scroll listener
+      if (scrollingListener) return;
       
-      hasViewTimeline = true;
-    } catch (e) {
-      console.warn('ViewTimeline not supported, using scroll fallback:', e);
+      scrollingListener = function() {
+        if (scrolling) return;
+        scrolling = true;
+        window.requestAnimationFrame(animateStackCards);
+      };
+      
+      window.addEventListener('scroll', scrollingListener, { passive: true });
+    } else {
+      // Cards not inside viewport - remove scroll listener
+      if (!scrollingListener) return;
+      window.removeEventListener('scroll', scrollingListener);
+      scrollingListener = null;
     }
   }
-  
-  // Fallback: анимация через scroll events (если ViewTimeline не работает)
-  if (!hasViewTimeline && $cards.length > 0) {
-    const section = document.getElementById('popular-equipment');
-    if (!section) return;
+
+  // Animate cards on scroll
+  function animateStackCards() {
+    const top = element.getBoundingClientRect().top;
     
-    let ticking = false;
-    
-    function updateCardScales() {
-      if (ticking) return;
-      ticking = true;
+    for (let i = 0; i < items.length; i++) {
+      const scrolling = cardTop - top - i * (cardHeight + cardMarginBottom);
       
-      requestAnimationFrame(() => {
-        const rect = section.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        const sectionTop = rect.top;
-        const sectionHeight = rect.height;
-        
-        // Вычисляем прогресс прокрутки секции (0 = начало, 1 = конец)
-        let progress = 0;
-        if (sectionTop < windowHeight) {
-          const scrolled = windowHeight - sectionTop;
-          const totalScroll = sectionHeight;
-          progress = Math.max(0, Math.min(1, scrolled / totalScroll));
-        }
-        
-        // Для каждой карточки вычисляем её прогресс
-        $cards.forEach(($card, index0) => {
-          const index = index0 + 1;
-          const reverseIndex0 = numCards - index;
-          
-          // Каждая карточка занимает 1/numCards часть общего прогресса
-          const cardStart = index0 / numCards;
-          const cardEnd = index / numCards;
-          
-          // Локальный прогресс для этой карточки (0-1)
-          let cardProgress = 0;
-          if (progress >= cardStart && progress <= cardEnd) {
-            cardProgress = (progress - cardStart) / (cardEnd - cardStart);
-          } else if (progress > cardEnd) {
-            cardProgress = 1;
-          }
-          
-          // Масштабируем: от 1.0 до меньшего значения
-          const scaleTo = Math.max(0.84, 1 - (0.08 * reverseIndex0));
-          const currentScale = 1 - (cardProgress * (1 - scaleTo));
-          
-          $card.style.transform = `scale(${currentScale})`;
-        });
-        
-        ticking = false;
-      });
-    }
-    
-    // Подключаем обработчик прокрутки
-    function setupScrollHandler() {
-      if (window.lenis) {
-        window.lenis.on('scroll', updateCardScales);
+      if (scrolling > 0) {
+        // Card is fixed - scale it down
+        const scale = Math.max(0.85, (cardHeight - scrolling * 0.05) / cardHeight);
+        const translateY = cardMarginBottom * i;
+        items[i].style.transform = `translateY(${translateY}px) scale(${scale})`;
       } else {
-        window.addEventListener('scroll', updateCardScales, { passive: true });
+        // Card is not fixed yet - reset transform
+        const translateY = cardMarginBottom * i;
+        items[i].style.transform = `translateY(${translateY}px) scale(1)`;
       }
     }
     
-    setupScrollHandler();
-    
-    // Инициализация при загрузке
-    updateCardScales();
-    
-    // Обновляем при изменении размера окна
-    window.addEventListener('resize', updateCardScales, { passive: true });
+    scrolling = false;
   }
+
+  // Create Intersection Observer
+  const observer = new IntersectionObserver(stackCardsCallback, {
+    threshold: [0, 0.1]
+  });
+  observer.observe(element);
+  
+  // Initial animation
+  animateStackCards();
 }
 
 // Обработчик формы быстрой заявки
