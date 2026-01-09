@@ -687,6 +687,17 @@ function showServiceModal(id = null) {
             }, 150);
         }
         
+        // Добавляем обработчики для автоматического обновления превью при вводе в textarea
+        const imagesUrlsTextarea = document.getElementById('serviceImagesUrls');
+        if (imagesUrlsTextarea) {
+            // Удаляем старые обработчики, если есть
+            imagesUrlsTextarea.removeEventListener('input', updateImagesFromTextarea);
+            imagesUrlsTextarea.removeEventListener('change', updateImagesFromTextarea);
+            // Добавляем обработчики для input (при вводе) и change (при потере фокуса)
+            imagesUrlsTextarea.addEventListener('input', updateImagesFromTextarea);
+            imagesUrlsTextarea.addEventListener('change', updateImagesFromTextarea);
+        }
+        
         // Добавляем делегирование событий для кнопок удаления схем вылета стрелы
         const reachDiagramsPreviewContainer = document.getElementById('serviceReachDiagramsPreview');
         if (reachDiagramsPreviewContainer) {
@@ -1661,26 +1672,62 @@ let serviceReachDiagramsArray = []; // Store array of reach diagrams with {url, 
 
 // Функция для отрисовки превью изображений
 function renderImagesPreview(previewContainer, container) {
-    if (!previewContainer || !container) return;
+    if (!previewContainer || !container) {
+        console.error('❌ renderImagesPreview: containers not found', { previewContainer, container });
+        return;
+    }
     
     previewContainer.innerHTML = '';
     
     if (serviceImagesArray.length > 0) {
         serviceImagesArray.forEach((url, index) => {
+            // Обрабатываем URL - преобразуем localhost в относительный путь
+            let imageUrl = url;
+            if (url && (url.startsWith('http://localhost:3000/') || url.startsWith('http://127.0.0.1:3000/'))) {
+                imageUrl = url.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            
             const imgWrapper = document.createElement('div');
             imgWrapper.style.position = 'relative';
             imgWrapper.style.width = '150px';
             imgWrapper.style.height = '150px';
             imgWrapper.style.marginBottom = '10px';
+            imgWrapper.style.marginRight = '10px';
             
             const img = document.createElement('img');
-            img.src = url;
+            img.src = imageUrl;
             img.alt = `Фото ${index + 1}`;
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             img.style.border = '1px solid #ddd';
             img.style.borderRadius = '4px';
+            img.style.backgroundColor = '#f5f5f5';
+            
+            // Обработка ошибок загрузки изображения
+            img.onerror = function() {
+                console.error('❌ Failed to load image:', imageUrl);
+                this.style.backgroundColor = '#ffebee';
+                this.style.border = '2px solid #f44336';
+                // Добавляем текст ошибки
+                const errorText = document.createElement('div');
+                errorText.textContent = 'Ошибка загрузки';
+                errorText.style.position = 'absolute';
+                errorText.style.bottom = '5px';
+                errorText.style.left = '5px';
+                errorText.style.right = '5px';
+                errorText.style.background = 'rgba(244, 67, 54, 0.9)';
+                errorText.style.color = 'white';
+                errorText.style.padding = '2px 5px';
+                errorText.style.fontSize = '10px';
+                errorText.style.borderRadius = '3px';
+                errorText.style.textAlign = 'center';
+                imgWrapper.appendChild(errorText);
+            };
+            
+            img.onload = function() {
+                console.log('✅ Image loaded successfully:', imageUrl);
+            };
             
             const removeBtn = document.createElement('button');
             removeBtn.textContent = '×';
@@ -1697,6 +1744,7 @@ function renderImagesPreview(previewContainer, container) {
             removeBtn.style.cursor = 'pointer';
             removeBtn.style.fontSize = '18px';
             removeBtn.style.lineHeight = '1';
+            removeBtn.style.zIndex = '10';
             removeBtn.setAttribute('data-image-index', index);
             removeBtn.className = 'remove-image-btn';
             
@@ -1819,16 +1867,28 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
         }
     }
     
-    // Update images array (удаляем дубликаты)
+    // Update images array (удаляем дубликаты и обрабатываем localhost URL)
     const uniqueUrls = new Set();
     serviceImagesArray.forEach(url => {
         if (url && url.trim().length > 0) {
-            uniqueUrls.add(url.trim());
+            // Преобразуем localhost URL в относительные пути
+            let processedUrl = url.trim();
+            if (processedUrl.startsWith('http://localhost:3000/') || processedUrl.startsWith('http://127.0.0.1:3000/')) {
+                processedUrl = processedUrl.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            uniqueUrls.add(processedUrl);
         }
     });
     uploadedUrls.forEach(url => {
-        if (url && url.trim().length > 0 && !uniqueUrls.has(url.trim())) {
-            uniqueUrls.add(url.trim());
+        if (url && url.trim().length > 0) {
+            // Преобразуем localhost URL в относительные пути
+            let processedUrl = url.trim();
+            if (processedUrl.startsWith('http://localhost:3000/') || processedUrl.startsWith('http://127.0.0.1:3000/')) {
+                processedUrl = processedUrl.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            if (!uniqueUrls.has(processedUrl)) {
+                uniqueUrls.add(processedUrl);
+            }
         }
     });
     serviceImagesArray = Array.from(uniqueUrls);
@@ -1932,7 +1992,23 @@ function updateImagesFromTextarea() {
     const imagesUrlsText = document.getElementById('serviceImagesUrls')?.value || '';
     const imagesFromUrls = imagesUrlsText.split('\n')
         .map(url => url.trim())
-        .filter(url => url.length > 0);
+        .filter(url => url.length > 0)
+        // Преобразуем localhost URL в относительные пути
+        .map(url => {
+            // Если URL содержит localhost, преобразуем в относительный путь
+            if (url.startsWith('http://localhost:3000/') || url.startsWith('http://127.0.0.1:3000/')) {
+                return url.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            // Если это полный URL (не localhost), оставляем как есть
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            // Если это относительный путь без начального слэша, добавляем его
+            if (!url.startsWith('/')) {
+                return '/' + url;
+            }
+            return url;
+        });
     
     // Собираем уникальные изображения: сначала из textarea, затем добавляем загруженные файлы, которых нет в textarea
     const uniqueUrls = new Set();
@@ -1946,23 +2022,36 @@ function updateImagesFromTextarea() {
     
     // Затем добавляем загруженные файлы, которых нет в textarea
     serviceImagesArray.forEach(url => {
-        if (url && url.trim().length > 0 && !uniqueUrls.has(url.trim())) {
-            uniqueUrls.add(url.trim());
+        // Также обрабатываем URL из массива
+        let processedUrl = url;
+        if (url && (url.startsWith('http://localhost:3000/') || url.startsWith('http://127.0.0.1:3000/'))) {
+            processedUrl = url.replace(/^https?:\/\/[^\/]+/, '');
+        }
+        if (processedUrl && processedUrl.trim().length > 0 && !uniqueUrls.has(processedUrl.trim())) {
+            uniqueUrls.add(processedUrl.trim());
         }
     });
     
     // Преобразуем Set в массив
     serviceImagesArray = Array.from(uniqueUrls);
     
+    console.log('📸 Updated images array from textarea. Total unique images:', serviceImagesArray.length);
+    
     // Display images in preview
     const previewContainer = document.getElementById('serviceImagesPreview');
     const container = document.getElementById('serviceImagesPreviewContainer');
     if (previewContainer && container) {
+        // Показываем контейнер, если есть изображения
+        if (serviceImagesArray.length > 0) {
+            container.style.display = 'block';
+        }
         renderImagesPreview(previewContainer, container);
         // Привязываем обработчики после отрисовки
         setTimeout(() => {
             attachImageRemoveHandlers(previewContainer);
         }, 50);
+    } else {
+        console.error('❌ Preview container not found:', { previewContainer, container });
     }
 }
 
