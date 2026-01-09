@@ -1274,7 +1274,8 @@ input[type='number'] {
 /* Sticky делаем на .card__content (как в демо) */
 .stack-cards .card__content {
   position: sticky;
-  top: var(--card-top);
+  /* Каждый следующий слой фиксируется чуть ниже, чтобы было видно "стек" */
+  top: calc(var(--card-top) + (var(--i, 0) * 18px));
   height: var(--card-height);
   border-radius: var(--card-radius);
   overflow: hidden;
@@ -1282,6 +1283,8 @@ input[type='number'] {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
   transform-origin: 50% 0%;
   will-change: transform;
+  /* Поздние карточки должны быть поверх ранних */
+  z-index: calc(var(--i, 0) + 1);
 }
 
 .stack-cards .card__bg {
@@ -1407,6 +1410,9 @@ input[type='number'] {
     --stack-pad: 40vh;
     padding: 0 16px;
     padding-bottom: calc(var(--numcards) * var(--stack-pad));
+  }
+  .stack-cards .card__content {
+    top: calc(var(--card-top) + (var(--i, 0) * 12px));
   }
   .stack-cards .card__body {
     left: 22px;

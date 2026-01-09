@@ -1661,6 +1661,8 @@ async function initOurCapabilitiesSlider() {
   slidesData.forEach((slide, index0) => {
     const card = document.createElement('article');
     card.className = 'card';
+    // индекс для CSS (стэкинг + z-index)
+    card.style.setProperty('--i', String(index0));
 
     const bullets = Array.isArray(slide.bullets) ? slide.bullets : [];
     const bulletsHtml = bullets.length
