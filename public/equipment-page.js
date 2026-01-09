@@ -541,7 +541,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             diagramItem.className = 'reach-diagram-item';
             
             const img = document.createElement('img');
-            const imageUrl = diagram.url || diagram;
+            let imageUrl = diagram.url || diagram;
+            
+            // Преобразуем localhost URL в относительный путь
+            if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
+              imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            
+            // Если это относительный путь без начального слэша, добавляем его
+            if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && !imageUrl.startsWith('../')) {
+              imageUrl = '../' + imageUrl;
+            } else if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/')) {
+              // Преобразуем абсолютный путь в относительный для страниц оборудования
+              imageUrl = '..' + imageUrl;
+            }
+            
             console.log(`  📸 Creating diagram ${index + 1}:`, imageUrl);
             img.src = imageUrl;
             img.alt = diagram.title || `Схема вылета стрелы ${index + 1}`;

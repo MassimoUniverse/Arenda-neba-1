@@ -2178,6 +2178,7 @@ function renderReachDiagramsPreview(previewContainer, container) {
     console.log('renderReachDiagramsPreview: rendering', serviceReachDiagramsArray.length, 'diagrams');
     
     if (serviceReachDiagramsArray.length > 0) {
+        container.style.display = 'block';
         serviceReachDiagramsArray.forEach((diagram, index) => {
             const diagramWrapper = document.createElement('div');
             diagramWrapper.setAttribute('data-diagram-index', index);
@@ -2187,16 +2188,54 @@ function renderReachDiagramsPreview(previewContainer, container) {
             diagramWrapper.style.marginBottom = '10px';
             diagramWrapper.style.border = '1px solid #ddd';
             diagramWrapper.style.borderRadius = '4px';
+            
+            let imageUrl = diagram.url || diagram;
+            
+            // Преобразуем localhost URL в относительный путь
+            if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
+                imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            
+            // Если это относительный путь без начального слэша, добавляем его
+            if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                imageUrl = '/' + imageUrl;
+            }
             diagramWrapper.style.padding = '8px';
             diagramWrapper.style.backgroundColor = '#f9f9f9';
             
             const img = document.createElement('img');
-            img.src = diagram.url;
+            img.src = imageUrl;
             img.alt = diagram.title || `Схема ${index + 1}`;
             img.style.width = '100%';
             img.style.height = 'auto';
             img.style.borderRadius = '4px';
             img.style.marginBottom = '8px';
+            img.style.objectFit = 'cover';
+            img.style.backgroundColor = '#f5f5f5';
+            
+            // Обработка ошибок загрузки изображения
+            img.onerror = function() {
+                console.error('❌ Failed to load reach diagram:', imageUrl);
+                this.style.backgroundColor = '#ffebee';
+                this.style.border = '2px solid #f44336';
+                const errorText = document.createElement('div');
+                errorText.textContent = 'Ошибка загрузки';
+                errorText.style.position = 'absolute';
+                errorText.style.bottom = '5px';
+                errorText.style.left = '5px';
+                errorText.style.right = '5px';
+                errorText.style.background = 'rgba(244, 67, 54, 0.9)';
+                errorText.style.color = 'white';
+                errorText.style.padding = '2px 5px';
+                errorText.style.fontSize = '10px';
+                errorText.style.borderRadius = '3px';
+                errorText.style.textAlign = 'center';
+                diagramWrapper.appendChild(errorText);
+            };
+            
+            img.onload = function() {
+                console.log('✅ Reach diagram loaded successfully:', imageUrl);
+            };
             
             const titleInput = document.createElement('input');
             titleInput.type = 'text';
