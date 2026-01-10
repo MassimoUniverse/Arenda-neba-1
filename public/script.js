@@ -73,63 +73,63 @@ async function loadHomepageData() {
 const FALLBACK_SERVICES = [
   {
     title: 'Автовышка 15 метров',
-    price: 'от А 18 000 ₽/смена',
+    price: 'от 18 000 ₽/смена',
     short: 'Компактная автовышка для работ во дворах и стеснённых условиях',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-15m.html',
   },
   {
     title: 'Автовышка-платформа 16 метров',
-    price: 'от А 20 000 ₽/смена',
+    price: 'от 20 000 ₽/смена',
     short: 'Оптимальна для сервисных и монтажных работ. Платформа 2x4м, грузоподъемность 1000 кг',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-16m.html',
   },
   {
     title: 'Автовышка 18 метров',
-    price: 'от А 24 000 ₽/смена',
+    price: 'от 24 000 ₽/смена',
     short: 'Работы на фасадах и рекламных конструкциях',
     image: '/images/avtovyshka-18m.png',
     url: '/equipment/avtovyshka-18m.html',
   },
   {
     title: 'Автовышка-платформа 21 метр',
-    price: 'от А 21 000 ₽/смена',
+    price: 'от 21 000 ₽/смена',
     short: 'Платформа 2x4м с грузоподъемностью 1000 кг. Хороший запас высоты и вылета стрелы',
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
   },
   {
     title: 'Автовышка 25 метров',
-    price: 'от А 21 000 ₽/смена',
+    price: 'от 21 000 ₽/смена',
     short: 'Работы на высоте до 8–9 этажа',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-25m.html',
   },
   {
     title: 'Автовышка 29 метров',
-    price: 'от А 26 000 ₽/смена',
+    price: 'от 26 000 ₽/смена',
     short: 'Монтажные и высотные работы повышенной сложности',
     image: '/images/avtovyshka-29m.png',
     url: '/equipment/avtovyshka-29m.html',
   },
   {
     title: 'Автовышка 45 метров',
-    price: 'от А 22 000 ₽/смена',
+    price: 'от 22 000 ₽/смена',
     short: 'Крупные объекты, промышленные площадки',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-45m.html',
   },
   {
     title: 'Автовышка-вездеход 30 метров',
-    price: 'от А 28 000 ₽/смена',
+    price: 'от 28 000 ₽/смена',
     short: 'Работа там, где обычная техника не проедет',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-vezdehod-35m.html',
   },
   {
     title: 'Самоходная автовышка',
-    price: 'от А 28 000 ₽/смена',
+    price: 'от 28 000 ₽/смена',
     short: 'Манёвренная техника для внутренних работ',
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/samohodnaya-avtovyshka.html',
@@ -1513,7 +1513,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     ],
     image: '/images/avtovyshka-13m.png',
     url: '/equipment/avtovyshka-13m.html',
-    price: 'от А 18 000 ₽/смена'
+    price: 'от 18 000 ₽/смена'
   },
   {
     id: '2',
@@ -1528,7 +1528,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     ],
     image: '/images/avtovyshka-18m.png',
     url: '/equipment/avtovyshka-18m.html',
-    price: 'от А 24 000 ₽/смена'
+    price: 'от 24 000 ₽/смена'
   },
   {
     id: '3',
@@ -1543,7 +1543,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     ],
     image: '/images/avtovyshka-21m.png',
     url: '/equipment/avtovyshka-21m.html',
-    price: 'от А 21 000 ₽/смена'
+    price: 'от 21 000 ₽/смена'
   },
   {
     id: '4',
@@ -1558,7 +1558,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     ],
     image: '/images/avtovyshka-29m.png',
     url: '/equipment/avtovyshka-29m.html',
-    price: 'от А 26 000 ₽/смена'
+    price: 'от 26 000 ₽/смена'
   }
 ];
 
