@@ -1909,42 +1909,7 @@ async function initEquipmentDropdown() {
   `).join('');
 }
 
-// Функция предзагрузки всех критичных изображений
-function preloadImages() {
-  return new Promise((resolve) => {
-    const preloader = document.getElementById('page-preloader');
-    
-    // Функция для скрытия прелоадера
-    const hidePreloader = () => {
-      if (preloader) {
-        preloader.classList.add('hidden');
-        // Удаляем из DOM через 0.5сек после скрытия
-        setTimeout(() => {
-          preloader.remove();
-        }, 500);
-      }
-      resolve();
-    };
-    
-    // Даем максимум 3 секунды на загрузку, потом принудительно скрываем
-    const timeout = setTimeout(hidePreloader, 3000);
-    
-    // Ждем полной загрузки всех ресурсов страницы
-    if (document.readyState === 'complete') {
-      clearTimeout(timeout);
-      hidePreloader();
-    } else {
-      window.addEventListener('load', () => {
-        clearTimeout(timeout);
-        // Небольшая задержка для красоты
-        setTimeout(hidePreloader, 300);
-      });
-    }
-  });
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
-  // Инициализируем контент
   displayServices();
   displayReviews();
   // Загружаем данные для калькулятора из API перед инициализацией
@@ -1953,9 +1918,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initOurCapabilitiesSlider();
   initQuickContactForm();
   initEquipmentDropdown();
-  
-  // Запускаем предзагрузку изображений (скроет прелоадер когда все загрузится)
-  preloadImages();
 });
 
  
