@@ -31,6 +31,9 @@
 
 html {
   /* scroll-behavior: smooth; - отключено, используется Lenis для плавной прокрутки */
+  /* Оптимизация рендеринга для предотвращения микрозависаний */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -40,6 +43,9 @@ body {
   color: var(--text-dark);
   background: var(--bg-light);
   -webkit-font-smoothing: antialiased;
+  /* Оптимизация для плавного скролла */
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 a {
@@ -1070,7 +1076,7 @@ input[type='number'] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, opacity 0.3s ease-in-out;
   /* Улучшение качества изображения - предотвращение размытия */
   image-rendering: -webkit-optimize-contrast;
   image-rendering: auto;
@@ -1082,6 +1088,8 @@ input[type='number'] {
   -webkit-transform: translateZ(0);
   /* Принудительное использование GPU для лучшего качества */
   will-change: transform;
+  /* Минимальная высота для предотвращения скачков */
+  min-height: 180px;
 }
 
 .service-card:hover .service-card-image img {
@@ -1380,6 +1388,11 @@ input[type='number'] {
   margin-bottom: 24px;
   transform-origin: center top;
   will-change: transform;
+  /* Оптимизация рендеринга для плавного скролла */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
 }
 
 .stack-cards__item:last-child {
@@ -1417,6 +1430,12 @@ input[type='number'] {
   height: 100%;
   object-fit: cover;
   display: block;
+  /* Оптимизация загрузки и рендеринга изображений */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .card__gradient {
