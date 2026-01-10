@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
@@ -2329,16 +2330,43 @@ app.post('/api/admin/upload-video', authenticateToken, videoUpload.single('video
   res.json({ url: videoUrl, filename: req.file.filename });
 });
 
-// File upload endpoint (Protected)
-app.post('/api/admin/upload', authenticateToken, upload.single('image'), (req, res) => {
+// File upload endpoint (Protected) with automatic optimization
+app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
-  res.json({ 
-    success: true,
-    filename: req.file.filename,
-    url: `/uploads/${req.file.filename}`
-  });
+  
+  try {
+    const uploadedPath = req.file.path;
+    const filename = path.parse(req.file.filename).name;
+    const outputPath = path.join('uploads', `${filename}.webp`);
+    
+    // Оптимизируем и конвертируем в WebP
+    await sharp(uploadedPath)
+      .resize(1920, null, {
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .webp({ quality: 85 })
+      .toFile(outputPath);
+    
+    // Удаляем оригинал
+    fs.unlinkSync(uploadedPath);
+    
+    res.json({ 
+      success: true,
+      filename: `${filename}.webp`,
+      url: `/uploads/${filename}.webp`
+    });
+  } catch (error) {
+    console.error('Error optimizing image:', error);
+    // Если оптимизация не удалась, возвращаем оригинал
+    res.json({ 
+      success: true,
+      filename: req.file.filename,
+      url: `/uploads/${req.file.filename}`
+    });
+  }
 });
 
 // Start server
