@@ -85,7 +85,7 @@ function generateEquipmentPageHTML(service) {
   const title = service.title ? fixEncoding(service.title) : 'Автовышка';
   const description = service.description ? fixEncoding(service.description) : '';
   const price = service.price ? fixEncoding(service.price) : '';
-  const imageUrl = service.image_url || '/images/avtovyshka-13m.png';
+  const imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
   const url = service.url || '';
   
   // Парсим цены из строки
