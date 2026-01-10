@@ -162,7 +162,7 @@ const STATIC_CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   self: {
     name: 'Самоходная автовышка',
@@ -172,7 +172,7 @@ const STATIC_CALC_EQUIPMENT = {
     height: 12,
     capacity: 230,
     boom: 6,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
 };
 
@@ -190,7 +190,7 @@ let CALC_EQUIPMENT = {
     height: 13,
     capacity: 400,
     boom: 7,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   15: {
     name: 'Автовышка 15 м',
@@ -201,7 +201,7 @@ let CALC_EQUIPMENT = {
     height: 15,
     capacity: 200,
     boom: 8,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   16: {
     name: 'Автовышка 16 м',
@@ -212,7 +212,7 @@ let CALC_EQUIPMENT = {
     height: 16,
     capacity: 200,
     boom: 9,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   17: {
     name: 'Автовышка 17 м',
@@ -223,7 +223,7 @@ let CALC_EQUIPMENT = {
     height: 17,
     capacity: 200,
     boom: 10,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   18: {
     name: 'Автовышка 18 м',
@@ -234,7 +234,7 @@ let CALC_EQUIPMENT = {
     height: 18,
     capacity: 230,
     boom: 11,
-    image: '/images/avtovyshka-18m.png',
+    image: '/images/avtovyshka-18m.webp',
   },
   21: {
     name: 'Автовышка 21 м',
@@ -245,7 +245,7 @@ let CALC_EQUIPMENT = {
     height: 21,
     capacity: 250,
     boom: 12,
-    image: '/images/avtovyshka-21m.png',
+    image: '/images/avtovyshka-21m.webp',
   },
   25: {
     name: 'Автовышка 25 м',
@@ -255,7 +255,7 @@ let CALC_EQUIPMENT = {
     height: 25,
     capacity: 250,
     boom: 14,
-    image: '/images/avtovyshka-25m.png',
+    image: '/images/avtovyshka-25m.webp',
   },
   29: {
     name: 'Автовышка 29 м',
@@ -265,7 +265,7 @@ let CALC_EQUIPMENT = {
     height: 29,
     capacity: 300,
     boom: 16,
-    image: '/images/avtovyshka-29m.png',
+    image: '/images/avtovyshka-29m.webp',
   },
   45: {
     name: 'Автовышка 45 м',
@@ -275,7 +275,7 @@ let CALC_EQUIPMENT = {
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
@@ -285,7 +285,7 @@ let CALC_EQUIPMENT = {
     height: 30,
     capacity: 300,
     boom: 18,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
   self: {
     name: 'Самоходная автовышка',
@@ -295,7 +295,7 @@ let CALC_EQUIPMENT = {
     height: 12,
     capacity: 230,
     boom: 6,
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
   },
 };
 
@@ -361,34 +361,34 @@ function getImageForService(service) {
   
   // Определяем по URL (fallback)
   const url = (service.url || '').toLowerCase();
-  if (url.includes('13m')) return '/images/avtovyshka-13m.png';
-  if (url.includes('15m')) return '/images/avtovyshka-15m.png';
-  if (url.includes('16m')) return '/images/avtovyshka-16m.png';
-  if (url.includes('17m')) return '/images/avtovyshka-17m.png';
-  if (url.includes('18m')) return '/images/avtovyshka-18m.png';
-  if (url.includes('21m')) return '/images/avtovyshka-21m.png';
-  if (url.includes('25m')) return '/images/avtovyshka-25m.png';
-  if (url.includes('29m')) return '/images/avtovyshka-29m.png';
-  if (url.includes('45m')) return '/images/avtovyshka-45m.png';
-  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.png';
-  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.png';
+  if (url.includes('13m')) return '/images/avtovyshka-13m.webp';
+  if (url.includes('15m')) return '/images/avtovyshka-15m.webp';
+  if (url.includes('16m')) return '/images/avtovyshka-16m.webp';
+  if (url.includes('17m')) return '/images/avtovyshka-17m.webp';
+  if (url.includes('18m')) return '/images/avtovyshka-18m.webp';
+  if (url.includes('21m')) return '/images/avtovyshka-21m.webp';
+  if (url.includes('25m')) return '/images/avtovyshka-25m.webp';
+  if (url.includes('29m')) return '/images/avtovyshka-29m.webp';
+  if (url.includes('45m')) return '/images/avtovyshka-45m.webp';
+  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.webp';
+  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.webp';
   
   // Определяем по высоте из названия
   const height = extractHeightFromTitle(service.title);
   if (height) {
-    if (height === 13) return '/images/avtovyshka-13m.png';
-    if (height === 15) return '/images/avtovyshka-15m.png';
-    if (height === 16) return '/images/avtovyshka-16m.png';
-    if (height === 17) return '/images/avtovyshka-17m.png';
-    if (height === 18) return '/images/avtovyshka-18m.png';
-    if (height === 21) return '/images/avtovyshka-21m.png';
-    if (height === 25) return '/images/avtovyshka-25m.png';
-    if (height === 29) return '/images/avtovyshka-29m.png';
-    if (height === 45) return '/images/avtovyshka-45m.png';
+    if (height === 13) return '/images/avtovyshka-13m.webp';
+    if (height === 15) return '/images/avtovyshka-15m.webp';
+    if (height === 16) return '/images/avtovyshka-16m.webp';
+    if (height === 17) return '/images/avtovyshka-17m.webp';
+    if (height === 18) return '/images/avtovyshka-18m.webp';
+    if (height === 21) return '/images/avtovyshka-21m.webp';
+    if (height === 25) return '/images/avtovyshka-25m.webp';
+    if (height === 29) return '/images/avtovyshka-29m.webp';
+    if (height === 45) return '/images/avtovyshka-45m.webp';
   }
   
   // Fallback
-  return '/images/avtovyshka-13m.png';
+  return '/images/avtovyshka-13m.webp';
 }
 
 // Функция для определения базовой цены из price
@@ -1532,7 +1532,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
       'Высота подъема: 13 м',
       'Вылет максимальный: 8 м'
     ],
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-13m.html',
     price: 'от 18 000 ₽/смена'
   },
@@ -1547,7 +1547,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
       'Грузоподъёмность: 200 кг',
       'Проезд в арку: 3000 мм'
     ],
-    image: '/images/avtovyshka-18m.png',
+    image: '/images/avtovyshka-18m.webp',
     url: '/equipment/avtovyshka-18m.html',
     price: 'от 24 000 ₽/смена'
   },
@@ -1562,7 +1562,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
       'Грузоподъёмность: 1000 кг',
       'Размер корзины: 2 x 4 м'
     ],
-    image: '/images/avtovyshka-21m.png',
+    image: '/images/avtovyshka-21m.webp',
     url: '/equipment/avtovyshka-21m.html',
     price: 'от 21 000 ₽/смена'
   },
@@ -1577,7 +1577,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
       'Грузоподъёмность: 200 кг',
       'Проезд в арку: 3300 мм'
     ],
-    image: '/images/avtovyshka-29m.png',
+    image: '/images/avtovyshka-29m.webp',
     url: '/equipment/avtovyshka-29m.html',
     price: 'от 26 000 ₽/смена'
   }
@@ -1665,11 +1665,11 @@ async function initOurCapabilitiesSlider() {
           // Определяем изображение (с нормализацией localhost URLs)
           let slideImage = getImageForService(service);
           const serviceUrl = (service.url || '').toLowerCase();
-          if (slideImage === '/images/avtovyshka-13m.png' && !service.image_url && !(service.images && service.images.length > 0)) {
-            if (serviceUrl.includes('13m')) slideImage = '/images/avtovyshka-13m.png';
-            else if (serviceUrl.includes('18m')) slideImage = '/images/avtovyshka-18m.png';
-            else if (serviceUrl.includes('21m')) slideImage = '/images/avtovyshka-21m.png';
-            else if (serviceUrl.includes('29m')) slideImage = '/images/avtovyshka-29m.png';
+          if (slideImage === '/images/avtovyshka-13m.webp' && !service.image_url && !(service.images && service.images.length > 0)) {
+            if (serviceUrl.includes('13m')) slideImage = '/images/avtovyshka-13m.webp';
+            else if (serviceUrl.includes('18m')) slideImage = '/images/avtovyshka-18m.webp';
+            else if (serviceUrl.includes('21m')) slideImage = '/images/avtovyshka-21m.webp';
+            else if (serviceUrl.includes('29m')) slideImage = '/images/avtovyshka-29m.webp';
           }
 
           // Если сервер всё же вернул битую кодировку — берём fallback текст, но оставляем картинку/URL из базы

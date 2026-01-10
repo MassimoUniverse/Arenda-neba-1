@@ -2339,25 +2339,63 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
   try {
     const uploadedPath = req.file.path;
     const filename = path.parse(req.file.filename).name;
-    const outputPath = path.join('uploads', `${filename}.webp`);
+    const ext = path.extname(req.file.originalname).toLowerCase();
     
-    // Оптимизируем и конвертируем в WebP
-    await sharp(uploadedPath)
-      .resize(1920, null, {
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .webp({ quality: 85 })
-      .toFile(outputPath);
+    // Проверяем размер файла
+    const stats = fs.statSync(uploadedPath);
+    const sizeKB = stats.size / 1024;
+    const sizeMB = sizeKB / 1024;
     
-    // Удаляем оригинал
-    fs.unlinkSync(uploadedPath);
+    // Оптимизируем если:
+    // 1. Файл > 1 MB, ИЛИ
+    // 2. Формат PNG (PNG всегда оптимизируем)
+    const shouldOptimize = ext === '.png' || sizeMB > 1;
     
-    res.json({ 
-      success: true,
-      filename: `${filename}.webp`,
-      url: `/uploads/${filename}.webp`
-    });
+    if (shouldOptimize) {
+      console.log(`Оптимизация изображения: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
+      
+      const webpPath = path.join('uploads', `${filename}.webp`);
+      const jpegPath = path.join('uploads', `${filename}.jpg`);
+      
+      // Создаем WebP версию
+      await sharp(uploadedPath)
+        .resize(1920, null, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .webp({ quality: 85 })
+        .toFile(webpPath);
+      
+      // Создаем JPEG версию для совместимости
+      await sharp(uploadedPath)
+        .resize(1920, null, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: 85 })
+        .toFile(jpegPath);
+      
+      // Удаляем оригинал
+      fs.unlinkSync(uploadedPath);
+      
+      res.json({ 
+        success: true,
+        filename: `${filename}.webp`,
+        url: `/uploads/${filename}.webp`,
+        optimized: true,
+        originalSize: sizeMB.toFixed(2) + ' MB'
+      });
+    } else {
+      console.log(`Файл уже оптимален: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
+      
+      res.json({ 
+        success: true,
+        filename: req.file.filename,
+        url: `/uploads/${req.file.filename}`,
+        optimized: false,
+        size: sizeMB.toFixed(2) + ' MB'
+      });
+    }
   } catch (error) {
     console.error('Error optimizing image:', error);
     // Если оптимизация не удалась, возвращаем оригинал
