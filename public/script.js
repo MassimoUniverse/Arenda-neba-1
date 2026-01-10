@@ -715,31 +715,17 @@ function createServiceCard(service) {
   const imgWrap = document.createElement('div');
   imgWrap.className = 'service-card-image';
   
-  // Добавляем placeholder пока изображение загружается
-  imgWrap.style.backgroundColor = '#f0f0f0';
-  imgWrap.style.position = 'relative';
-  
   const img = document.createElement('img');
   img.src = service.image || '/images/avtovyshka-13m.png';
   img.alt = service.title;
   
   // Оптимизация загрузки изображений
-  img.loading = 'lazy'; // Ленивая загрузка - изображения загружаются только когда видны
+  img.loading = 'eager'; // Загружаем сразу все изображения
   img.decoding = 'async'; // Асинхронная декодировка для лучшей производительности
-  
-  // Показываем изображение плавно после загрузки
-  img.style.opacity = '0';
-  img.style.transition = 'opacity 0.3s ease-in-out';
-  
-  img.onload = function() {
-    this.style.opacity = '1';
-    imgWrap.style.backgroundColor = 'transparent';
-  };
   
   // Если изображение не загружается, используем изображение по умолчанию
   img.onerror = function() {
     this.src = '/images/avtovyshka-13m.png';
-    this.style.opacity = '1';
   };
   
   imgWrap.appendChild(img);
@@ -1739,7 +1725,7 @@ async function initOurCapabilitiesSlider() {
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${slide.image}" alt="${slide.title}" loading="lazy" />
+          <img src="${slide.image}" alt="${slide.title}" loading="eager" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>
