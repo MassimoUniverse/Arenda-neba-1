@@ -782,9 +782,10 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    // Получаем serviceId и serviceTitle из query параметров
+    // Получаем serviceId, serviceTitle и fileType из query параметров
     const serviceId = req.query.serviceId || 'unknown';
     const serviceTitle = req.query.serviceTitle || '';
+    const fileType = req.query.fileType || 'image';
     
     // Создаем slug из названия услуги (безопасное имя файла)
     const slug = serviceTitle
@@ -805,13 +806,16 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
     
-    // Формат: service-{id}-{slug}-{timestamp}-{original}.ext
-    // Пример: service-15-avtovyshka-18-metrov-1704123456789-photo1.jpg
+    // Формат: service-{id}-{type}-{slug}-{timestamp}-{original}.ext
+    // Примеры: 
+    // service-15-main-image-avtovyshka-18-metrov-1704123456789-photo1.jpg
+    // service-15-gallery-avtovyshka-18-metrov-1704123456790-img2.jpg
+    // service-15-reach-diagram-avtovyshka-18-metrov-1704123456791-schema.jpg
     let filename;
     if (slug) {
-      filename = `service-${serviceId}-${slug}-${timestamp}-${originalName}${ext}`;
+      filename = `service-${serviceId}-${fileType}-${slug}-${timestamp}-${originalName}${ext}`;
     } else {
-      filename = `service-${serviceId}-${timestamp}-${originalName}${ext}`;
+      filename = `service-${serviceId}-${fileType}-${timestamp}-${originalName}${ext}`;
     }
     
     cb(null, filename);

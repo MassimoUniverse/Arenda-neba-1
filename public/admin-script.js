@@ -12,7 +12,7 @@ function escapeHtml(text) {
 }
 
 // Upload image function
-async function uploadImage(file, imageUrlInputId, previewId) {
+async function uploadImage(file, imageUrlInputId, previewId, fileType = 'image') {
     if (!file) return;
     
     const formData = new FormData();
@@ -23,7 +23,7 @@ async function uploadImage(file, imageUrlInputId, previewId) {
     const serviceTitle = document.getElementById('serviceTitle')?.value || 'untitled';
     
     try {
-        const response = await fetch(`${API_URL}/api/admin/upload?serviceId=${encodeURIComponent(serviceId)}&serviceTitle=${encodeURIComponent(serviceTitle)}`, {
+        const response = await fetch(`${API_URL}/api/admin/upload?serviceId=${encodeURIComponent(serviceId)}&serviceTitle=${encodeURIComponent(serviceTitle)}&fileType=${encodeURIComponent(fileType)}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -1740,8 +1740,8 @@ async function handleImageUpload(fileInput, imageUrlInputId, previewId) {
         preview.style.opacity = '0.5';
     }
     
-    // Upload file
-    const uploadedUrl = await uploadImage(file, imageUrlInputId, previewId);
+    // Upload file (основное изображение услуги)
+    const uploadedUrl = await uploadImage(file, imageUrlInputId, previewId, 'main-image');
     
     if (uploadedUrl && preview) {
         preview.style.opacity = '1';
@@ -1944,7 +1944,7 @@ async function handleMultipleImagesUpload(fileInput, previewContainerId) {
     const uploadedUrls = [];
     for (const file of validFiles) {
         try {
-            const url = await uploadImage(file, null, null);
+            const url = await uploadImage(file, null, null, 'gallery');
             if (url) {
                 uploadedUrls.push(url);
             }
@@ -2034,7 +2034,7 @@ async function handleMultipleReachDiagramsUpload(fileInput, previewContainerId) 
     const uploadedDiagrams = [];
     for (const file of validFiles) {
         try {
-            const url = await uploadImage(file, null, null);
+            const url = await uploadImage(file, null, null, 'reach-diagram');
             if (url) {
                 uploadedDiagrams.push({ url: url, title: `Схема вылета стрелы ${serviceReachDiagramsArray.length + uploadedDiagrams.length + 1}` });
             }
