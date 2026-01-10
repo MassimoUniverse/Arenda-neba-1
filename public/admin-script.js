@@ -18,8 +18,12 @@ async function uploadImage(file, imageUrlInputId, previewId) {
     const formData = new FormData();
     formData.append('image', file);
     
+    // Получаем информацию об услуге для правильного именования файла
+    const serviceId = document.getElementById('serviceForm')?.dataset.serviceId || 'new';
+    const serviceTitle = document.getElementById('serviceTitle')?.value || 'untitled';
+    
     try {
-        const response = await fetch(`${API_URL}/api/admin/upload`, {
+        const response = await fetch(`${API_URL}/api/admin/upload?serviceId=${encodeURIComponent(serviceId)}&serviceTitle=${encodeURIComponent(serviceTitle)}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -364,8 +368,12 @@ async function handleVideoUpload(fileInput, urlInputId, previewId) {
     const formData = new FormData();
     formData.append('video', file);
     
+    // Получаем информацию об услуге для правильного именования файла
+    const serviceId = document.getElementById('serviceForm')?.dataset.serviceId || 'homepage';
+    const serviceTitle = document.getElementById('serviceTitle')?.value || 'video';
+    
     try {
-        const response = await fetch(`${API_URL}/api/admin/upload-video`, {
+        const response = await fetch(`${API_URL}/api/admin/upload-video?serviceId=${encodeURIComponent(serviceId)}&serviceTitle=${encodeURIComponent(serviceTitle)}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -454,7 +462,7 @@ function showServiceModal(id = null) {
     const modalBody = document.getElementById('modalBody');
     const serviceId = id || null;
     modalBody.innerHTML = `
-        <form id="serviceForm">
+        <form id="serviceForm" data-service-id="${serviceId || 'new'}"
             <div class="form-section">
                 <h3 class="form-section-title">Основная информация</h3>
             <div class="form-group">

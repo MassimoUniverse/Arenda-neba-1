@@ -782,8 +782,39 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    // Получаем serviceId и serviceTitle из query параметров
+    const serviceId = req.query.serviceId || 'unknown';
+    const serviceTitle = req.query.serviceTitle || '';
+    
+    // Создаем slug из названия услуги (безопасное имя файла)
+    const slug = serviceTitle
+      ? serviceTitle
+          .toLowerCase()
+          .replace(/[^а-яёa-z0-9]/gi, '-') // Заменяем все кроме букв и цифр на дефис
+          .replace(/-+/g, '-') // Убираем множественные дефисы
+          .replace(/^-|-$/g, '') // Убираем дефисы в начале и конце
+          .substring(0, 50) // Ограничиваем длину
+      : '';
+    
+    // Получаем оригинальное имя файла без расширения (первые 30 символов)
+    const originalName = path.parse(file.originalname).name
+      .replace(/[^а-яёa-z0-9]/gi, '-')
+      .replace(/-+/g, '-')
+      .substring(0, 30);
+    
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    
+    // Формат: service-{id}-{slug}-{timestamp}-{original}.ext
+    // Пример: service-15-avtovyshka-18-metrov-1704123456789-photo1.jpg
+    let filename;
+    if (slug) {
+      filename = `service-${serviceId}-${slug}-${timestamp}-${originalName}${ext}`;
+    } else {
+      filename = `service-${serviceId}-${timestamp}-${originalName}${ext}`;
+    }
+    
+    cb(null, filename);
   }
 });
 
@@ -2241,8 +2272,32 @@ const videoUpload = multer({
       cb(null, 'public/');
     },
     filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, 'video-' + uniqueSuffix + path.extname(file.originalname));
+      // Получаем serviceId и serviceTitle из query параметров
+      const serviceId = req.query.serviceId || 'homepage';
+      const serviceTitle = req.query.serviceTitle || '';
+      
+      // Создаем slug из названия
+      const slug = serviceTitle
+        ? serviceTitle
+            .toLowerCase()
+            .replace(/[^а-яёa-z0-9]/gi, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+            .substring(0, 50)
+        : '';
+      
+      const timestamp = Date.now();
+      const ext = path.extname(file.originalname);
+      
+      // Формат: video-{id}-{slug}-{timestamp}.ext
+      let filename;
+      if (slug && serviceId !== 'homepage') {
+        filename = `video-service-${serviceId}-${slug}-${timestamp}${ext}`;
+      } else {
+        filename = `video-${serviceId}-${timestamp}${ext}`;
+      }
+      
+      cb(null, filename);
     }
   }),
   limits: {
