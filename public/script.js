@@ -75,63 +75,63 @@ const FALLBACK_SERVICES = [
     title: 'Автовышка 15 метров',
     price: 'от 18 000 ₽/смена',
     short: 'Компактная автовышка для работ во дворах и стеснённых условиях',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-15m.html',
   },
   {
     title: 'Автовышка-платформа 16 метров',
     price: 'от 20 000 ₽/смена',
     short: 'Оптимальна для сервисных и монтажных работ. Платформа 2x4м, грузоподъемность 1000 кг',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-16m.html',
   },
   {
     title: 'Автовышка 18 метров',
     price: 'от 24 000 ₽/смена',
     short: 'Работы на фасадах и рекламных конструкциях',
-    image: '/images/avtovyshka-18m.png',
+    image: '/images/avtovyshka-18m.webp',
     url: '/equipment/avtovyshka-18m.html',
   },
   {
     title: 'Автовышка-платформа 21 метр',
     price: 'от 21 000 ₽/смена',
     short: 'Платформа 2x4м с грузоподъемностью 1000 кг. Хороший запас высоты и вылета стрелы',
-    image: '/images/avtovyshka-21m.png',
+    image: '/images/avtovyshka-21m.webp',
     url: '/equipment/avtovyshka-21m.html',
   },
   {
     title: 'Автовышка 25 метров',
     price: 'от 21 000 ₽/смена',
     short: 'Работы на высоте до 8–9 этажа',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-25m.html',
   },
   {
     title: 'Автовышка 29 метров',
     price: 'от 26 000 ₽/смена',
     short: 'Монтажные и высотные работы повышенной сложности',
-    image: '/images/avtovyshka-29m.png',
+    image: '/images/avtovyshka-29m.webp',
     url: '/equipment/avtovyshka-29m.html',
   },
   {
     title: 'Автовышка 45 метров',
     price: 'от 22 000 ₽/смена',
     short: 'Крупные объекты, промышленные площадки',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-45m.html',
   },
   {
     title: 'Автовышка-вездеход 30 метров',
     price: 'от 28 000 ₽/смена',
     short: 'Работа там, где обычная техника не проедет',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-vezdehod-35m.html',
   },
   {
     title: 'Самоходная автовышка',
     price: 'от 28 000 ₽/смена',
     short: 'Манёвренная техника для внутренних работ',
-    image: '/images/avtovyshka-13m.png',
+    image: '/images/avtovyshka-13m.webp',
     url: '/equipment/samohodnaya-avtovyshka.html',
   },
 ];
@@ -715,20 +715,37 @@ function createServiceCard(service) {
   const imgWrap = document.createElement('div');
   imgWrap.className = 'service-card-image';
   
+  // Создаем picture element для WebP с fallback
+  const picture = document.createElement('picture');
+  
+  // WebP source
+  const sourceWebp = document.createElement('source');
+  const imageSrc = service.image || '/images/avtovyshka-13m.webp';
+  const webpSrc = imageSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+  sourceWebp.srcset = webpSrc;
+  sourceWebp.type = 'image/webp';
+  
+  // JPEG fallback source
+  const sourceJpeg = document.createElement('source');
+  const jpegSrc = imageSrc.replace(/\.(png|webp)$/i, '.jpg');
+  sourceJpeg.srcset = jpegSrc;
+  sourceJpeg.type = 'image/jpeg';
+  
+  // IMG fallback
   const img = document.createElement('img');
-  img.src = service.image || '/images/avtovyshka-13m.png';
+  img.src = jpegSrc;
   img.alt = service.title;
+  img.loading = 'eager';
+  img.decoding = 'async';
   
-  // Оптимизация загрузки изображений
-  img.loading = 'eager'; // Загружаем сразу все изображения
-  img.decoding = 'async'; // Асинхронная декодировка для лучшей производительности
-  
-  // Если изображение не загружается, используем изображение по умолчанию
   img.onerror = function() {
-    this.src = '/images/avtovyshka-13m.png';
+    this.src = '/images/avtovyshka-13m.webp';
   };
   
-  imgWrap.appendChild(img);
+  picture.appendChild(sourceWebp);
+  picture.appendChild(sourceJpeg);
+  picture.appendChild(img);
+  imgWrap.appendChild(picture);
 
   const body = document.createElement('div');
   body.className = 'service-card-body';
