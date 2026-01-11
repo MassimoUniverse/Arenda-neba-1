@@ -101,6 +101,36 @@ function fixEncoding(text) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // =============================================
+  // БУРГЕР-МЕНЮ ДЛЯ МОБИЛЬНЫХ
+  // =============================================
+  const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+  const mobileNav = document.querySelector('.mobile-nav');
+  
+  if (mobileMenuBtn && mobileNav) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenuBtn.classList.toggle('active');
+      mobileNav.classList.toggle('open');
+    });
+    
+    // Закрыть меню при клике на ссылку
+    const mobileNavLinks = mobileNav.querySelectorAll('a');
+    mobileNavLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenuBtn.classList.remove('active');
+        mobileNav.classList.remove('open');
+      });
+    });
+    
+    // Закрыть меню при клике вне его
+    document.addEventListener('click', (e) => {
+      if (!mobileMenuBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+        mobileMenuBtn.classList.remove('active');
+        mobileNav.classList.remove('open');
+      }
+    });
+  }
+  
   // Инициализация Lenis для плавной прокрутки
   let lenis;
   if (typeof Lenis !== 'undefined') {
