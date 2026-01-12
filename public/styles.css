@@ -744,8 +744,9 @@ a.logo:hover {
 
 .calculator-layout {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr 1fr;
   gap: 32px;
+  align-items: stretch;
 }
 
 .calculator-form {
@@ -758,9 +759,8 @@ a.logo:hover {
   gap: 24px;
   box-shadow: var(--shadow-sm);
   align-items: start;
-  /* Фиксируем высоту формы чтобы не было дёрганья */
-  height: fit-content;
   align-content: start;
+  height: 100%;
 }
 
 .field {
@@ -908,35 +908,35 @@ input[type='number'] {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  height: 100%;
 }
 
 .calculator-preview {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px 24px 20px;
+  padding: 24px;
   box-shadow: var(--shadow-sm);
-  /* Фиксируем высоту чтобы не было дёрганья при смене техники */
-  height: 450px;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .calculator-preview-image {
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   background: var(--bg-light);
-  width: 384px;
-  height: 239px;
+  width: 100%;
+  aspect-ratio: 16 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .calculator-preview-image img {
-  width: 384px;
-  height: 239px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
   border-radius: 10px;
@@ -953,12 +953,11 @@ input[type='number'] {
 }
 
 .calculator-specs {
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   padding-left: 18px;
   font-size: 14px;
   color: var(--text-muted);
-  /* Фиксируем минимальную высоту для 3 строк чтобы не было дёрганья */
-  min-height: 72px;
+  flex: 1;
 }
 
 .calculator-specs li + li {
@@ -3271,9 +3270,7 @@ input[type='number'] {
 
 .calc-select-current {
   width: 100%;
-  min-width: 220px;
   min-height: 48px;
-  height: 48px;
   padding: 12px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -3288,6 +3285,9 @@ input[type='number'] {
   gap: 8px;
   cursor: pointer;
   transition: border-color 0.25s ease, background-color 0.25s ease;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .calc-select-current::after {
@@ -3333,10 +3333,10 @@ input[type='number'] {
 }
 
 .calc-select.open .calc-select-options {
-  max-height: 350px;
+  max-height: 300px;
   opacity: 1;
   transform: translateY(0);
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
 }
 
