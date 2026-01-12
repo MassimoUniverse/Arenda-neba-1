@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -8,9 +8,9 @@
     
     <!-- Favicon -->
     <link rel="icon" href="../logo.svg" type="image/svg+xml">
+    
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
-    
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -53,7 +53,7 @@
                     <a href="../index.html#contacts">Контакты</a>
                 </nav>
                 <div class="header-contacts-mini">
-                    <a href="tel:+79910009111" class="header-messenger phone" data-ct="phone" aria-label="Позвонить">
+                    <a href="tel:+79910009111" data-ct="phone" class="header-messenger phone" aria-label="Позвонить">
                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                         </svg>
@@ -71,18 +71,17 @@
                             </svg>
                         </a>
                     </div>
-                                <!-- Бургер-меню для мобильных -->
+                </div>
+                <!-- Бургер-меню для мобильных -->
                 <button class="mobile-menu-btn" aria-label="Меню">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
-</div>
             </div>
         </div>
     </header>
 
-    
     <!-- Мобильное меню -->
     <nav class="mobile-nav">
         <a href="../index.html#calculator">Калькулятор</a>
@@ -91,14 +90,14 @@
         <a href="../index.html#contacts">Контакты</a>
     </nav>
 
-<!-- Breadcrumbs -->
+    <!-- Breadcrumbs -->
     <div class="breadcrumbs">
         <div class="container">
             <a href="../index.html">Главная</a>
             <span>/</span>
             <a href="../index.html#services">Автопарк</a>
             <span>/</span>
-            <span>Автовышка 16 метров</span>
+            <span>Автовышка-платформа 13м</span>
         </div>
     </div>
 
@@ -109,7 +108,7 @@
                 <h1>Автовышка 16 метров</h1>
                 <div class="equipment-price">
                     <span class="price-label">Цена аренды:</span>
-                    <span class="price-value">от 15 000 ₽/полсмена, от 18 000 ₽/смена <span class="price-vat">без НДС</span></span>
+                    <span class="price-value">20 000 ₽ / смена <span class="price-vat">без НДС</span></span>
                 </div>
             </div>
 
@@ -117,10 +116,10 @@
                 <div class="equipment-left">
                     <div class="equipment-gallery">
                         <div class="main-image">
-                            <img src="http://localhost:3000/uploads/1767109540895-9602558.png" alt="Автовышка 16 метров" id="mainEquipmentImage">
+                            <img src="../images/avtovyshka-13m.png" alt="Автовышка 13 метров" id="mainEquipmentImage">
                         </div>
-                        <div class="gallery-thumbnails" id="galleryThumbnails">
-                            <img src="http://localhost:3000/uploads/1767109540895-9602558.png" alt="Вид 1" class="active">
+                        <div class="gallery-thumbnails">
+                            <img src="../images/avtovyshka-13m.png" alt="Вид 1" class="active">
                         </div>
                     </div>
 
@@ -143,7 +142,6 @@
                                     </select>
                                     <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
                                 </label>
-                                <label class="calc-field">
                             </div>
                             <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
                             <div class="calc-result" id="equipmentCalcResult">
@@ -155,9 +153,9 @@
 
                     <!-- Order Form -->
                     <div class="equipment-order-form">
-                        <h2>Заказать автовышка 16 метров</h2>
+                        <h2>Заказать автовышку-платформу 13м</h2>
                         <form id="orderForm">
-                            <input type="hidden" name="equipment" value="Автовышка 16 метров">
+                            <input type="hidden" name="equipment" value="Автовышка-платформа 13м">
                             <div class="form-group">
                                 <input type="text" name="name" placeholder="Ваше имя *" required>
                             </div>
@@ -208,58 +206,57 @@
                                     <div class="spec-item">
                                         <div class="spec-icon">📏</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Высота подъема люльки</div>
+                                            <div class="spec-label">Высота подъема</div>
                                             <div class="spec-value">16  м</div>
-                                        </div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-icon">📐</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Максимальный вылет</div>
-                                            <div class="spec-value">11  м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">⚖️</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Максимальная грузоподъемность</div>
+                                            <div class="spec-label">Грузоподъемность корзины</div>
                                             <div class="spec-value">1000  кг</div>
                                         </div>
                                     </div>
-                                    
                                     <div class="spec-item">
-                                        <div class="spec-icon">📏</div>
+                                        <div class="spec-icon">📐</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Длина в транспортном положении</div>
-                                            <div class="spec-value">6,5</div>
+                                            <div class="spec-label">Вылет стрелы</div>
+                                            <div class="spec-value">11  м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
-                                        <div class="spec-icon">📏</div>
+                                        <div class="spec-icon">📦</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Высота в транспортном положении</div>
-                                            <div class="spec-value">3,5</div>
+                                            <div class="spec-label">Размер корзины (платформы)</div>
+                                            <div class="spec-value">2 x 4 м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
-                                        <div class="spec-icon">📏</div>
+                                        <div class="spec-icon">🚗</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Ширина</div>
-                                            <div class="spec-value">2,0</div>
+                                            <div class="spec-label">Тип</div>
+                                            <div class="spec-value">Автовышка-платформа</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
-                                        <div class="spec-icon">🔄</div>
+                                        <div class="spec-icon">🔋</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Угол поворота стрелы</div>
-                                            <div class="spec-value">360 °</div>
+                                            <div class="spec-label">Напряжение</div>
+                                            <div class="spec-value">220В в люльке</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
-                                        <div class="spec-icon">🔄</div>
+                                        <div class="spec-icon">🎯</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Угол поворота корзины</div>
-                                            <div class="spec-value">360 °</div>
+                                            <div class="spec-label">Маневренность</div>
+                                            <div class="spec-value">Радиус разворота 6м</div>
+                                        </div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-icon">⏱️</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Время установки</div>
+                                            <div class="spec-value">5-10 минут</div>
                                         </div>
                                     </div>
                                 </div>
@@ -273,7 +270,20 @@
                         <div class="equipment-tab-content" id="tab-description">
                             <div class="info-section" style="padding: 0; margin: 0;">
                                 <h2 style="margin-top: 0; margin-bottom: 16px;">Описание</h2>
-                                <p>Автовышка-платформа с увеличенной грузоподъемностью. Подходит для работ с более тяжелыми грузами и материалами.</p>
+                                <p>Автовышка-платформа 13 метров - компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.</p>
+                                <p>Техника в отличном техническом состоянии, регулярно проходит ТО. В стоимость аренды входит работа опытного машиниста и ГСМ.</p>
+                                
+                                <h2 style="margin-top: 24px; margin-bottom: 16px;">Область применения</h2>
+                                <ul class="application-list">
+                                    <li>✅ Фасадные работы на небольших высотах</li>
+                                    <li>✅ Установка и обслуживание кондиционеров</li>
+                                    <li>✅ Монтаж вывесок и рекламных конструкций</li>
+                                    <li>✅ Установка уличного освещения</li>
+                                    <li>✅ Обрезка деревьев</li>
+                                    <li>✅ Мойка фасадов и окон</li>
+                                    <li>✅ Ремонт кровли малоэтажных зданий</li>
+                                    <li>✅ Монтаж систем вентиляции</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -283,11 +293,19 @@
                         <div class="pricing-table">
                             <div class="pricing-row">
                                 <span>Полсмены (3+1 часа)</span>
-                                <span class="pricing-value">15 000 ₽ <span class="price-vat">без НДС</span></span>
+                                <span class="pricing-value">18000 ₽ <span class="price-vat">без НДС</span></span>
                             </div>
                             <div class="pricing-row">
                                 <span>1 смена (8 часов)</span>
-                                <span class="pricing-value">18 000 ₽ <span class="price-vat">без НДС</span></span>
+                                <span class="pricing-value">20 000 ₽ <span class="price-vat">без НДС</span></span>
+                            </div>
+                            <div class="pricing-row">
+                                <span>2 смены (16 часов)</span>
+                                <span class="pricing-value">40 000 ₽ <span class="price-vat">без НДС</span></span>
+                            </div>
+                            <div class="pricing-row">
+                                <span>3+ смены</span>
+                                <span class="pricing-value">Договорная</span>
                             </div>
                             <div class="pricing-row">
                                 <span>Подача техники (за КАД)</span>
@@ -337,5 +355,11 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
     <script src="../equipment-page.js"></script>
+    
+    <!-- calltouch -->
+    <script>
+    (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","k2vlrfd9");
+    </script>
+    <!-- calltouch -->
 </body>
 </html>

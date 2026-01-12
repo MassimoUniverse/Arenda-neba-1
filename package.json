@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "init-db": "node init-db.js",
-    "fix-encoding": "node fix-encoding.js"
+    "fix-encoding": "node fix-encoding.js",
+    "generate-pages": "node generate-pages.js",
+    "update": "bash update.sh"
   },
   "keywords": [
     "аренда",

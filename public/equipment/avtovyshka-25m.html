@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Автовышка 25 метров - Аренда в СПб | Аренда Неба</title>
-    <meta name="description" content="Аренда автовышки 25 метров в Санкт-Петербурге. Высота подъема 25м, грузоподъемность 250 кг. ☎ +7 (991) 000-91-11">
+    <meta name="description" content="Универсальная автовышка для работ на высоте до 25 метров. Хорошая проходимость и маневренность.">
     
     <!-- Favicon -->
     <link rel="icon" href="../logo.svg" type="image/svg+xml">
+    
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
     <!-- Yandex.Metrika counter -->
@@ -70,18 +71,17 @@
                             </svg>
                         </a>
                     </div>
-                                <!-- Бургер-меню для мобильных -->
+                </div>
+                <!-- Бургер-меню для мобильных -->
                 <button class="mobile-menu-btn" aria-label="Меню">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
-</div>
             </div>
         </div>
     </header>
 
-    
     <!-- Мобильное меню -->
     <nav class="mobile-nav">
         <a href="../index.html#calculator">Калькулятор</a>
@@ -90,14 +90,14 @@
         <a href="../index.html#contacts">Контакты</a>
     </nav>
 
-<!-- Breadcrumbs -->
+    <!-- Breadcrumbs -->
     <div class="breadcrumbs">
         <div class="container">
             <a href="../index.html">Главная</a>
             <span>/</span>
-            <a href="../index.html#services">Услуги</a>
+            <a href="../index.html#services">Автопарк</a>
             <span>/</span>
-            <span>Автовышка 25м</span>
+            <span>Автовышка-платформа 13м</span>
         </div>
     </div>
 
@@ -108,7 +108,7 @@
                 <h1>Автовышка 25 метров</h1>
                 <div class="equipment-price">
                     <span class="price-label">Цена аренды:</span>
-                    <span class="price-value">22 000 ₽ / смена <span class="price-vat">без НДС</span></span>
+                    <span class="price-value">20 000 ₽ / смена <span class="price-vat">без НДС</span></span>
                 </div>
             </div>
 
@@ -116,49 +116,46 @@
                 <div class="equipment-left">
                     <div class="equipment-gallery">
                         <div class="main-image">
-                            <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop" alt="Автовышка 13 метров">
+                            <img src="../images/avtovyshka-13m.png" alt="Автовышка 13 метров" id="mainEquipmentImage">
                         </div>
                         <div class="gallery-thumbnails">
-                            <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=200&h=150&fit=crop" alt="Вид 1" class="active">
-                            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=200&h=150&fit=crop" alt="Вид 2">
-                            <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=200&h=150&fit=crop" alt="Вид 3">
+                            <img src="../images/avtovyshka-13m.png" alt="Вид 1" class="active">
                         </div>
                     </div>
 
                     <!-- Мини-калькулятор для конкретной техники -->
                     <div class="equipment-calculator" id="equipmentCalculator">
-                    <div class="equipment-calculator-header">
-                        <h3>Рассчитать стоимость аренды</h3>
-                        <p>Укажите параметры для расчета стоимости</p>
-                    </div>
-                    <form class="equipment-calculator-form" id="equipmentCalculatorForm">
-                        <div class="calc-field-group">
-                            <label class="calc-field">
-                                <span class="calc-field-label">Количество смен</span>
-                                <select id="equip-calc-shifts" required>
-                                    <option value="0.5">Полсмены</option>
-                                    <option value="1" selected>1 смена</option>
-                                    <option value="2">2 смены</option>
-                                    <option value="3">3 смены</option>
-                                    <option value="more">Более 3 смен</option>
-                                </select>
-                                <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                            </label>
-                            <label class="calc-field">
+                        <div class="equipment-calculator-header">
+                            <h3>Рассчитать стоимость аренды</h3>
+                            <p>Укажите параметры для расчета стоимости</p>
                         </div>
-                        <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
-                        <div class="calc-result" id="equipmentCalcResult">
-                            <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
-                        </div>
-                        <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
+                        <form class="equipment-calculator-form" id="equipmentCalculatorForm">
+                            <div class="calc-field-group">
+                                <label class="calc-field">
+                                    <span class="calc-field-label">Количество смен</span>
+                                    <select id="equip-calc-shifts" required>
+                                        <option value="0.5">Полсмены</option>
+                                        <option value="1" selected>1 смена</option>
+                                        <option value="2">2 смены</option>
+                                        <option value="3">3 смены</option>
+                                        <option value="more">Более 3 смен</option>
+                                    </select>
+                                    <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
+                            <div class="calc-result" id="equipmentCalcResult">
+                                <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
+                            </div>
+                            <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
                         </form>
                     </div>
 
                     <!-- Order Form -->
                     <div class="equipment-order-form">
-                        <h2>Заказать автовышку 25м</h2>
+                        <h2>Заказать автовышку-платформу 13м</h2>
                         <form id="orderForm">
-                            <input type="hidden" name="equipment" value="Автовышка 25м">
+                            <input type="hidden" name="equipment" value="Автовышка-платформа 13м">
                             <div class="form-group">
                                 <input type="text" name="name" placeholder="Ваше имя *" required>
                             </div>
@@ -210,35 +207,35 @@
                                         <div class="spec-icon">📏</div>
                                         <div class="spec-info">
                                             <div class="spec-label">Высота подъема</div>
-                                            <div class="spec-value">25 метров</div>
+                                            <div class="spec-value">25  м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">⚖️</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Грузоподъемность люльки</div>
-                                            <div class="spec-value">250 кг</div>
+                                            <div class="spec-label">Грузоподъемность корзины</div>
+                                            <div class="spec-value">250  кг</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">📐</div>
                                         <div class="spec-info">
                                             <div class="spec-label">Вылет стрелы</div>
-                                            <div class="spec-value">13,5 метров</div>
-                                        </div>
-                                    </div>
-                                    <div class="spec-item">
-                                        <div class="spec-icon">🚗</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Проезд в арку</div>
-                                            <div class="spec-value">3500 мм</div>
+                                            <div class="spec-value">13,5 м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
                                         <div class="spec-icon">📦</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Размер люльки</div>
-                                            <div class="spec-value">1.2 x 0.7 м</div>
+                                            <div class="spec-label">Размер корзины (платформы)</div>
+                                            <div class="spec-value">2 x 4 м</div>
+                                        </div>
+                                    </div>
+                                    <div class="spec-item">
+                                        <div class="spec-icon">🚗</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Тип</div>
+                                            <div class="spec-value">Автовышка-платформа</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
@@ -252,7 +249,7 @@
                                         <div class="spec-icon">🎯</div>
                                         <div class="spec-info">
                                             <div class="spec-label">Маневренность</div>
-                                            <div class="spec-value">Радиус разворота 7м</div>
+                                            <div class="spec-value">Радиус разворота 6м</div>
                                         </div>
                                     </div>
                                     <div class="spec-item">
@@ -273,18 +270,19 @@
                         <div class="equipment-tab-content" id="tab-description">
                             <div class="info-section" style="padding: 0; margin: 0;">
                                 <h2 style="margin-top: 0; margin-bottom: 16px;">Описание</h2>
-                                <p>Автовышка 25 метров - универсальная машина для работ на высоте до 8-9 этажа. Идеально подходит для фасадных работ, монтажа конструкций, установки оборудования и высотных работ.</p>
+                                <p>Автовышка-платформа 13 метров - компактная и маневренная машина с большой платформой для работ на небольших высотах. Идеально подходит для фасадных работ, установки кондиционеров, монтажа вывесок и освещения.</p>
                                 <p>Техника в отличном техническом состоянии, регулярно проходит ТО. В стоимость аренды входит работа опытного машиниста и ГСМ.</p>
                                 
                                 <h2 style="margin-top: 24px; margin-bottom: 16px;">Область применения</h2>
                                 <ul class="application-list">
-                                    <li>✅ Фасадные и высотные работы</li>
+                                    <li>✅ Фасадные работы на небольших высотах</li>
                                     <li>✅ Установка и обслуживание кондиционеров</li>
                                     <li>✅ Монтаж вывесок и рекламных конструкций</li>
                                     <li>✅ Установка уличного освещения</li>
                                     <li>✅ Обрезка деревьев</li>
                                     <li>✅ Мойка фасадов и окон</li>
-                                    <li>✅ Ремонт кровли</li>
+                                    <li>✅ Ремонт кровли малоэтажных зданий</li>
+                                    <li>✅ Монтаж систем вентиляции</li>
                                 </ul>
                             </div>
                         </div>
@@ -294,12 +292,16 @@
                         <h2>Стоимость аренды</h2>
                         <div class="pricing-table">
                             <div class="pricing-row">
+                                <span>Полсмены (3+1 часа)</span>
+                                <span class="pricing-value">21000 ₽ <span class="price-vat">без НДС</span></span>
+                            </div>
+                            <div class="pricing-row">
                                 <span>1 смена (8 часов)</span>
-                                <span class="pricing-value">22 000 ₽ <span class="price-vat">без НДС</span></span>
+                                <span class="pricing-value">20 000 ₽ <span class="price-vat">без НДС</span></span>
                             </div>
                             <div class="pricing-row">
                                 <span>2 смены (16 часов)</span>
-                                <span class="pricing-value">44 000 ₽ <span class="price-vat">без НДС</span></span>
+                                <span class="pricing-value">40 000 ₽ <span class="price-vat">без НДС</span></span>
                             </div>
                             <div class="pricing-row">
                                 <span>3+ смены</span>
@@ -347,10 +349,9 @@
     </footer>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
     <script src="../equipment-page.js"></script>
@@ -362,4 +363,3 @@
     <!-- calltouch -->
 </body>
 </html>
-
