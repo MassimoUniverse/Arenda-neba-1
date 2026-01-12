@@ -755,9 +755,12 @@ a.logo:hover {
   padding: 32px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 24px;
   box-shadow: var(--shadow-sm);
   align-items: start;
+  /* Фиксируем высоту формы чтобы не было дёрганья */
+  min-height: 280px;
+  align-content: start;
 }
 
 .field {
@@ -780,11 +783,12 @@ a.logo:hover {
 }
 
 .field-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
 }
 
 .calculator-form select,
@@ -842,10 +846,14 @@ input[type='number'] {
   line-height: 1;
 }
 
-/* Выравнивание кнопки "Рассчитать" с кнопкой "+" */
+/* Выравнивание кнопки "Рассчитать" */
 .calculator-form > .btn-calc {
-  align-self: start;
-  margin-top: 21px; /* Выравнивание: высота label (13px line-height + 8px gap) = 21px */
+  align-self: end;
+  margin-top: 0;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 32px;
 }
 
 .number-btn {
@@ -906,6 +914,10 @@ input[type='number'] {
   border-radius: var(--radius);
   padding: 24px 24px 20px;
   box-shadow: var(--shadow-sm);
+  /* Фиксируем высоту чтобы не было дёрганья при смене техники */
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
 .calculator-preview-image {
@@ -943,6 +955,8 @@ input[type='number'] {
   padding-left: 18px;
   font-size: 14px;
   color: var(--text-muted);
+  /* Фиксируем минимальную высоту для 3 строк чтобы не было дёрганья */
+  min-height: 72px;
 }
 
 .calculator-specs li + li {
@@ -3246,11 +3260,12 @@ input[type='number'] {
 
 .calc-select {
   position: relative;
+  z-index: 10;
 }
 
 .calc-select-current {
   width: 100%;
-  min-width: 150px;
+  min-width: 180px;
   min-height: 48px;
   height: 48px;
   padding: 12px 16px;
@@ -3258,6 +3273,8 @@ input[type='number'] {
   border: 1px solid var(--border);
   background: var(--bg-light);
   font: inherit;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--text-dark);
   display: flex;
   align-items: center;
@@ -3293,7 +3310,10 @@ input[type='number'] {
 }
 
 .calc-select-options {
-  position: relative;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   margin-top: 4px;
   background: #fff;
   border-radius: 12px;
@@ -3303,12 +3323,13 @@ input[type='number'] {
   overflow: hidden;
   opacity: 0;
   transform: translateY(8px);
+  z-index: 100;
   transition: max-height 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.3s ease, transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
   z-index: 20;
 }
 
 .calc-select.open .calc-select-options {
-  max-height: 500px;
+  max-height: 350px;
   opacity: 1;
   transform: translateY(0);
   overflow-y: auto;
@@ -3361,15 +3382,18 @@ input[type='number'] {
 }
 
 .calc-select-option {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 12px 16px;
+  font-size: 15px;
   color: var(--text-dark);
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .calc-select-option:hover {
-  background: rgba(248, 249, 252, 0.9);
+  background: var(--bg-light);
 }
 
 .calc-select-option.is-active {
