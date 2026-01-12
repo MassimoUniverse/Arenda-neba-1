@@ -838,6 +838,50 @@ const upload = multer({
   }
 });
 
+// Function to fix image URL - removes localhost and converts .png to .webp
+function fixImageUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  
+  let fixed = url;
+  
+  // Remove localhost URLs
+  fixed = fixed.replace(/http:\/\/localhost:\d+/g, '');
+  fixed = fixed.replace(/https:\/\/localhost:\d+/g, '');
+  
+  // Remove any domain (keep only path)
+  fixed = fixed.replace(/https?:\/\/[^\/]+/g, '');
+  
+  // Convert .png to .webp for /images/ paths (these are optimized)
+  if (fixed.startsWith('/images/') && fixed.endsWith('.png')) {
+    fixed = fixed.replace('.png', '.webp');
+  }
+  
+  return fixed;
+}
+
+// Function to fix JSON array of image URLs
+function fixImageUrlsArray(jsonStr) {
+  if (!jsonStr) return jsonStr;
+  
+  try {
+    let arr = JSON.parse(jsonStr);
+    if (!Array.isArray(arr)) return jsonStr;
+    
+    arr = arr.map(item => {
+      if (typeof item === 'string') {
+        return fixImageUrl(item);
+      } else if (typeof item === 'object' && item.url) {
+        return { ...item, url: fixImageUrl(item.url) };
+      }
+      return item;
+    });
+    
+    return JSON.stringify(arr);
+  } catch (e) {
+    return jsonStr;
+  }
+}
+
 // Function to fix encoding issues
 function fixEncoding(text) {
   if (!text || typeof text !== 'string') return text;
@@ -1893,14 +1937,20 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
     console.warn('Error parsing images JSON:', e);
   }
   
+  // Fix image URLs - remove localhost and convert .png to .webp
+  const fixedImageUrl = fixImageUrl(image_url || '');
+  const fixedReachDiagramUrl = fixImageUrl(reach_diagram_url || '');
+  const fixedImagesJson = fixImageUrlsArray(imagesJson);
+  const fixedReachDiagramsJson = fixImageUrlsArray(reachDiagramsJson);
+  
   const serviceData = {
     title,
     description,
     price,
     specifications,
-    image_url: image_url || '',
+    image_url: fixedImageUrl,
     url: finalUrl,
-    reach_diagram_url: reach_diagram_url || '',
+    reach_diagram_url: fixedReachDiagramUrl,
     reach_diagrams: reachDiagramsArray,
     images: imagesArray,
     height_lift: height_lift || '',
@@ -1936,7 +1986,7 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
     'INSERT INTO services (title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, price, specifications || '', image_url || '', order_num || 0, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson],
+    [title, description, price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -2012,14 +2062,20 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     console.warn('Error parsing images JSON:', e);
   }
   
+  // Fix image URLs - remove localhost and convert .png to .webp
+  const fixedImageUrl = fixImageUrl(image_url || '');
+  const fixedReachDiagramUrl = fixImageUrl(reach_diagram_url || '');
+  const fixedImagesJson = fixImageUrlsArray(imagesJson);
+  const fixedReachDiagramsJson = fixImageUrlsArray(reachDiagramsJson);
+  
   const serviceData = {
     title,
     description,
     price,
     specifications,
-    image_url: image_url || '',
+    image_url: fixedImageUrl,
     url: finalUrl,
-    reach_diagram_url: reach_diagram_url || '',
+    reach_diagram_url: fixedReachDiagramUrl,
     reach_diagrams: reachDiagramsArray,
     images: imagesArray,
     height_lift: height_lift || '',
@@ -2054,7 +2110,7 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   
   db.run(
     'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ? WHERE id = ?',
-    [title, description, price, specifications, image_url, order_num, active !== undefined ? active : 1, finalUrl, reach_diagram_url || '', reachDiagramsJson, imagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, req.params.id],
+    [title, description, price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, req.params.id],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });

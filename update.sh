@@ -21,7 +21,17 @@ npm install --production
 echo "✅ Зависимости обновлены"
 echo ""
 
-# 3. Регенерируем страницы оборудования
+# 3. Исправляем пути к изображениям в базе данных
+echo "🖼️  Исправляем пути к изображениям..."
+if [ -f "fix-image-paths.js" ]; then
+    node fix-image-paths.js
+    echo "✅ Пути исправлены"
+else
+    echo "⚠️  Скрипт fix-image-paths.js не найден"
+fi
+echo ""
+
+# 4. Регенерируем страницы оборудования
 echo "🔄 Регенерируем страницы оборудования..."
 node generate-pages.js
 if [ $? -ne 0 ]; then
@@ -31,7 +41,7 @@ else
 fi
 echo ""
 
-# 4. Перезапускаем приложение через PM2
+# 5. Перезапускаем приложение через PM2
 echo "🔄 Перезапускаем приложение..."
 pm2 restart arenda-neba
 if [ $? -ne 0 ]; then

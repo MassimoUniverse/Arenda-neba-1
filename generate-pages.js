@@ -24,7 +24,15 @@ function generateEquipmentPageHTML(service) {
   const title = service.title || 'Автовышка';
   const description = service.description || '';
   const price = service.price || '';
-  const imageUrl = service.image_url || '/images/avtovyshka-13m.png';
+  // Определяем путь к изображению (приоритет: webp > jpg > png)
+  let imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
+  
+  // Исправляем путь: убираем localhost и меняем .png на .webp
+  if (imageUrl) {
+    imageUrl = imageUrl.replace(/http:\/\/localhost:\d+/g, '');
+    imageUrl = imageUrl.replace(/https?:\/\/[^\/]+/g, '');
+    imageUrl = imageUrl.replace('.png', '.webp');
+  }
   
   const heightLift = service.height_lift || '';
   const maxReach = service.max_reach || '';
