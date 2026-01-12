@@ -1317,9 +1317,7 @@ function initCalculator() {
         }
         
         // Триггерим пересчет
-        if (distanceInput) {
-          distanceInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       });
       shiftsList.appendChild(li);
     });
@@ -1357,86 +1355,6 @@ function initCalculator() {
     });
   }
 
-  // Кнопки увеличения/уменьшения расстояния
-  const distanceInput = document.getElementById('calc-distance');
-  const numberButtons = document.querySelectorAll('.number-btn');
-  
-  // Функция для сброса активного состояния всех кнопок
-  function resetAllButtons() {
-    numberButtons.forEach(b => {
-      b.classList.remove('number-btn--active');
-      // Принудительно сбрасываем стили
-      b.style.transform = '';
-      b.style.boxShadow = '';
-    });
-  }
-
-  numberButtons.forEach((btn) => {
-    // Обработчик нажатия - добавляем класс активной кнопки
-    btn.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      
-      // Сбрасываем все кнопки
-      resetAllButtons();
-      
-      // Добавляем класс только к нажатой кнопке
-      btn.classList.add('number-btn--active');
-    });
-    
-    // Обработчик отпускания - убираем класс
-    btn.addEventListener('mouseup', (e) => {
-      e.stopPropagation();
-      resetAllButtons();
-    });
-    
-    // Обработчик ухода мыши - убираем класс
-    btn.addEventListener('mouseleave', () => {
-      resetAllButtons();
-    });
-    
-    btn.addEventListener('click', (e) => {
-      // Останавливаем всплытие события
-      e.stopPropagation();
-      
-      if (!distanceInput) return;
-      const step = Number(distanceInput.step) || 1;
-      const min = Number(distanceInput.min) || 0;
-      const current = Number(distanceInput.value) || 0;
-      const isPlus = btn.classList.contains('number-btn--plus');
-      let next = current + (isPlus ? step : -step);
-      if (next < min) next = min;
-      distanceInput.value = next;
-      
-      // Триггерим событие input для пересчета
-      distanceInput.dispatchEvent(new Event('input', { bubbles: true }));
-      
-      // Сбрасываем активное состояние после клика
-      setTimeout(() => {
-        resetAllButtons();
-      }, 150);
-    });
-    
-    // Touch события
-    btn.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-      resetAllButtons();
-      btn.classList.add('number-btn--active');
-    });
-    
-    btn.addEventListener('touchend', (e) => {
-      e.stopPropagation();
-      resetAllButtons();
-    });
-  });
-  
-  // Обработчик изменения расстояния для автоматического пересчета
-  if (distanceInput) {
-    distanceInput.addEventListener('input', () => {
-      // Триггерим пересчет формы
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    });
-  }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -1450,8 +1368,6 @@ function initCalculator() {
     } else {
       shifts = Number(shiftsValue) || 1;
     }
-    const distance = Number(document.getElementById('calc-distance').value) || 0;
-
     const config = CALC_EQUIPMENT[equipmentKey];
     if (!config) {
       console.error('Config not found for equipment:', equipmentKey);
@@ -1459,21 +1375,16 @@ function initCalculator() {
     }
 
     // Поддержка полсмены (0.5)
-    let base;
+    let total;
     if (shifts === 0.5 && config.baseHalfShift) {
-      base = config.baseHalfShift;
+      total = config.baseHalfShift;
     } else if (shifts === 0.5 && !config.baseHalfShift) {
       // Если полсмены нет, но выбрана полсмена, используем 83% от полной смены
-      base = Math.round((config.baseShift || 0) * 0.83);
+      total = Math.round((config.baseShift || 0) * 0.83);
     } else {
-      base = (config.baseShift || 0) * Math.max(shifts, 1);
+      total = (config.baseShift || 0) * Math.max(shifts, 1);
     }
-    
-    // Считаем стоимость за км (уже с учетом обеих сторон - в каждую сторону)
-    const pricePerKm = (config.extraPerKm || 85);
-    const kmCost = distance * pricePerKm * 2; // Стоимость доставки за км в обе стороны
 
-    const total = base + kmCost; // Итоговая сумма с учетом доставки
     const formatted = total.toLocaleString('ru-RU');
     
     
@@ -1503,16 +1414,10 @@ function initCalculator() {
       }
     }
     
-    // Формируем информацию о стоимости километра
-    let kmInfo = '';
-    if (distance > 0) {
-      kmInfo = `<span class="calculator-km-info">Доставка: ${distance} км × ${pricePerKm} ₽ × 2 = ${kmCost.toLocaleString('ru-RU')} ₽ (в каждую сторону)</span>`;
-    }
-    
     if (shiftsValue === 'more') {
-      sumEl.innerHTML = `${formatted} ₽ за ${shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}${kmInfo ? `<br>${kmInfo}` : ''}`;
+      sumEl.innerHTML = `${formatted} ₽ за ${shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
     } else {
-      sumEl.innerHTML = `${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : shifts} ${shifts === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}${kmInfo ? `<br>${kmInfo}` : ''}`;
+      sumEl.innerHTML = `${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : shifts} ${shifts === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
     }
   });
 }

@@ -1381,212 +1381,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       basePrice = 18000; // Значение по умолчанию
     }
     
-    // Определяем стоимость подачи за КАД на основе типа техники
-    // Используем данные из service, если доступны, иначе значения по умолчанию
-    let deliveryPerKm = 85; // Единая стоимость за км для всех типов техники
-    
-    // Используем значения из service, если они есть
-    if (service?.extraPerKm) {
-      deliveryPerKm = service.extraPerKm;
-    }
-    
-    // Кнопки увеличения/уменьшения расстояния
-    const distanceInput = document.getElementById('equip-calc-distance');
-    const numberButtons = document.querySelectorAll('.calc-number-btn');
-    
-    console.log('Initializing calculator buttons. Found buttons:', numberButtons.length);
-    console.log('Distance input found:', !!distanceInput);
-    
-    if (numberButtons.length > 0) {
-      // Функция для создания ripple эффекта
-      function createCalcRipple(event, button) {
-        try {
-          // Проверяем, что событие действительно клик или касание
-          if (!event || (!event.type.includes('click') && !event.type.includes('touch'))) {
-            return;
-          }
-          
-          // Удаляем старые ripple элементы, если есть
-          const oldRipples = button.querySelectorAll('.ripple');
-          oldRipples.forEach(r => r.remove());
-          
-          const ripple = document.createElement('span');
-          ripple.classList.add('ripple');
-          
-          const rect = button.getBoundingClientRect();
-          const size = Math.max(rect.width, rect.height) * 2;
-          
-          // Получаем координаты клика/касания
-          let clientX, clientY;
-          if (event.touches && event.touches.length > 0) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-          } else if (event.clientX && event.clientY) {
-            clientX = event.clientX;
-            clientY = event.clientY;
-          } else {
-            // Если координаты недоступны, используем центр кнопки
-            clientX = rect.left + rect.width / 2;
-            clientY = rect.top + rect.height / 2;
-          }
-          
-          // Позиционируем ripple относительно точки клика (центрируем через translate)
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
-          
-          ripple.style.width = size + 'px';
-          ripple.style.height = size + 'px';
-          ripple.style.left = x + 'px';
-          ripple.style.top = y + 'px';
-          ripple.style.transform = 'translate(-50%, -50%)';
-          ripple.style.transformOrigin = 'center';
-          ripple.style.position = 'absolute';
-          ripple.style.borderRadius = '50%';
-          ripple.style.background = 'rgba(255, 255, 255, 0.9)';
-          ripple.style.pointerEvents = 'none';
-          ripple.style.zIndex = '100';
-          ripple.style.willChange = 'transform, opacity';
-          ripple.style.opacity = '0';
-          
-          button.appendChild(ripple);
-          
-          // Принудительно запускаем анимацию
-          requestAnimationFrame(() => {
-            ripple.style.animation = 'calc-ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-            ripple.style.opacity = '1';
-          });
-          
-          // Удаляем ripple после завершения анимации
-          setTimeout(() => {
-            if (ripple && ripple.parentNode) {
-              ripple.remove();
-            }
-          }, 600);
-        } catch (error) {
-          console.error('Error creating ripple:', error);
-        }
-      }
-      
-      numberButtons.forEach((btn) => {
-        // Убираем автоматический фокус с кнопок
-        btn.setAttribute('tabindex', '-1');
-        
-        // Функция для обработки клика/касания
-        const handleButtonAction = (e, button) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!distanceInput) return;
-          
-          // Убираем класс is-clicked со всех кнопок
-          numberButtons.forEach(b => b.classList.remove('is-clicked'));
-          
-          // Добавляем класс is-clicked только на нажатую кнопку
-          button.classList.add('is-clicked');
-          
-          // Создаем ripple эффект только на нажатой кнопке
-          createCalcRipple(e, button);
-          
-          const step = 1;
-          const min = 0;
-          const current = Number(distanceInput.value) || 0;
-          const isPlus = button.classList.contains('calc-number-btn--plus');
-          let next = current + (isPlus ? step : -step);
-          if (next < min) next = min;
-          distanceInput.value = next;
-          
-          // Убираем класс после анимации
-          setTimeout(() => {
-            button.classList.remove('is-clicked');
-          }, 300);
-          
-          // Убираем фокус
-          button.blur();
-          
-          // Триггерим событие input для пересчета
-          distanceInput.dispatchEvent(new Event('input', { bubbles: true }));
-        };
-        
-        // Обработчик клика мыши - проверяем, что клик действительно на кнопке
-        btn.addEventListener('click', function(e) {
-          const rect = this.getBoundingClientRect();
-          const clickX = e.clientX;
-          const clickY = e.clientY;
-          
-          // Проверяем, что клик в пределах кнопки
-          if (clickX >= rect.left && clickX <= rect.right && 
-              clickY >= rect.top && clickY <= rect.bottom) {
-            handleButtonAction(e, this);
-          }
-        });
-        
-        // Обработчик touch для мобильных устройств - проверяем, что касание на кнопке
-        btn.addEventListener('touchstart', function(e) {
-          if (e.touches && e.touches.length > 0) {
-            const rect = this.getBoundingClientRect();
-            const touch = e.touches[0];
-            const touchX = touch.clientX;
-            const touchY = touch.clientY;
-            
-            // Проверяем, что касание в пределах кнопки
-            if (touchX >= rect.left && touchX <= rect.right && 
-                touchY >= rect.top && touchY <= rect.bottom) {
-              handleButtonAction(e, this);
-            }
-          } else {
-            handleButtonAction(e, this);
-          }
-        });
-        
-        // Функция для проверки, находится ли курсор над кнопкой
-        const isMouseOverButton = (e, button) => {
-          const rect = button.getBoundingClientRect();
-          const mouseX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-          const mouseY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-          
-          return mouseX >= rect.left && mouseX <= rect.right && 
-                 mouseY >= rect.top && mouseY <= rect.bottom;
-        };
-        
-        // Управление hover эффектом через класс - только при реальном наведении
-        btn.addEventListener('mouseenter', function(e) {
-          this.style.outline = 'none';
-          if (isMouseOverButton(e, this)) {
-            this.classList.add('is-hovered');
-          }
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-          this.classList.remove('is-hovered');
-        });
-        
-        btn.addEventListener('mousemove', function(e) {
-          if (isMouseOverButton(e, this)) {
-            this.classList.add('is-hovered');
-          } else {
-            this.classList.remove('is-hovered');
-          }
-        });
-      });
-    }
-    
-    // Обработчик изменения расстояния для автоматического пересчета
-    const kmInfoEl = document.getElementById('equip-calc-km-info');
-    if (distanceInput) {
-      distanceInput.addEventListener('input', () => {
-        // Обновляем информацию о километрах (цена уже включает обе стороны)
-        if (kmInfoEl && distanceInput.value > 0) {
-          const distance = Number(distanceInput.value) || 0;
-          const cost = distance * deliveryPerKm * 2; // Умножаем на 2 (в каждую сторону)
-          kmInfoEl.textContent = `Доставка: ${distance} км × ${deliveryPerKm} ₽ × 2 = ${cost.toLocaleString('ru-RU')} ₽ (в каждую сторону)`;
-        } else if (kmInfoEl) {
-          kmInfoEl.textContent = `${deliveryPerKm} ₽/км × 2 (в каждую сторону)`;
-        }
-        // Триггерим пересчет формы
-        if (form) {
-          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-      });
-    }
+    console.log('Initializing calculator.');
     
     // Создаём кастомный выпадающий список для количества смен
     const shiftsSelect = document.getElementById('equip-calc-shifts');
@@ -1692,23 +1487,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         shifts = Number(shiftsSelectValue) || 1;
       }
       
-      const distance = Number(document.getElementById('equip-calc-distance').value) || 0;
-      
       // Расчет стоимости с учетом полсмены
-      let baseCost;
+      let total;
       if (shifts === 0.5 && baseHalfShift) {
-        baseCost = baseHalfShift;
+        total = baseHalfShift;
       } else if (shifts === 0.5 && !baseHalfShift) {
         // Если полсмены нет, но выбрана полсмена, используем 83% от полной смены
-        baseCost = Math.round(basePrice * 0.83);
+        total = Math.round(basePrice * 0.83);
       } else {
-        baseCost = basePrice * shifts;
+        total = basePrice * shifts;
       }
       
-      // Расчет подачи за КАД - цена за км уже включает обе стороны (в каждую сторону)
-      const deliveryCost = distance * deliveryPerKm * 2; // Стоимость доставки за км в обе стороны
-      
-      const total = baseCost + deliveryCost; // Итоговая сумма с учетом доставки
       const formatted = total.toLocaleString('ru-RU');
       
       // Отображаем результат
@@ -1731,18 +1520,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      // Формируем информацию о стоимости километра
-      let kmInfo = '';
-      if (distance > 0) {
-        kmInfo = `<span class="calculator-km-info">Доставка: ${distance} км × ${deliveryPerKm} ₽ × 2 = ${deliveryCost.toLocaleString('ru-RU')} ₽ (в каждую сторону)</span>`;
-      }
-      
       resultEl.innerHTML = `
         <p class="calc-result-text">
           ${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : (shiftsSelectValue === 'more' ? shiftsText : `${shifts} ${shiftsText}`)} <span class="price-vat">без НДС</span>
         </p>
         ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
-        ${kmInfo ? `<br>${kmInfo}` : ''}
       `;
     });
   }
