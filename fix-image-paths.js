@@ -30,7 +30,18 @@ function fixImageUrl(url) {
   // 3. Заменяем .png на .webp (если файл существует)
   if (fixed.includes('.png')) {
     const webpPath = fixed.replace('.png', '.webp');
-    const fullPath = path.join(__dirname, 'public', webpPath.replace(/^\//, ''));
+    
+    // Определяем базовый путь: /uploads/ или /images/
+    let basePath;
+    if (fixed.startsWith('/uploads/')) {
+      basePath = __dirname; // uploads/ в корне проекта
+    } else if (fixed.startsWith('/images/')) {
+      basePath = path.join(__dirname, 'public'); // public/images/
+    } else {
+      basePath = __dirname;
+    }
+    
+    const fullPath = path.join(basePath, webpPath.replace(/^\//, ''));
     
     if (fs.existsSync(fullPath)) {
       fixed = webpPath;
@@ -38,13 +49,15 @@ function fixImageUrl(url) {
     } else {
       // Проверяем jpg
       const jpgPath = fixed.replace('.png', '.jpg');
-      const jpgFullPath = path.join(__dirname, 'public', jpgPath.replace(/^\//, ''));
+      const jpgFullPath = path.join(basePath, jpgPath.replace(/^\//, ''));
       
       if (fs.existsSync(jpgFullPath)) {
         fixed = jpgPath;
         console.log(`  📸 PNG → JPG: ${url} → ${fixed}`);
       } else {
-        console.log(`  ⚠️  Файл не найден: ${fullPath}`);
+        // Просто заменяем на .webp (файл будет создан optimize-uploads.js)
+        fixed = webpPath;
+        console.log(`  📸 PNG → WebP (pending): ${url} → ${fixed}`);
       }
     }
   }

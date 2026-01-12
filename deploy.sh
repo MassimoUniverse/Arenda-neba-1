@@ -36,8 +36,8 @@ git stash 2>/dev/null || true
 # Сбрасываем все локальные изменения
 git reset --hard HEAD 2>/dev/null || true
 
-# Очищаем неотслеживаемые файлы
-git clean -fd
+# Очищаем неотслеживаемые файлы (кроме uploads/ и database.db)
+git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
 
 # Получаем последние изменения с удаленного репозитория
 git fetch origin
@@ -45,12 +45,33 @@ git fetch origin
 # Принудительно синхронизируемся с удаленной веткой
 git reset --hard origin/main
 
-# Очищаем неотслеживаемые файлы еще раз
-git clean -fd
+# Очищаем неотслеживаемые файлы еще раз (кроме uploads/ и database.db)
+git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
 
 # Установка зависимостей
 echo "📦 Устанавливаем зависимости..."
 npm install
+
+# Оптимизируем PNG файлы в uploads (конвертируем в WebP)
+echo "🖼️  Оптимизируем изображения в uploads..."
+if [ -f "optimize-uploads.js" ]; then
+    node optimize-uploads.js
+    echo "✅ Изображения оптимизированы"
+fi
+
+# Исправляем пути к изображениям в базе данных
+echo "📝 Исправляем пути к изображениям в БД..."
+if [ -f "fix-image-paths.js" ]; then
+    node fix-image-paths.js
+    echo "✅ Пути исправлены"
+fi
+
+# Регенерируем страницы оборудования
+echo "🔄 Регенерируем страницы оборудования..."
+if [ -f "generate-pages.js" ]; then
+    node generate-pages.js
+    echo "✅ Страницы обновлены"
+fi
 
 # Обновление характеристик (если скрипт существует)
 if [ -f "update-specs.js" ]; then

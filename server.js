@@ -851,8 +851,8 @@ function fixImageUrl(url) {
   // Remove any domain (keep only path)
   fixed = fixed.replace(/https?:\/\/[^\/]+/g, '');
   
-  // Convert .png to .webp for /images/ paths (these are optimized)
-  if (fixed.startsWith('/images/') && fixed.endsWith('.png')) {
+  // Convert .png to .webp for /images/ and /uploads/ paths
+  if ((fixed.startsWith('/images/') || fixed.startsWith('/uploads/')) && fixed.endsWith('.png')) {
     fixed = fixed.replace('.png', '.webp');
   }
   
