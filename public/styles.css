@@ -759,7 +759,7 @@ a.logo:hover {
   box-shadow: var(--shadow-sm);
   align-items: start;
   /* Фиксируем высоту формы чтобы не было дёрганья */
-  min-height: 280px;
+  height: fit-content;
   align-content: start;
 }
 
@@ -773,11 +773,13 @@ a.logo:hover {
 .field-equipment {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: top;
+  position: relative;
+  z-index: 1;
 }
 
 .field-equipment.is-open {
-  /* Для поля техники убираем дополнительную анимацию и подсветку —
-     анимация остаётся только у выпадающего списка */
+  /* При открытом списке поднимаем z-index чтобы список был над кнопкой */
+  z-index: 1000;
   transform: none;
   box-shadow: none;
 }
@@ -915,7 +917,7 @@ input[type='number'] {
   padding: 24px 24px 20px;
   box-shadow: var(--shadow-sm);
   /* Фиксируем высоту чтобы не было дёрганья при смене техники */
-  min-height: 400px;
+  height: 450px;
   display: flex;
   flex-direction: column;
 }
@@ -3260,12 +3262,16 @@ input[type='number'] {
 
 .calc-select {
   position: relative;
-  z-index: 10;
+  z-index: 50;
+}
+
+.calc-select.open {
+  z-index: 1000;
 }
 
 .calc-select-current {
   width: 100%;
-  min-width: 180px;
+  min-width: 220px;
   min-height: 48px;
   height: 48px;
   padding: 12px 16px;
@@ -3278,8 +3284,6 @@ input[type='number'] {
   color: var(--text-dark);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  white-space: nowrap;
   justify-content: space-between;
   gap: 8px;
   cursor: pointer;
@@ -3313,7 +3317,6 @@ input[type='number'] {
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
   margin-top: 4px;
   background: #fff;
   border-radius: 12px;
@@ -3323,9 +3326,11 @@ input[type='number'] {
   overflow: hidden;
   opacity: 0;
   transform: translateY(8px);
-  z-index: 100;
+  z-index: 1000;
   transition: max-height 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.3s ease, transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
-  z-index: 20;
+  /* Достаточная ширина для "Автовышка вездеход 30 метров" */
+  width: max-content;
+  min-width: 100%;
 }
 
 .calc-select.open .calc-select-options {
@@ -3388,8 +3393,6 @@ input[type='number'] {
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .calc-select-option:hover {
