@@ -3336,14 +3336,19 @@ input[type='number'] {
   max-height: 300px;
   opacity: 1;
   transform: translateY(0);
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 .calc-select-options-list {
   list-style: none;
   margin: 0;
   padding: 4px 0;
+  pointer-events: auto;
 }
 
 /* Стилизация скроллбара для списка */

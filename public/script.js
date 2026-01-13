@@ -1234,6 +1234,21 @@ function initCalculator() {
       }
     });
 
+    // Обработчик wheel-событий для работы скролла при наведении
+    optionsWrap.addEventListener('wheel', (e) => {
+      e.stopPropagation();
+      const scrollTop = optionsWrap.scrollTop;
+      const scrollHeight = optionsWrap.scrollHeight;
+      const height = optionsWrap.clientHeight;
+      const wheelDelta = e.deltaY;
+      
+      // Если достигли верха или низа, предотвращаем дальнейший скролл страницы
+      if ((scrollTop === 0 && wheelDelta < 0) || 
+          (scrollTop + height >= scrollHeight && wheelDelta > 0)) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
     document.addEventListener('click', (evt) => {
       if (!customSelect.contains(evt.target)) {
         customSelect.classList.remove('open');
@@ -1344,6 +1359,21 @@ function initCalculator() {
         shiftsField.classList.toggle('is-open', isOpen);
       }
     });
+
+    // Обработчик wheel-событий для работы скролла при наведении
+    shiftsOptionsWrap.addEventListener('wheel', (e) => {
+      e.stopPropagation();
+      const scrollTop = shiftsOptionsWrap.scrollTop;
+      const scrollHeight = shiftsOptionsWrap.scrollHeight;
+      const height = shiftsOptionsWrap.clientHeight;
+      const wheelDelta = e.deltaY;
+      
+      // Если достигли верха или низа, предотвращаем дальнейший скролл страницы
+      if ((scrollTop === 0 && wheelDelta < 0) || 
+          (scrollTop + height >= scrollHeight && wheelDelta > 0)) {
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     document.addEventListener('click', (evt) => {
       if (!customShiftsSelect.contains(evt.target)) {
