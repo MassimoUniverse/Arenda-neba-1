@@ -72,7 +72,7 @@ if [ -f "database.db" ]; then
     if command -v sqlite3 >/dev/null 2>&1; then
         sqlite3 "database.db" ".backup '$BACKUP_PATH/database.db'" >/dev/null 2>&1 || cp "database.db" "$BACKUP_PATH/database.db"
     else
-        cp "database.db" "$BACKUP_PATH/database.db"
+    cp "database.db" "$BACKUP_PATH/database.db"
     fi
     DB_SIZE=$(du -h "database.db" | cut -f1)
     echo -e "${GREEN}✅ База данных скопирована ($DB_SIZE)${NC}"
@@ -221,9 +221,9 @@ fi
 # - если нет TTY (cron/CI) → делаем архив
 if [ -z "$CREATE_ARCHIVE" ]; then
     if [ -t 0 ]; then
-        read -p "Создать архив .tar.gz? (y/n) " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+read -p "Создать архив .tar.gz? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
             CREATE_ARCHIVE="1"
         else
             CREATE_ARCHIVE="0"

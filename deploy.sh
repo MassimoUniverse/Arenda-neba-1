@@ -43,7 +43,7 @@ git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.bac
 git fetch origin
 
 # Принудительно синхронизируемся с удаленной веткой
-git reset --hard origin/main
+    git reset --hard origin/main
 
 # Очищаем неотслеживаемые файлы еще раз (кроме uploads/ и database.db)
 git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
