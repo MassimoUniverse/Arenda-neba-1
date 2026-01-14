@@ -1634,6 +1634,79 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
+
+  // =============================================
+  // ANDROID-STYLE RIPPLE EFFECT (для всех кнопок на страницах оборудования)
+  // =============================================
+  function createRipple(event, button) {
+    // Удаляем существующие ripple элементы перед созданием нового
+    const existingRipples = button.querySelectorAll('.ripple');
+    existingRipples.forEach(r => r.remove());
+    
+    const ripple = document.createElement('span');
+    ripple.classList.add('ripple');
+    
+    const rect = button.getBoundingClientRect();
+    
+    // Для маленьких кнопок (header-messenger) используем больший размер ripple
+    const isSmallButton = button.classList.contains('header-messenger');
+    const baseSize = Math.max(rect.width, rect.height);
+    const size = isSmallButton ? baseSize * 3 : baseSize * 2;
+    
+    // Позиция клика относительно кнопки
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Устанавливаем размер и позицию
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    ripple.style.transform = 'translate(-50%, -50%) scale(0)';
+    ripple.style.transformOrigin = 'center';
+    ripple.style.marginLeft = '0';
+    ripple.style.marginTop = '0';
+    
+    button.appendChild(ripple);
+    
+    // Запускаем анимацию через requestAnimationFrame для плавности
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ripple.style.animation = 'ripple-animation 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      });
+    });
+    
+    // Удаляем ripple после завершения анимации
+    setTimeout(() => {
+      if (ripple.parentNode) {
+        ripple.remove();
+      }
+    }, 600);
+  }
+
+  // Применяем ripple эффект ко всем кнопкам на страницах оборудования
+  const interactiveButtons = document.querySelectorAll(
+    '.btn, .messenger-btn, .header-messenger, .calc-submit-btn'
+  );
+
+  interactiveButtons.forEach((btn) => {
+    // Пропускаем кнопки калькулятора - у них своя анимация
+    if (btn.classList.contains('calc-number-btn')) return;
+    
+    // Обработчик для мыши
+    btn.addEventListener('click', (e) => {
+      createRipple(e, btn);
+    });
+    
+    // Обработчик для touch устройств
+    btn.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      const fakeEvent = {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      };
+      createRipple(fakeEvent, btn);
+    });
+  });
 });
 
 // Функция для открытия диаграммы в полноэкранном режиме

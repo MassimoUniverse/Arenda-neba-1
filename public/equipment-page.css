@@ -46,6 +46,37 @@ body {
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
 }
 
+/* Стили для кнопок мессенджеров в хедере на страницах оборудования */
+.header-messenger {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-messenger.phone {
+  background: linear-gradient(135deg, #ff7a3f 0%, #ff5a2b 100%);
+}
+
+.header-messenger svg {
+  width: 20px;
+  height: 20px;
+  fill: #ffffff;
+  shape-rendering: geometricPrecision;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* Переопределяем стили для текста в хедере на страницах оборудования */
 .site-header .main-nav a,
 .nav-menu a {
@@ -923,6 +954,53 @@ body {
   }
 }
 
+/* Ripple анимация для всех кнопок на страницах оборудования */
+@keyframes ripple-animation {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.7;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Ripple эффект для кнопок на страницах оборудования */
+.btn .ripple,
+.calc-submit-btn .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%) scale(0);
+  transform-origin: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+  z-index: 1;
+}
+
+.header-messenger .ripple {
+  background: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%) scale(0);
+  transform-origin: center;
+  z-index: 0;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  top: 0;
+  left: 0;
+}
+
+.header-messenger svg {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .calc-number-btn .ripple {
   position: absolute;
   border-radius: 50%;
@@ -1404,6 +1482,8 @@ body {
   .header-messenger svg {
     width: 18px;
     height: 18px;
+    z-index: 2;
+    pointer-events: none;
   }
   
   .header-messengers-mini {
