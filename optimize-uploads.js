@@ -140,6 +140,76 @@ async function updateImagesArrayInDb(oldUrl, newUrl) {
   });
 }
 
+async function updateReachDiagramsInDb(oldUrl, newUrl) {
+  return new Promise((resolve) => {
+    db.all(`SELECT id, reach_diagrams FROM services WHERE reach_diagrams LIKE ?`, [`%${oldUrl}%`], async (err, rows) => {
+      if (err || !rows || rows.length === 0) {
+        resolve();
+        return;
+      }
+      
+      for (const row of rows) {
+        try {
+          let diagrams = JSON.parse(row.reach_diagrams);
+          let changed = false;
+          
+          diagrams = diagrams.map(diagram => {
+            // Если элемент - строка
+            if (typeof diagram === 'string') {
+              if (diagram === oldUrl || diagram.includes(path.basename(oldUrl))) {
+                changed = true;
+                return newUrl;
+              }
+              return diagram;
+            }
+            // Если элемент - объект с url
+            else if (typeof diagram === 'object' && diagram !== null && diagram.url) {
+              if (diagram.url === oldUrl || diagram.url.includes(path.basename(oldUrl))) {
+                changed = true;
+                return { ...diagram, url: newUrl };
+              }
+              return diagram;
+            }
+            return diagram;
+          });
+          
+          if (changed) {
+            await new Promise((res, rej) => {
+              db.run(`UPDATE services SET reach_diagrams = ? WHERE id = ?`, [JSON.stringify(diagrams), row.id], (err) => {
+                if (err) rej(err);
+                else {
+                  console.log(`     📝 Обновлён reach_diagrams для ID ${row.id}`);
+                  res();
+                }
+              });
+            });
+          }
+        } catch (e) {
+          // Ignore JSON parse errors
+        }
+      }
+      resolve();
+    });
+  });
+}
+
+async function updateReachDiagramUrlInDb(oldUrl, newUrl) {
+  return new Promise((resolve) => {
+    db.run(
+      `UPDATE services SET reach_diagram_url = ? WHERE reach_diagram_url = ?`,
+      [newUrl, oldUrl],
+      function(err) {
+        if (err) {
+          console.error(`     ❌ Ошибка БД: ${err.message}`);
+        } else if (this.changes > 0) {
+          console.log(`     📝 Обновлён reach_diagram_url в БД: ${oldUrl} → ${newUrl}`);
+        }
+        resolve();
+      }
+    );
+  });
+}
+
 async function main() {
   // Читаем все файлы в uploads
   const files = fs.readdirSync(UPLOADS_DIR);
@@ -162,6 +232,8 @@ async function main() {
     if (result) {
       await updateDatabase(result.oldUrl, result.newUrl);
       await updateImagesArrayInDb(result.oldUrl, result.newUrl);
+      await updateReachDiagramsInDb(result.oldUrl, result.newUrl);
+      await updateReachDiagramUrlInDb(result.oldUrl, result.newUrl);
       optimized++;
     }
     
