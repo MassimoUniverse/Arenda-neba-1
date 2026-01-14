@@ -239,28 +239,17 @@ function generateEquipmentPageHTML(service) {
                             <p>Укажите параметры для расчета стоимости</p>
                         </div>
                         <form class="equipment-calculator-form" id="equipmentCalculatorForm">
-                            <div class="calc-field-group">
-                                <label class="calc-field">
-                                    <span class="calc-field-label">Количество смен</span>
-                                    <select id="equip-calc-shifts" required>
-                                        <option value="0.5">Полсмены</option>
-                                        <option value="1" selected>1 смена</option>
-                                        <option value="2">2 смены</option>
-                                        <option value="3">3 смены</option>
-                                        <option value="more">Более 3 смен</option>
-                                    </select>
-                                    <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                                </label>
-                                <label class="calc-field">
-                                    <span class="calc-field-label">Расстояние от КАД, км (в одну сторону)</span>
-                                    <div class="calc-number-input">
-                                        <button type="button" class="calc-number-btn calc-number-btn--minus" data-target="equip-calc-distance">−</button>
-                                        <input type="number" id="equip-calc-distance" min="0" step="1" value="0">
-                                        <button type="button" class="calc-number-btn calc-number-btn--plus" data-target="equip-calc-distance">+</button>
-                                    </div>
-                                    <p class="calculator-km-info" id="equip-calc-km-info">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</p>
-                                </label>
-                            </div>
+                            <label class="calc-field">
+                                <span class="calc-field-label">Количество смен</span>
+                                <select id="equip-calc-shifts" required>
+                                    <option value="0.5">Полсмены</option>
+                                    <option value="1" selected>1 смена</option>
+                                    <option value="2">2 смены</option>
+                                    <option value="3">3 смены</option>
+                                    <option value="more">Более 3 смен</option>
+                                </select>
+                                <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                            </label>
                             <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
                             <div class="calc-result" id="equipmentCalcResult">
                                 <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
@@ -438,14 +427,14 @@ function generateEquipmentPageHTML(service) {
                     <p>Телефон: <a href="tel:+79910009111" data-ct="phone">+7 (991) 000-91-11</a></p>
                     <p>Email: info@arendaneba.ru</p>
                     <p>Адрес: Санкт-Петербург, улица Беринга 27 корпус 5</p>
-                    <div style="margin-top: 15px;">
-                        <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 10px; padding: 8px 16px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
-                        <a href="https://t.me/+79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 16px; background: #0088cc; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="Telegram">Telegram</a>
-                    </div>
                 </div>
                 <div class="footer-section">
                     <h3>Режим работы</h3>
                     <p>Круглосуточно, без выходных</p>
+                    <div style="margin-top: 15px;">
+                        <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 10px; padding: 8px 16px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
+                        <a href="https://t.me/+79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 16px; background: #0088cc; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="Telegram">Telegram</a>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom" style="position: relative;">
