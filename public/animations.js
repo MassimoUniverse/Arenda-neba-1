@@ -536,23 +536,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // ANDROID-STYLE RIPPLE EFFECT (для всех кнопок)
   // =============================================
   function createRipple(event, button) {
+    // Удаляем существующие ripple элементы перед созданием нового
+    const existingRipples = button.querySelectorAll('.ripple');
+    existingRipples.forEach(r => r.remove());
+    
     const ripple = document.createElement('span');
     ripple.classList.add('ripple');
     
     const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
+    // Размер ripple должен быть достаточным, чтобы покрыть всю кнопку при масштабировании
+    const size = Math.max(rect.width, rect.height) * 2;
     
+    // Позиция клика относительно кнопки
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Устанавливаем размер и позицию
     ripple.style.width = ripple.style.height = size + 'px';
     ripple.style.left = x + 'px';
     ripple.style.top = y + 'px';
+    ripple.style.transform = 'translate(-50%, -50%)';
+    ripple.style.transformOrigin = 'center';
     
     button.appendChild(ripple);
     
+    // Запускаем анимацию через requestAnimationFrame для плавности
+    requestAnimationFrame(() => {
+      ripple.style.animation = 'ripple-animation 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
     // Удаляем ripple после завершения анимации
     setTimeout(() => {
-      ripple.remove();
+      if (ripple.parentNode) {
+        ripple.remove();
+      }
     }, 600);
   }
 
