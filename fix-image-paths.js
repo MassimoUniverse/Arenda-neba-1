@@ -73,7 +73,20 @@ function fixJsonArray(jsonStr) {
     let arr = JSON.parse(jsonStr);
     if (!Array.isArray(arr)) return jsonStr;
     
-    arr = arr.map(url => fixImageUrl(url));
+    arr = arr.map(item => {
+      // Если элемент - строка (старый формат для images)
+      if (typeof item === 'string') {
+        return fixImageUrl(item);
+      }
+      // Если элемент - объект с url (формат для reach_diagrams)
+      else if (typeof item === 'object' && item !== null && item.url) {
+        return {
+          ...item,
+          url: fixImageUrl(item.url)
+        };
+      }
+      return item;
+    });
     return JSON.stringify(arr);
   } catch (e) {
     return jsonStr;
