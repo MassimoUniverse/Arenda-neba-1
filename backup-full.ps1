@@ -84,50 +84,120 @@ if (Test-Path "server.js") {
     Write-Host "   [OK] server.js skopirovan" -ForegroundColor Green
 }
 
-# 7. Informaciya o bekape
-$readmeContent = @"
-BACKUP INFORMATION
-==================
-Data sozdaniya: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-Direktoriya: $ProjectDir
-Hostname: $env:COMPUTERNAME
+# 7. Bekap vseh JS fajlov i skriptov
+Write-Host "7. Bekap JS fajlov i skriptov..." -ForegroundColor Yellow
+$jsFiles = Get-ChildItem -Path "." -Filter "*.js" -File | Where-Object { $_.Name -ne "webpack.config.js" }
+foreach ($file in $jsFiles) {
+    Copy-Item $file.FullName "$backupDir\$($file.Name)" -Force
+}
+$jsCount = $jsFiles.Count
+Write-Host "   [OK] Skopirovano $jsCount JS fajlov" -ForegroundColor Green
 
-SODERZHIMOE:
------------
-"@
+# 8. Bekap vseh shell skriptov
+Write-Host "8. Bekap shell skriptov..." -ForegroundColor Yellow
+$shFiles = Get-ChildItem -Path "." -Filter "*.sh" -File
+foreach ($file in $shFiles) {
+    Copy-Item $file.FullName "$backupDir\$($file.Name)" -Force
+}
+$shCount = $shFiles.Count
+Write-Host "   [OK] Skopirovano $shCount shell skriptov" -ForegroundColor Green
+
+# 9. Bekap dokumentacii (MD fajly)
+Write-Host "9. Bekap dokumentacii..." -ForegroundColor Yellow
+$mdFiles = Get-ChildItem -Path "." -Filter "*.md" -File
+foreach ($file in $mdFiles) {
+    Copy-Item $file.FullName "$backupDir\$($file.Name)" -Force
+}
+$mdCount = $mdFiles.Count
+Write-Host "   [OK] Skopirovano $mdCount dokumentov" -ForegroundColor Green
+
+# 10. Bekap .gitignore i drugih konfigov
+Write-Host "10. Bekap konfigov..." -ForegroundColor Yellow
+$configFiles = @(".gitignore", ".env.example", ".npmrc")
+foreach ($file in $configFiles) {
+    if (Test-Path $file) {
+        Copy-Item $file "$backupDir\$file" -Force
+        Write-Host "   [OK] $file skopirovan" -ForegroundColor Green
+    }
+}
+
+# 11. Informaciya o bekape
+Write-Host "11. Sozdanie informacii o bekape..." -ForegroundColor Yellow
+$readmeContent = "========================================`n"
+$readmeContent += "FULL PROJECT BACKUP`n"
+$readmeContent += "========================================`n"
+$readmeContent += "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`n"
+$readmeContent += "Directory: $ProjectDir`n"
+$readmeContent += "Computer: $env:COMPUTERNAME`n"
+$readmeContent += "User: $env:USERNAME`n`n"
+$readmeContent += "CONTENTS:`n"
+$readmeContent += "-----------`n"
 
 if (Test-Path "$backupDir\database.db") {
     $dbSize = (Get-Item "$backupDir\database.db").Length
     $dbSizeMB = [math]::Round($dbSize/1MB, 2)
-    $readmeContent += "`n- database.db ($dbSizeMB MB)"
+    $readmeContent += "[OK] database.db ($dbSizeMB MB)`n"
+} else {
+    $readmeContent += "[ERROR] database.db (not found)`n"
 }
+
+if (Test-Path "$backupDir\database.db.backup") {
+    $readmeContent += "[OK] database.db.backup`n"
+}
+
 if (Test-Path "$backupDir\uploads") {
     $uploadCount = (Get-ChildItem "$backupDir\uploads" -Recurse -File).Count
-    $readmeContent += "`n- uploads/ ($uploadCount fajlov)"
+    $uploadSize = (Get-ChildItem "$backupDir\uploads" -Recurse -File | Measure-Object -Property Length -Sum).Sum
+    $uploadSizeMB = [math]::Round($uploadSize/1MB, 2)
+    $readmeContent += "[OK] uploads/ ($uploadCount files, $uploadSizeMB MB)`n"
+} else {
+    $readmeContent += "[ERROR] uploads/ (not found)`n"
 }
+
 if (Test-Path "$backupDir\public") {
     $publicCount = (Get-ChildItem "$backupDir\public" -Recurse -File).Count
-    $readmeContent += "`n- public/ ($publicCount fajlov)"
+    $readmeContent += "[OK] public/ ($publicCount files)`n"
+} else {
+    $readmeContent += "[ERROR] public/ (not found)`n"
 }
+
 if (Test-Path "$backupDir\.env") {
-    $readmeContent += "`n- .env"
+    $readmeContent += "[OK] .env`n"
+} else {
+    $readmeContent += "[SKIP] .env (not found, skipped)`n"
 }
+
 if (Test-Path "$backupDir\package.json") {
-    $readmeContent += "`n- package.json"
+    $readmeContent += "[OK] package.json`n"
 }
 if (Test-Path "$backupDir\package-lock.json") {
-    $readmeContent += "`n- package-lock.json"
+    $readmeContent += "[OK] package-lock.json`n"
 }
 if (Test-Path "$backupDir\server.js") {
-    $readmeContent += "`n- server.js"
+    $readmeContent += "[OK] server.js`n"
 }
 
-$readmeContent | Out-File -FilePath "$backupDir\BACKUP_INFO.txt" -Encoding UTF8
+$readmeContent += "`n[OK] JS files: $jsCount`n"
+$readmeContent += "[OK] Shell scripts: $shCount`n"
+$readmeContent += "[OK] Documentation: $mdCount`n"
 
-# 8. Sozdanie arhiva (esli ukazan flag)
+$readmeContent += "`nRESTORE INSTRUCTIONS:`n"
+$readmeContent += "-------------------`n"
+$readmeContent += "1. Copy database.db to project root`n"
+$readmeContent += "2. Copy uploads/ to project root`n"
+$readmeContent += "3. Copy public/ to project root`n"
+$readmeContent += "4. Other files are already in place`n"
+$readmeContent += "5. Run: npm install`n"
+$readmeContent += "6. Run: npm start`n"
+$readmeContent += "`n========================================`n"
+
+$readmeContent | Out-File -FilePath "$backupDir\BACKUP_INFO.txt" -Encoding UTF8
+Write-Host "   [OK] Informaciya sozdana" -ForegroundColor Green
+
+# 12. Sozdanie arhiva (esli ukazan flag)
 if ($Archive) {
     Write-Host ""
-    Write-Host "7. Sozdanie ZIP arhiva..." -ForegroundColor Yellow
+    Write-Host "12. Sozdanie ZIP arhiva..." -ForegroundColor Yellow
     $zipFile = "$backupDir.zip"
     
     # Udalyaem staryj arhiv esli sushhestvuet
