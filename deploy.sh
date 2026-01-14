@@ -50,7 +50,20 @@ git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.bac
 
 # Установка зависимостей
 echo "📦 Устанавливаем зависимости..."
+
+# Если node_modules существует, удаляем его для пересборки нативных модулей
+# Это важно для модулей типа sqlite3, которые должны быть скомпилированы для Linux
+if [ -d "node_modules" ]; then
+    echo "🗑️  Удаляем старые node_modules для пересборки нативных модулей..."
+    rm -rf node_modules
+fi
+
+# Устанавливаем зависимости (нативные модули скомпилируются для Linux)
 npm install
+
+# Пересобираем sqlite3 на всякий случай
+echo "🔨 Пересобираем нативные модули..."
+npm rebuild sqlite3 2>/dev/null || true
 
 # Оптимизируем PNG файлы в uploads (конвертируем в WebP)
 echo "🖼️  Оптимизируем изображения в uploads..."
