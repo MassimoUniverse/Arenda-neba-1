@@ -232,16 +232,17 @@ function generateEquipmentPageHTML(service) {
                         </div>
                     </div>
 
-                    <!-- Мини-калькулятор для конкретной техники -->
+                    <!-- Мини-калькулятор для конкретной техники с формой заказа -->
                     <div class="equipment-calculator" id="equipmentCalculator">
                         <div class="equipment-calculator-header">
                             <h3>Рассчитать стоимость аренды</h3>
                             <p>Укажите параметры для расчета стоимости</p>
                         </div>
                         <form class="equipment-calculator-form" id="equipmentCalculatorForm">
+                            <input type="hidden" name="equipment" value="${title}">
                             <label class="calc-field">
                                 <span class="calc-field-label">Количество смен</span>
-                                <select id="equip-calc-shifts" required>
+                                <select id="equip-calc-shifts" name="duration" required>
                                     <option value="0.5">Полсмены</option>
                                     <option value="1" selected>1 смена</option>
                                     <option value="2">2 смены</option>
@@ -250,46 +251,31 @@ function generateEquipmentPageHTML(service) {
                                 </select>
                                 <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
                             </label>
-                            <button type="submit" class="btn btn-primary calc-submit-btn">Рассчитать</button>
+                            <button type="button" class="btn btn-primary calc-submit-btn" id="calcSubmitBtn">Рассчитать</button>
                             <div class="calc-result" id="equipmentCalcResult">
                                 <p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>
                             </div>
                             <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
-                        </form>
-                    </div>
-
-                    <!-- Order Form -->
-                    <div class="equipment-order-form">
-                        <h2>Заказать ${title.toLowerCase()}</h2>
-                        <form id="orderForm">
-                            <input type="hidden" name="equipment" value="${title}">
-                            <div class="form-group">
-                                <input type="text" name="name" placeholder="Ваше имя *" required>
+                            
+                            <!-- Форма заказа (показывается после расчета) -->
+                            <div class="calc-order-form" id="calcOrderForm" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                                <h4 style="margin-bottom: 15px; font-size: 18px; font-weight: 600;">Оформить заказ</h4>
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <input type="text" name="name" placeholder="Ваше имя *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <input type="tel" name="phone" placeholder="Телефон *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <input type="date" name="date" placeholder="Дата аренды" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <textarea name="message" placeholder="Комментарий к заказу" rows="3" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; resize: vertical;"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <span>Отправить заявку</span>
+                                </button>
                             </div>
-                            <div class="form-group">
-                                <input type="tel" name="phone" placeholder="Телефон *" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="date" name="date" placeholder="Дата аренды">
-                            </div>
-                            <div class="form-group">
-                                <select name="duration">
-                                    <option value="0.5">Полсмены (3+1 часа)</option>
-                                    <option value="1">1 смена (8 часов)</option>
-                                    <option value="2">2 смены (16 часов)</option>
-                                    <option value="3">3 смены (24 часа)</option>
-                                    <option value="more">Более 3 смен</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <textarea name="message" placeholder="Комментарий к заказу" rows="3"></textarea>
-                            </div>
-                            <button type="submit" class="btn-submit">
-                                <span>Отправить заявку</span>
-                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </button>
                         </form>
                     </div>
                 </div>

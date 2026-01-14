@@ -1436,15 +1436,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (opt.value === 'more') {
               customShiftsInput.style.display = 'block';
               customShiftsInput.required = true;
+              customShiftsInput.focus(); // Фокус на поле для удобства
             } else {
               customShiftsInput.style.display = 'none';
               customShiftsInput.required = false;
             }
-          }
-          
-          // Триггерим пересчет
-          if (form) {
-            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
           }
         });
         shiftsList.appendChild(li);
@@ -1481,10 +1477,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     
-    // Обработка отправки формы
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
+    // Функция расчета стоимости
+    const calculatePrice = () => {
       const shiftsSelectValue = shiftsSelect?.value || '1';
       let shifts;
       if (shiftsSelectValue === 'more' && customShiftsInput) {
@@ -1533,49 +1527,69 @@ document.addEventListener('DOMContentLoaded', async () => {
         </p>
         ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
       `;
-    });
-  }
-
-  // Инициализация русского календаря для поля даты
-  if (typeof flatpickr !== 'undefined') {
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(input => {
-      // Изменяем тип на text для flatpickr
-      input.type = 'text';
       
-      // Инициализируем flatpickr с русской локализацией
-      const fp = flatpickr(input, {
-        locale: 'ru',
-        dateFormat: 'd.m.Y',
-        altInput: false,
-        allowInput: true,
-        minDate: 'today',
-        defaultDate: null,
-        placeholder: 'Выберите дату',
-        monthSelectorType: 'static',
-        animate: true,
-        static: true
+      // Показываем форму заказа после расчета
+      const orderForm = document.getElementById('calcOrderForm');
+      if (orderForm) {
+        orderForm.style.display = 'block';
+        // Плавная прокрутка к форме заказа
+        setTimeout(() => {
+          orderForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    };
+    
+    // Обработчик кнопки "Рассчитать"
+    const calcSubmitBtn = document.getElementById('calcSubmitBtn');
+    if (calcSubmitBtn) {
+      calcSubmitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Проверяем, что если выбрано "Более 3 смен", то поле заполнено
+        if (shiftsSelect?.value === 'more' && customShiftsInput) {
+          const customValue = Number(customShiftsInput.value);
+          if (!customValue || customValue < 4) {
+            alert('Пожалуйста, введите количество смен (минимум 4)');
+            customShiftsInput.focus();
+            return;
+          }
+        }
+        
+        calculatePrice();
       });
-      
-      // Сохраняем ссылку на flatpickr для использования при отправке формы
-      input._flatpickr = fp;
-    });
-  }
-
-  // Обработчик отправки формы заказа
-  const orderForm = document.getElementById('orderForm');
-  if (orderForm) {
-    orderForm.addEventListener('submit', async (e) => {
+    }
+    
+    // Обработка изменения значения в поле для ввода количества смен
+    if (customShiftsInput) {
+      customShiftsInput.addEventListener('input', () => {
+        // Автоматически пересчитываем при изменении значения
+        if (shiftsSelect?.value === 'more') {
+          calculatePrice();
+        }
+      });
+    }
+    
+    // Обработка отправки формы заказа
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const formData = new FormData(orderForm);
+      // Проверяем, что форма заказа видна (т.е. расчет был выполнен)
+      const orderForm = document.getElementById('calcOrderForm');
+      if (!orderForm || orderForm.style.display === 'none') {
+        // Если форма заказа не видна, выполняем расчет
+        calculatePrice();
+        return;
+      }
+      
+      // Собираем данные формы
+      const formData = new FormData(form);
       const data = {};
       
       // Собираем данные формы
       for (const [key, value] of formData.entries()) {
         // Если это поле даты с flatpickr, конвертируем в формат YYYY-MM-DD
         if (key === 'date') {
-          const dateInput = orderForm.querySelector('input[name="date"]');
+          const dateInput = form.querySelector('input[name="date"]');
           if (dateInput && dateInput._flatpickr) {
             const selectedDates = dateInput._flatpickr.selectedDates;
             if (selectedDates.length > 0) {
@@ -1583,6 +1597,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
               data[key] = '';
             }
+          } else {
+            data[key] = value;
+          }
+        } else if (key === 'duration') {
+          // Обрабатываем duration - если выбрано "more", берем значение из customShiftsInput
+          if (value === 'more' && customShiftsInput) {
+            const customValue = Number(customShiftsInput.value) || 4;
+            data[key] = customValue >= 4 ? customValue.toString() : '4';
           } else {
             data[key] = value;
           }
@@ -1603,20 +1625,69 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (response.ok) {
           alert('Спасибо! Ваша заявка отправлена. Мы свяжемся с вами в ближайшее время.');
-          orderForm.reset();
+          form.reset();
           // Сбрасываем календарь
-          const dateInput = orderForm.querySelector('input[name="date"]');
+          const dateInput = form.querySelector('input[name="date"]');
           if (dateInput && dateInput._flatpickr) {
             dateInput._flatpickr.clear();
           }
+          // Скрываем форму заказа
+          if (orderForm) {
+            orderForm.style.display = 'none';
+          }
+          // Сбрасываем результат расчета
+          resultEl.innerHTML = '<p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>';
         } else {
           alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.');
         }
       } catch (error) {
-        console.error('Error submitting form:', error);
+        console.error('Ошибка при отправке заявки:', error);
         alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.');
       }
     });
+  }
+
+  // Инициализация русского календаря для поля даты (в объединенной форме)
+  if (typeof flatpickr !== 'undefined') {
+    // Инициализируем календарь для поля даты в калькуляторе (когда форма заказа появится)
+    const initDatePicker = () => {
+      const dateInput = document.querySelector('#calcOrderForm input[name="date"]');
+      if (dateInput && !dateInput._flatpickr) {
+        // Изменяем тип на text для flatpickr
+        dateInput.type = 'text';
+        
+        // Инициализируем flatpickr с русской локализацией
+        const fp = flatpickr(dateInput, {
+          locale: 'ru',
+          dateFormat: 'd.m.Y',
+          altInput: false,
+          allowInput: true,
+          minDate: 'today',
+          defaultDate: null,
+          placeholder: 'Выберите дату',
+          monthSelectorType: 'static',
+          animate: true,
+          static: true
+        });
+        
+        // Сохраняем ссылку на flatpickr для использования при отправке формы
+        dateInput._flatpickr = fp;
+      }
+    };
+    
+    // Инициализируем сразу, если форма уже видна
+    initDatePicker();
+    
+    // Также инициализируем при показе формы заказа
+    const orderForm = document.getElementById('calcOrderForm');
+    if (orderForm) {
+      const observer = new MutationObserver(() => {
+        if (orderForm.style.display !== 'none') {
+          initDatePicker();
+        }
+      });
+      observer.observe(orderForm, { attributes: true, attributeFilter: ['style'] });
+    }
   }
   
   // =============================================
