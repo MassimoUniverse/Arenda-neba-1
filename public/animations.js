@@ -544,8 +544,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ripple.classList.add('ripple');
     
     const rect = button.getBoundingClientRect();
-    // Размер ripple должен быть достаточным, чтобы покрыть всю кнопку при масштабировании
-    const size = Math.max(rect.width, rect.height) * 2;
+    
+    // Для маленьких кнопок (header-messenger) используем больший размер ripple
+    const isSmallButton = button.classList.contains('header-messenger');
+    const baseSize = Math.max(rect.width, rect.height);
+    const size = isSmallButton ? baseSize * 3 : baseSize * 2;
     
     // Позиция клика относительно кнопки
     const x = event.clientX - rect.left;
@@ -555,14 +558,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ripple.style.width = ripple.style.height = size + 'px';
     ripple.style.left = x + 'px';
     ripple.style.top = y + 'px';
-    ripple.style.transform = 'translate(-50%, -50%)';
+    ripple.style.transform = 'translate(-50%, -50%) scale(0)';
     ripple.style.transformOrigin = 'center';
+    ripple.style.marginLeft = '0';
+    ripple.style.marginTop = '0';
     
     button.appendChild(ripple);
     
     // Запускаем анимацию через requestAnimationFrame для плавности
     requestAnimationFrame(() => {
-      ripple.style.animation = 'ripple-animation 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      requestAnimationFrame(() => {
+        ripple.style.animation = 'ripple-animation 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      });
     });
     
     // Удаляем ripple после завершения анимации

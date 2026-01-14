@@ -468,7 +468,8 @@ a.logo:hover {
   fill: #ffffff;
   shape-rendering: geometricPrecision;
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .header-messenger:hover {
@@ -482,9 +483,16 @@ a.logo:hover {
 }
 
 .header-messenger .ripple {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.6);
   transform: translate(-50%, -50%) scale(0);
   transform-origin: center;
+  z-index: 0;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  top: 0;
+  left: 0;
 }
 
 /* =============================================
@@ -642,10 +650,10 @@ a.logo:hover {
 @keyframes ripple-animation {
   0% {
     transform: translate(-50%, -50%) scale(0);
-    opacity: 0.8;
+    opacity: 0.7;
   }
-  50% {
-    opacity: 0.4;
+  30% {
+    opacity: 0.5;
   }
   100% {
     transform: translate(-50%, -50%) scale(2.5);
