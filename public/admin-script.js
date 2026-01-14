@@ -33,24 +33,25 @@ async function uploadImage(file, imageUrlInputId, previewId, fileType = 'image')
         
         if (response.ok) {
             const data = await response.json();
-            const fullUrl = `${API_URL}${data.url}`;
+            // Используем относительный путь вместо полного URL с localhost
+            const relativeUrl = data.url || `/uploads/${data.filename}`;
             
             // Update image URL input
             const imageUrlInput = document.getElementById(imageUrlInputId);
             if (imageUrlInput) {
-                imageUrlInput.value = fullUrl;
+                imageUrlInput.value = relativeUrl;
             }
             
-            // Update preview
+            // Update preview (используем полный URL только для превью)
             if (previewId) {
                 const preview = document.getElementById(previewId);
                 if (preview) {
-                    preview.src = fullUrl;
+                    preview.src = `${API_URL}${relativeUrl}`;
                     preview.style.display = 'block';
                 }
             }
             
-            return fullUrl;
+            return relativeUrl;
         } else {
             const errorData = await response.json().catch(() => ({ error: 'Ошибка загрузки' }));
             alert('Ошибка при загрузке изображения: ' + (errorData.error || 'Неизвестная ошибка'));
@@ -2032,15 +2033,33 @@ async function handleMultipleReachDiagramsUpload(fileInput, previewContainerId) 
     
     // Upload all files
     const uploadedDiagrams = [];
+    const uploadErrors = [];
+    
     for (const file of validFiles) {
         try {
             const url = await uploadImage(file, null, null, 'reach-diagram');
             if (url) {
                 uploadedDiagrams.push({ url: url, title: `Схема вылета стрелы ${serviceReachDiagramsArray.length + uploadedDiagrams.length + 1}` });
+            } else {
+                uploadErrors.push(file.name);
             }
         } catch (error) {
             console.error('Error uploading diagram:', error);
+            uploadErrors.push(file.name);
         }
+    }
+    
+    // Показываем ошибки, если есть
+    if (uploadErrors.length > 0) {
+        alert(`Не удалось загрузить ${uploadErrors.length} файл(ов): ${uploadErrors.join(', ')}`);
+    }
+    
+    // Если ничего не загрузилось, скрываем контейнер
+    if (uploadedDiagrams.length === 0 && uploadErrors.length > 0) {
+        container.style.display = 'none';
+        previewContainer.innerHTML = '';
+        fileInput.value = '';
+        return;
     }
     
     // Update diagrams array, avoiding duplicates
@@ -2290,7 +2309,9 @@ function renderReachDiagramsPreview(previewContainer, container) {
             diagramWrapper.style.backgroundColor = '#f9f9f9';
             
             const img = document.createElement('img');
-            img.src = imageUrl;
+            // Для превью в админке используем полный URL, но сохраняем относительный путь
+            const previewUrl = imageUrl.startsWith('http') ? imageUrl : `${API_URL}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+            img.src = previewUrl;
             img.alt = diagram.title || `Схема ${index + 1}`;
             img.style.width = '100%';
             img.style.height = 'auto';
@@ -2301,10 +2322,18 @@ function renderReachDiagramsPreview(previewContainer, container) {
             
             // Обработка ошибок загрузки изображения
             img.onerror = function() {
-                console.error('❌ Failed to load reach diagram:', imageUrl);
+                console.error('❌ Failed to load reach diagram:', previewUrl, 'Original URL:', imageUrl);
                 this.style.backgroundColor = '#ffebee';
                 this.style.border = '2px solid #f44336';
+                
+                // Удаляем предыдущие сообщения об ошибках
+                const existingError = diagramWrapper.querySelector('.diagram-error-text');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
                 const errorText = document.createElement('div');
+                errorText.className = 'diagram-error-text';
                 errorText.textContent = 'Ошибка загрузки';
                 errorText.style.position = 'absolute';
                 errorText.style.bottom = '5px';
@@ -2316,11 +2345,17 @@ function renderReachDiagramsPreview(previewContainer, container) {
                 errorText.style.fontSize = '10px';
                 errorText.style.borderRadius = '3px';
                 errorText.style.textAlign = 'center';
+                errorText.style.zIndex = '10';
                 diagramWrapper.appendChild(errorText);
             };
             
             img.onload = function() {
-                console.log('✅ Reach diagram loaded successfully:', imageUrl);
+                console.log('✅ Reach diagram loaded successfully:', previewUrl);
+                // Удаляем сообщения об ошибках при успешной загрузке
+                const existingError = diagramWrapper.querySelector('.diagram-error-text');
+                if (existingError) {
+                    existingError.remove();
+                }
             };
             
             const titleInput = document.createElement('input');

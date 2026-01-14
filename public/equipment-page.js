@@ -832,15 +832,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             let imageUrl = diagram.url || diagram;
             
             // Преобразуем localhost URL в относительный путь
-            if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
+            if (imageUrl.startsWith('http://localhost:') || imageUrl.startsWith('http://127.0.0.1:') || imageUrl.startsWith('https://localhost:')) {
+              imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+            }
+            
+            // Удаляем любой домен, оставляем только путь
+            if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
               imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
             }
             
             // Если это относительный путь без начального слэша, добавляем его
-            if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && !imageUrl.startsWith('../')) {
-              imageUrl = '../' + imageUrl;
-            } else if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/')) {
-              // Преобразуем абсолютный путь в относительный для страниц оборудования
+            if (!imageUrl.startsWith('/') && !imageUrl.startsWith('../')) {
+              imageUrl = '/' + imageUrl;
+            }
+            
+            // Преобразуем абсолютный путь в относительный для страниц оборудования
+            if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/')) {
               imageUrl = '..' + imageUrl;
             }
             
