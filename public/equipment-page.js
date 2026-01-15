@@ -383,61 +383,81 @@ document.addEventListener('DOMContentLoaded', async () => {
         service_images_type: typeof service.images
       });
       
+      // Функция для добавления параметра обхода кэша к URL изображения
+      function addCacheBuster(url) {
+        if (!url) return url;
+        // Если URL уже содержит параметры запроса, добавляем timestamp
+        // Если нет, добавляем ?v=timestamp
+        const separator = url.includes('?') ? '&' : '?';
+        // Используем timestamp для обхода кэша
+        const timestamp = Date.now();
+        return url + separator + 'v=' + timestamp;
+      }
+      
       // Функция для получения изображения из базы данных (аналогично getImageForService из script.js)
       // Но с учетом относительных путей для страниц оборудования
-      function getImageForEquipmentPage(service) {
+      function getImageForEquipmentPage(service, useCacheBuster = true) {
+        let imageUrl = null;
+        
         // Приоритет 1: image_url из базы данных
         if (service.image_url) {
-          let imageUrl = service.image_url;
+          imageUrl = service.image_url;
           
           // Преобразуем localhost URL в относительный путь
           if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
             imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
           }
           
-          // Если это полный внешний URL, оставляем как есть
+          // Если это полный внешний URL, оставляем как есть (без cache buster для внешних URL)
           if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
             return imageUrl;
           }
           
           // Преобразуем абсолютный путь в относительный для страниц оборудования
           if (imageUrl.startsWith('/images/')) {
-            return '..' + imageUrl;
+            imageUrl = '..' + imageUrl;
           } else if (imageUrl.startsWith('/uploads/')) {
-            return '..' + imageUrl;
+            imageUrl = '..' + imageUrl;
           } else if (imageUrl.startsWith('/')) {
-            return '..' + imageUrl;
+            imageUrl = '..' + imageUrl;
           } else {
-            return '../' + imageUrl;
+            imageUrl = '../' + imageUrl;
           }
         }
         
         // Приоритет 2: первое изображение из массива images
-        if (service.images && Array.isArray(service.images) && service.images.length > 0) {
+        if (!imageUrl && service.images && Array.isArray(service.images) && service.images.length > 0) {
           const firstImage = service.images[0];
-          let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
+          let imgUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
           
           // Преобразуем localhost URL в относительный путь
-          if (imageUrl.startsWith('http://localhost:3000/') || imageUrl.startsWith('http://127.0.0.1:3000/')) {
-            imageUrl = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+          if (imgUrl.startsWith('http://localhost:3000/') || imgUrl.startsWith('http://127.0.0.1:3000/')) {
+            imgUrl = imgUrl.replace(/^https?:\/\/[^\/]+/, '');
           }
           
-          // Если это полный внешний URL, оставляем как есть
-          if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
-            return imageUrl;
+          // Если это полный внешний URL, оставляем как есть (без cache buster для внешних URL)
+          if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
+            return imgUrl;
           }
           
           // Преобразуем абсолютный путь в относительный для страниц оборудования
-          if (imageUrl.startsWith('/images/')) {
-            return '..' + imageUrl;
-          } else if (imageUrl.startsWith('/uploads/')) {
-            return '..' + imageUrl;
-          } else if (imageUrl.startsWith('/')) {
-            return '..' + imageUrl;
+          if (imgUrl.startsWith('/images/')) {
+            imageUrl = '..' + imgUrl;
+          } else if (imgUrl.startsWith('/uploads/')) {
+            imageUrl = '..' + imgUrl;
+          } else if (imgUrl.startsWith('/')) {
+            imageUrl = '..' + imgUrl;
           } else {
-            return '../' + imageUrl;
+            imageUrl = '../' + imgUrl;
           }
         }
+        
+        // Если нашли изображение, добавляем параметр обхода кэша
+        if (imageUrl && useCacheBuster) {
+          return addCacheBuster(imageUrl);
+        }
+        
+        return imageUrl;
         
         // Приоритет 3: определяем по URL страницы (fallback)
         const currentPath = window.location.pathname.toLowerCase();
