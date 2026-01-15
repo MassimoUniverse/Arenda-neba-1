@@ -1394,6 +1394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const shiftsSelect = document.getElementById('equip-calc-shifts');
     const customShiftsInput = document.getElementById('equip-calc-shifts-custom');
     const shiftsField = shiftsSelect ? shiftsSelect.closest('.calc-field') : null;
+    const shiftsFieldParent = shiftsField ? shiftsField.parentNode : null;
     
     if (shiftsSelect) {
       const customShiftsSelect = document.createElement('div');
@@ -1473,9 +1474,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       shiftsSelect.style.clip = 'rect(0, 0, 0, 0)';
       shiftsSelect.style.zIndex = '-1';
       shiftsSelect.style.left = '-9999px';
+      shiftsSelect.style.top = '-9999px';
       
-      // Вставляем кастомный select перед нативным
-      shiftsSelect.parentNode.insertBefore(customShiftsSelect, shiftsSelect);
+      // ВАЖНО: Вставляем кастомный select ВНЕ label, после него
+      // Это предотвращает перехват кликов label'ом
+      if (shiftsField && shiftsFieldParent) {
+        // Вставляем после label, а не внутри него
+        shiftsFieldParent.insertBefore(customShiftsSelect, shiftsField.nextSibling);
+      } else {
+        // Fallback: вставляем перед нативным select
+        shiftsSelect.parentNode.insertBefore(customShiftsSelect, shiftsSelect);
+      }
       
       // Перемещаем поле для ввода количества смен после кастомного select'а, если оно есть
       if (customShiftsInput && customShiftsInput.parentNode) {
@@ -1495,30 +1504,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      // Убеждаемся, что кнопка кликабельна
+      // Убеждаемся, что кнопка кликабельна - применяем стили напрямую
       currentShiftsBtn.style.pointerEvents = 'auto';
       currentShiftsBtn.style.cursor = 'pointer';
       currentShiftsBtn.style.position = 'relative';
-      currentShiftsBtn.style.zIndex = '10';
+      currentShiftsBtn.style.zIndex = '100';
+      currentShiftsBtn.style.backgroundColor = 'var(--bg-light)';
+      currentShiftsBtn.style.border = '1px solid var(--border)';
+      currentShiftsBtn.style.borderRadius = '10px';
+      currentShiftsBtn.style.width = '100%';
+      currentShiftsBtn.style.minHeight = '48px';
+      currentShiftsBtn.style.padding = '12px 16px';
+      currentShiftsBtn.style.display = 'flex';
+      currentShiftsBtn.style.alignItems = 'center';
+      currentShiftsBtn.style.justifyContent = 'space-between';
+      currentShiftsBtn.setAttribute('tabindex', '0');
 
       // Добавляем обработчик клика с несколькими способами для надежности
       const handleButtonClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Button clicked, toggling dropdown');
+        e.stopImmediatePropagation();
+        console.log('Button clicked, toggling dropdown', e);
         const isOpen = customShiftsSelect.classList.toggle('open');
         if (shiftsField) {
           shiftsField.classList.toggle('is-open', isOpen);
         }
+        return false;
       };
       
-      currentShiftsBtn.addEventListener('click', handleButtonClick);
+      // Используем capture phase для перехвата события раньше
+      currentShiftsBtn.addEventListener('click', handleButtonClick, true);
       currentShiftsBtn.addEventListener('mousedown', (e) => {
         e.preventDefault();
-      });
+        e.stopPropagation();
+      }, true);
       
       // Также добавляем обработчик на touch для мобильных
-      currentShiftsBtn.addEventListener('touchstart', handleButtonClick);
+      currentShiftsBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleButtonClick(e);
+      }, true);
+      
+      // Обработчик для клавиатуры
+      currentShiftsBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleButtonClick(e);
+        }
+      });
 
       document.addEventListener('click', (evt) => {
         if (!customShiftsSelect.contains(evt.target)) {
