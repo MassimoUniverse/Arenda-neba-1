@@ -36,18 +36,37 @@ async function uploadImage(file, imageUrlInputId, previewId, fileType = 'image')
             // Используем относительный путь вместо полного URL с localhost
             const relativeUrl = data.url || `/uploads/${data.filename}`;
             
+            console.log('📤 Изображение загружено успешно:', {
+                filename: data.filename,
+                url: relativeUrl,
+                originalUrl: data.originalUrl,
+                optimized: data.optimized
+            });
+            
             // Update image URL input
             const imageUrlInput = document.getElementById(imageUrlInputId);
             if (imageUrlInput) {
                 imageUrlInput.value = relativeUrl;
+                console.log('✅ image_url обновлен в поле:', imageUrlInputId, '=', relativeUrl);
+                
+                // Триггерим события, чтобы убедиться, что значение зафиксировано
+                imageUrlInput.dispatchEvent(new Event('change', { bubbles: true }));
+                imageUrlInput.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                console.error('❌ Поле image_url не найдено:', imageUrlInputId);
             }
             
             // Update preview (используем полный URL только для превью)
             if (previewId) {
                 const preview = document.getElementById(previewId);
+                const container = document.getElementById(previewId + 'Container');
                 if (preview) {
                     preview.src = `${API_URL}${relativeUrl}`;
                     preview.style.display = 'block';
+                    if (container) {
+                        container.style.display = 'block';
+                    }
+                    console.log('✅ Превью обновлено:', previewId);
                 }
             }
             
