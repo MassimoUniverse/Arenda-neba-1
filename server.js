@@ -2463,6 +2463,7 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         console.log(`   Оригинал сохранен: ${uploadedPath}`);
         
         console.log(`✅ Изображение успешно конвертировано: ${filename}.webp`);
+        console.log(`   Оригинал сохранен: ${uploadedPath}`);
         console.log(`   WebP файл сохранен: ${webpPath}`);
         console.log(`   JPEG файл сохранен: ${jpegPath}`);
         
@@ -2471,13 +2472,19 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
           console.error(`❌ ОШИБКА: WebP файл не найден после конвертации: ${webpPath}`);
         } else {
           const webpStats = fs.statSync(webpPath);
+          const originalStats = fs.statSync(uploadedPath);
+          console.log(`   Оригинал размер: ${(originalStats.size / 1024).toFixed(2)} KB`);
           console.log(`   WebP размер: ${(webpStats.size / 1024).toFixed(2)} KB`);
+          console.log(`   Экономия: ${((1 - webpStats.size / originalStats.size) * 100).toFixed(1)}%`);
         }
         
+        // Возвращаем WebP версию для использования на сайте
         res.json({ 
           success: true,
           filename: `${filename}.webp`,
           url: `/uploads/${filename}.webp`,
+          originalFilename: req.file.filename, // Оригинальное имя файла
+          originalUrl: `/uploads/${req.file.filename}`, // URL оригинального файла
           optimized: true,
           originalSize: sizeMB.toFixed(2) + ' MB'
         });
