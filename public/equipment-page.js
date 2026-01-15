@@ -1616,11 +1616,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Расчет стоимости с учетом полсмены
       let total;
-      if (shifts === 0.5 && baseHalfShift) {
-        total = baseHalfShift;
-      } else if (shifts === 0.5 && !baseHalfShift) {
-        // Если полсмены нет, но выбрана полсмена, используем 83% от полной смены
-        total = Math.round(basePrice * 0.83);
+      if (shifts === 0.5) {
+        // Если цена за полсмену не найдена, пробуем извлечь из таблицы цен на странице
+        if (!baseHalfShift) {
+          const pricingTable = document.querySelector('.pricing-table');
+          if (pricingTable) {
+            const pricingRows = pricingTable.querySelectorAll('.pricing-row');
+            for (const row of pricingRows) {
+              const text = row.textContent || '';
+              if (text.includes('Полсмены') || text.includes('полсмен')) {
+                const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
+                if (priceMatch) {
+                  baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        if (baseHalfShift) {
+          total = baseHalfShift;
+        } else {
+          // Если полсмены нет, используем 83% от полной смены (округление)
+          total = Math.round(basePrice * 0.83);
+        }
       } else {
         total = basePrice * shifts;
       }
