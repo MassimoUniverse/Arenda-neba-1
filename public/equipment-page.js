@@ -1486,6 +1486,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         shiftsSelect.parentNode.insertBefore(customShiftsSelect, shiftsSelect);
       }
       
+      // Убеждаемся, что кастомный select имеет правильные стили для кликабельности
+      customShiftsSelect.style.width = '100%';
+      customShiftsSelect.style.pointerEvents = 'auto';
+      customShiftsSelect.style.position = 'relative';
+      customShiftsSelect.style.zIndex = '50';
+      
       // Перемещаем поле для ввода количества смен после кастомного select'а, если оно есть
       if (customShiftsInput && customShiftsInput.parentNode) {
         const parent = customShiftsInput.parentNode;
