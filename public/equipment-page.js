@@ -1527,16 +1527,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         </p>
         ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
       `;
-      
-      // Показываем форму заказа после расчета
-      const orderForm = document.getElementById('calcOrderForm');
-      if (orderForm) {
-        orderForm.style.display = 'block';
-        // Плавная прокрутка к форме заказа
-        setTimeout(() => {
-          orderForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-      }
     };
     
     // Обработчик кнопки "Рассчитать"
@@ -1573,10 +1563,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // Проверяем, что форма заказа видна (т.е. расчет был выполнен)
-      const orderForm = document.getElementById('calcOrderForm');
-      if (!orderForm || orderForm.style.display === 'none') {
-        // Если форма заказа не видна, выполняем расчет
+      // Проверяем, был ли выполнен расчет (есть ли результат)
+      const resultText = resultEl.querySelector('.calc-result-text');
+      if (!resultText || resultText.textContent.includes('Выберите параметры')) {
+        // Если расчет не выполнен, выполняем его
         calculatePrice();
         return;
       }
@@ -1631,10 +1621,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (dateInput && dateInput._flatpickr) {
             dateInput._flatpickr.clear();
           }
-          // Скрываем форму заказа
-          if (orderForm) {
-            orderForm.style.display = 'none';
-          }
           // Сбрасываем результат расчета
           resultEl.innerHTML = '<p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>';
         } else {
@@ -1649,44 +1635,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Инициализация русского календаря для поля даты (в объединенной форме)
   if (typeof flatpickr !== 'undefined') {
-    // Инициализируем календарь для поля даты в калькуляторе (когда форма заказа появится)
-    const initDatePicker = () => {
-      const dateInput = document.querySelector('#calcOrderForm input[name="date"]');
-      if (dateInput && !dateInput._flatpickr) {
-        // Изменяем тип на text для flatpickr
-        dateInput.type = 'text';
-        
-        // Инициализируем flatpickr с русской локализацией
-        const fp = flatpickr(dateInput, {
-          locale: 'ru',
-          dateFormat: 'd.m.Y',
-          altInput: false,
-          allowInput: true,
-          minDate: 'today',
-          defaultDate: null,
-          placeholder: 'Выберите дату',
-          monthSelectorType: 'static',
-          animate: true,
-          static: true
-        });
-        
-        // Сохраняем ссылку на flatpickr для использования при отправке формы
-        dateInput._flatpickr = fp;
-      }
-    };
-    
-    // Инициализируем сразу, если форма уже видна
-    initDatePicker();
-    
-    // Также инициализируем при показе формы заказа
-    const orderForm = document.getElementById('calcOrderForm');
-    if (orderForm) {
-      const observer = new MutationObserver(() => {
-        if (orderForm.style.display !== 'none') {
-          initDatePicker();
-        }
+    // Инициализируем календарь для поля даты в калькуляторе
+    const dateInput = document.querySelector('#calcOrderForm input[name="date"]');
+    if (dateInput && !dateInput._flatpickr) {
+      // Изменяем тип на text для flatpickr
+      dateInput.type = 'text';
+      
+      // Инициализируем flatpickr с русской локализацией
+      const fp = flatpickr(dateInput, {
+        locale: 'ru',
+        dateFormat: 'd.m.Y',
+        altInput: false,
+        allowInput: true,
+        minDate: 'today',
+        defaultDate: null,
+        placeholder: 'Выберите дату',
+        monthSelectorType: 'static',
+        animate: true,
+        static: true
       });
-      observer.observe(orderForm, { attributes: true, attributeFilter: ['style'] });
+      
+      // Сохраняем ссылку на flatpickr для использования при отправке формы
+      dateInput._flatpickr = fp;
     }
   }
   

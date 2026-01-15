@@ -257,8 +257,8 @@ function generateEquipmentPageHTML(service) {
                             </div>
                             <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
                             
-                            <!-- Форма заказа (показывается после расчета) -->
-                            <div class="calc-order-form" id="calcOrderForm" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                            <!-- Форма заказа -->
+                            <div class="calc-order-form" id="calcOrderForm" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
                                 <h4 style="margin-bottom: 15px; font-size: 18px; font-weight: 600;">Оформить заказ</h4>
                                 <div class="form-group" style="margin-bottom: 15px;">
                                     <input type="text" name="name" placeholder="Ваше имя *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
