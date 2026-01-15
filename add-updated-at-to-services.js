@@ -23,8 +23,8 @@ db.serialize(() => {
       return;
     }
     
-    // Добавляем колонку updated_at
-    db.run("ALTER TABLE services ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP", (err) => {
+    // Добавляем колонку updated_at (без DEFAULT, так как SQLite не поддерживает CURRENT_TIMESTAMP в ALTER TABLE)
+    db.run("ALTER TABLE services ADD COLUMN updated_at DATETIME", (err) => {
       if (err) {
         console.error('❌ Error adding updated_at column:', err);
         db.close();
