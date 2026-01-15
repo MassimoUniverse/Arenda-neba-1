@@ -1484,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      // Скрываем нативный select
+      // Скрываем нативный select (полностью, чтобы не мешал)
       shiftsSelect.style.position = 'absolute';
       shiftsSelect.style.opacity = '0';
       shiftsSelect.style.pointerEvents = 'none';
@@ -1492,6 +1492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       shiftsSelect.style.height = '1px';
       shiftsSelect.style.overflow = 'hidden';
       shiftsSelect.style.clip = 'rect(0, 0, 0, 0)';
+      shiftsSelect.style.zIndex = '-1';
 
       currentShiftsBtn.addEventListener('click', (e) => {
         e.preventDefault();
