@@ -1212,6 +1212,16 @@ window.saveService = async function(event, id) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
 
+    // ЯВНО получаем image_url из поля serviceImage (важно для сохранения загруженных изображений)
+    const imageUrlInput = document.getElementById('serviceImage');
+    if (imageUrlInput) {
+        data.image_url = imageUrlInput.value?.trim() || '';
+        console.log('📸 image_url из поля serviceImage:', data.image_url);
+    } else {
+        console.warn('⚠️ Поле serviceImage не найдено!');
+        data.image_url = data.image_url || '';
+    }
+
     // Формируем цену из двух полей
     const priceHalfShift = document.getElementById('servicePriceHalfShift')?.value || '';
     
@@ -1227,6 +1237,15 @@ window.saveService = async function(event, id) {
     }
     
     data.price = priceStr;
+    
+    // Логируем данные перед отправкой для диагностики
+    console.log('💾 Данные для сохранения:', {
+        title: data.title,
+        hasImageUrl: !!data.image_url,
+        image_url: data.image_url,
+        hasImages: !!data.images,
+        imagesCount: Array.isArray(data.images) ? data.images.length : 0
+    });
     
     // Добавляем новые поля характеристик
     data.height_lift = document.getElementById('serviceHeightLift')?.value || '';
