@@ -1521,8 +1521,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Функция расчета стоимости
     const calculatePrice = () => {
       if (!shiftsSelect || !resultEl) {
-        console.warn('Calculator elements not found for calculatePrice');
+        console.warn('Calculator elements not found for calculatePrice', { shiftsSelect: !!shiftsSelect, resultEl: !!resultEl });
         return;
+      }
+      
+      if (!basePrice || basePrice === 0) {
+        console.warn('Base price not set, using default', basePrice);
+        basePrice = 18000;
       }
       
       const shiftsSelectValue = shiftsSelect?.value || '1';
