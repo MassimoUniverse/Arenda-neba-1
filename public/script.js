@@ -1700,7 +1700,7 @@ async function initOurCapabilitiesSlider() {
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${slide.image}" alt="${slide.title}" loading="eager" fetchpriority="high" />
+          <img src="${slide.image}" alt="${slide.title}" loading="eager" fetchpriority="high" onerror="this.onerror=null; this.src='/images/avtovyshka-13m.webp';" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>
