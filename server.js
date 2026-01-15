@@ -1296,6 +1296,12 @@ app.get('/api/popular-cards', (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
+    
+    console.log(`📸 API /api/popular-cards: найдено ${rows.length} популярных карточек`);
+    rows.forEach((row, idx) => {
+      console.log(`   ${idx + 1}. ID=${row.id}, title="${row.title}", image_url="${row.image_url || '(НЕТ)'}", updated_at="${row.updated_at || '(НЕТ)'}"`);
+    });
+    
     const fixedRows = rows.map(row => {
       let card_bullets = [];
       if (row.card_bullets) {
