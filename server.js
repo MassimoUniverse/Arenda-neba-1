@@ -1322,7 +1322,9 @@ app.get('/api/popular-cards', (req, res) => {
         description: fixEncoding(row.description),
         price: row.price ? fixEncoding(row.price) : row.price,
         card_bullets: card_bullets,
-        images: images
+        images: images,
+        // ВАЖНО: Включаем updated_at для cache busting изображений
+        updated_at: row.updated_at || null
       };
     });
     res.json(fixedRows);

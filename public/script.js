@@ -1608,9 +1608,19 @@ async function initOurCapabilitiesSlider() {
   
   try {
     // Сначала пробуем загрузить из нового API для популярных карточек
-    const popularResponse = await fetch('/api/popular-cards');
+    // Добавляем cache busting к запросу API, чтобы получить свежие данные
+    const popularResponse = await fetch('/api/popular-cards?t=' + Date.now(), {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
     if (popularResponse.ok) {
       const popularCards = await popularResponse.json();
+      console.log('📸 Загружены популярные карточки:', popularCards.length, 'шт.');
+      popularCards.forEach((card, idx) => {
+        console.log(`   ${idx + 1}. ${card.title}: image_url=${card.image_url || '(нет)'}, updated_at=${card.updated_at || '(нет)'}`);
+      });
       if (popularCards.length > 0) {
         // Используем данные из базы для популярных карточек
         slidesData = popularCards.map((service, index) => {
