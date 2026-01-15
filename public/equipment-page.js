@@ -1435,8 +1435,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (customShiftsInput) {
             if (opt.value === 'more') {
               customShiftsInput.style.display = 'block';
+              customShiftsInput.style.marginTop = '8px';
               customShiftsInput.required = true;
-              customShiftsInput.focus(); // Фокус на поле для удобства
+              // Фокус на поле для удобства с небольшой задержкой
+              setTimeout(() => {
+                if (customShiftsInput) {
+                  customShiftsInput.focus();
+                }
+              }, 100);
             } else {
               customShiftsInput.style.display = 'none';
               customShiftsInput.required = false;
@@ -1452,6 +1458,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Вставляем кастомный select перед нативным
       shiftsSelect.parentNode.insertBefore(customShiftsSelect, shiftsSelect);
+      
+      // Перемещаем поле для ввода количества смен после кастомного select'а, если оно есть
+      if (customShiftsInput && customShiftsInput.parentNode) {
+        // Удаляем из текущего места
+        customShiftsInput.parentNode.removeChild(customShiftsInput);
+        // Вставляем после кастомного select'а
+        customShiftsSelect.parentNode.insertBefore(customShiftsInput, customShiftsSelect.nextSibling);
+      }
       
       // Скрываем нативный select
       shiftsSelect.style.position = 'absolute';
