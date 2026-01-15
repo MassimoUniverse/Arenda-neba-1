@@ -763,7 +763,16 @@ app.get('/', (req, res) => {
 
 app.use(express.static('public'));
 
-app.use('/uploads', express.static('uploads'));
+// Serve uploads with no-cache headers to prevent browser caching
+app.use('/uploads', (req, res, next) => {
+  // Set headers to prevent caching of uploaded images
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  next();
+}, express.static('uploads'));
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
