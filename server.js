@@ -2446,6 +2446,16 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         }
         
         console.log(`✅ Изображение успешно конвертировано: ${filename}.webp`);
+        console.log(`   WebP файл сохранен: ${webpPath}`);
+        console.log(`   JPEG файл сохранен: ${jpegPath}`);
+        
+        // Проверяем, что файлы действительно существуют
+        if (!fs.existsSync(webpPath)) {
+          console.error(`❌ ОШИБКА: WebP файл не найден после конвертации: ${webpPath}`);
+        } else {
+          const webpStats = fs.statSync(webpPath);
+          console.log(`   WebP размер: ${(webpStats.size / 1024).toFixed(2)} KB`);
+        }
         
         res.json({ 
           success: true,
