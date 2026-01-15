@@ -3438,3 +3438,22 @@ input[type='number'] {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* Убираем pointer-events с label, чтобы не блокировал клики на кнопку */
+.calc-field {
+  position: relative;
+  pointer-events: none;
+}
+
+.calc-field .calc-field-label {
+  pointer-events: auto;
+}
+
+/* Кастомный select должен быть кликабельным даже если находится рядом с label */
+.calc-field + .calc-select {
+  pointer-events: auto !important;
+}
+
+.calc-select {
+  pointer-events: auto !important;
+}
