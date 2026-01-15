@@ -1435,6 +1435,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (customShiftsInput) {
             if (opt.value === 'more') {
               customShiftsInput.style.display = 'block';
+              customShiftsInput.style.visibility = 'visible';
               customShiftsInput.style.marginTop = '8px';
               customShiftsInput.required = true;
               // Фокус на поле для удобства с небольшой задержкой
@@ -1442,12 +1443,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (customShiftsInput) {
                   customShiftsInput.focus();
                 }
-              }, 100);
+              }, 150);
             } else {
               customShiftsInput.style.display = 'none';
+              customShiftsInput.style.visibility = 'hidden';
               customShiftsInput.required = false;
             }
           }
+          
+          // Автоматически пересчитываем при изменении выбора
+          setTimeout(() => {
+            calculatePrice();
+          }, 200);
         });
         shiftsList.appendChild(li);
       });
@@ -1461,10 +1468,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Перемещаем поле для ввода количества смен после кастомного select'а, если оно есть
       if (customShiftsInput && customShiftsInput.parentNode) {
+        const parent = customShiftsInput.parentNode;
         // Удаляем из текущего места
-        customShiftsInput.parentNode.removeChild(customShiftsInput);
-        // Вставляем после кастомного select'а
-        customShiftsSelect.parentNode.insertBefore(customShiftsInput, customShiftsSelect.nextSibling);
+        parent.removeChild(customShiftsInput);
+        // Вставляем после кастомного select'а в том же родителе
+        if (customShiftsSelect.nextSibling) {
+          parent.insertBefore(customShiftsInput, customShiftsSelect.nextSibling);
+        } else {
+          parent.appendChild(customShiftsInput);
+        }
+        // Убеждаемся, что поле видимо, если нужно
+        if (shiftsSelect && shiftsSelect.value === 'more') {
+          customShiftsInput.style.display = 'block';
+          customShiftsInput.style.visibility = 'visible';
+        }
       }
       
       // Скрываем нативный select
@@ -1550,35 +1567,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
     };
     
-    // Обработчик кнопки "Рассчитать"
-    const calcSubmitBtn = document.getElementById('calcSubmitBtn');
-    if (calcSubmitBtn) {
-      calcSubmitBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // Проверяем, что если выбрано "Более 3 смен", то поле заполнено
-        if (shiftsSelect?.value === 'more' && customShiftsInput) {
-          const customValue = Number(customShiftsInput.value);
-          if (!customValue || customValue < 4) {
-            alert('Пожалуйста, введите количество смен (минимум 4)');
-            customShiftsInput.focus();
-            return;
-          }
-        }
-        
-        calculatePrice();
-      });
-    }
-    
-    // Обработка изменения значения в поле для ввода количества смен
+    // Автоматический расчет при изменении значения в поле для ввода количества смен
     if (customShiftsInput) {
       customShiftsInput.addEventListener('input', () => {
         // Автоматически пересчитываем при изменении значения
         if (shiftsSelect?.value === 'more') {
-          calculatePrice();
+          const customValue = Number(customShiftsInput.value);
+          if (customValue >= 4) {
+            calculatePrice();
+          }
+        }
+      });
+      
+      customShiftsInput.addEventListener('change', () => {
+        if (shiftsSelect?.value === 'more') {
+          const customValue = Number(customShiftsInput.value);
+          if (customValue >= 4) {
+            calculatePrice();
+          }
         }
       });
     }
+    
+    // Автоматический расчет при загрузке страницы
+    setTimeout(() => {
+      calculatePrice();
+    }, 300);
     
     // Обработка отправки формы заказа
     form.addEventListener('submit', async (e) => {
