@@ -322,42 +322,60 @@ function parseSpecifications(specs) {
   return result;
 }
 
+// Функция для добавления параметра обхода кэша к URL изображения
+function addCacheBuster(url) {
+  if (!url) return url;
+  // Если URL уже содержит параметры запроса, добавляем timestamp
+  // Если нет, добавляем ?v=timestamp
+  const separator = url.includes('?') ? '&' : '?';
+  // Используем timestamp последнего обновления услуги или текущее время
+  const timestamp = Date.now();
+  return url + separator + 'v=' + timestamp;
+}
+
 // Функция для определения изображения по URL или названию
-function getImageForService(service) {
+function getImageForService(service, useCacheBuster = true) {
+  let imageUrl = null;
+  
   // Если есть image_url в базе, используем его (приоритет 1)
   if (service.image_url) {
     // Если это полный URL (http://localhost:3000/...), преобразуем в относительный путь
     if (service.image_url.startsWith('http://localhost:3000/')) {
-      return service.image_url.replace('http://localhost:3000', '');
+      imageUrl = service.image_url.replace('http://localhost:3000', '');
+    } else if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
+      imageUrl = service.image_url;
+    } else if (service.image_url.startsWith('/')) {
+      imageUrl = service.image_url;
+    } else {
+      imageUrl = '/' + service.image_url;
     }
-    if (service.image_url.startsWith('https://') || service.image_url.startsWith('http://')) {
-      return service.image_url;
-    }
-    // Если это относительный путь, добавляем префикс если нужно
-    if (service.image_url.startsWith('/')) {
-      return service.image_url;
-    }
-    return '/' + service.image_url;
   }
   
   // Если есть массив images, используем первое изображение (приоритет 2)
-  if (service.images && Array.isArray(service.images) && service.images.length > 0) {
+  if (!imageUrl && service.images && Array.isArray(service.images) && service.images.length > 0) {
     const firstImage = service.images[0];
-    let imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
+    let imgUrl = typeof firstImage === 'string' ? firstImage : (firstImage.url || firstImage);
     
     // Преобразуем localhost URL в относительный путь
-    if (imageUrl.startsWith('http://localhost:3000/')) {
-      imageUrl = imageUrl.replace('http://localhost:3000', '');
+    if (imgUrl.startsWith('http://localhost:3000/')) {
+      imgUrl = imgUrl.replace('http://localhost:3000', '');
     }
     
-    if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
-      return imageUrl;
+    if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
+      imageUrl = imgUrl;
+    } else if (imgUrl.startsWith('/')) {
+      imageUrl = imgUrl;
+    } else {
+      imageUrl = '/' + imgUrl;
     }
-    if (imageUrl.startsWith('/')) {
-      return imageUrl;
-    }
-    return '/' + imageUrl;
   }
+  
+  // Если нашли изображение, добавляем параметр обхода кэша
+  if (imageUrl && useCacheBuster) {
+    return addCacheBuster(imageUrl);
+  }
+  
+  return imageUrl;
   
   // Определяем по URL (fallback)
   const url = (service.url || '').toLowerCase();
