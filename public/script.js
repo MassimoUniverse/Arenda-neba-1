@@ -323,18 +323,30 @@ function parseSpecifications(specs) {
 }
 
 // Функция для добавления параметра обхода кэша к URL изображения
-function addCacheBuster(url) {
+function addCacheBuster(url, updatedAt) {
   if (!url) return url;
   // Если URL уже содержит параметры запроса, добавляем timestamp
   // Если нет, добавляем ?v=timestamp
   const separator = url.includes('?') ? '&' : '?';
   // Используем timestamp последнего обновления услуги или текущее время
-  const timestamp = Date.now();
+  let timestamp;
+  if (updatedAt) {
+    // Преобразуем дату в timestamp (если это строка даты)
+    try {
+      const date = new Date(updatedAt);
+      timestamp = date.getTime();
+    } catch (e) {
+      timestamp = Date.now();
+    }
+  } else {
+    timestamp = Date.now();
+  }
   return url + separator + 'v=' + timestamp;
 }
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service, useCacheBuster = true) {
+  const updatedAt = service.updated_at || service.updatedAt;
   let imageUrl = null;
   
   // Если есть image_url в базе, используем его (приоритет 1)
@@ -408,7 +420,7 @@ function getImageForService(service, useCacheBuster = true) {
   
   // Если нашли изображение, добавляем параметр обхода кэша
   if (imageUrl && useCacheBuster) {
-    return addCacheBuster(imageUrl);
+    return addCacheBuster(imageUrl, updatedAt);
   }
   
   return imageUrl;

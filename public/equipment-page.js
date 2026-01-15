@@ -384,19 +384,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       
       // Функция для добавления параметра обхода кэша к URL изображения
-      function addCacheBuster(url) {
+      function addCacheBuster(url, updatedAt) {
         if (!url) return url;
         // Если URL уже содержит параметры запроса, добавляем timestamp
         // Если нет, добавляем ?v=timestamp
         const separator = url.includes('?') ? '&' : '?';
-        // Используем timestamp для обхода кэша
-        const timestamp = Date.now();
+        // Используем timestamp последнего обновления услуги или текущее время
+        let timestamp;
+        if (updatedAt) {
+          // Преобразуем дату в timestamp (если это строка даты)
+          try {
+            const date = new Date(updatedAt);
+            timestamp = date.getTime();
+          } catch (e) {
+            timestamp = Date.now();
+          }
+        } else {
+          timestamp = Date.now();
+        }
         return url + separator + 'v=' + timestamp;
       }
       
       // Функция для получения изображения из базы данных (аналогично getImageForService из script.js)
       // Но с учетом относительных путей для страниц оборудования
       function getImageForEquipmentPage(service, useCacheBuster = true) {
+        const updatedAt = service.updated_at || service.updatedAt;
         let imageUrl = null;
         
         // Приоритет 1: image_url из базы данных
@@ -485,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Если нашли изображение, добавляем параметр обхода кэша
         if (imageUrl && useCacheBuster) {
-          return addCacheBuster(imageUrl);
+          return addCacheBuster(imageUrl, updatedAt);
         }
         
         return imageUrl;
