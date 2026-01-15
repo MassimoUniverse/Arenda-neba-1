@@ -3311,6 +3311,9 @@ input[type='number'] {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .calc-select-current::after {

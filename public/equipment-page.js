@@ -1493,7 +1493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       shiftsSelect.style.overflow = 'hidden';
       shiftsSelect.style.clip = 'rect(0, 0, 0, 0)';
 
-      currentShiftsBtn.addEventListener('click', () => {
+      currentShiftsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const isOpen = customShiftsSelect.classList.toggle('open');
         if (shiftsField) {
           shiftsField.classList.toggle('is-open', isOpen);
