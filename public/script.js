@@ -1632,8 +1632,16 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
           
-          const slideImage = getImageForService(service);
+          // Используем getImageForService с cache busting для популярных карточек
+          const slideImage = getImageForService(service, true);
           const cleanedPrice = extractShiftPrice(service.price || '');
+          
+          console.log(`📸 Популярная карточка ${index + 1}:`, {
+            title: service.title,
+            image_url: service.image_url,
+            slideImage: slideImage,
+            updated_at: service.updated_at
+          });
           
           return {
             id: String(service.id),
