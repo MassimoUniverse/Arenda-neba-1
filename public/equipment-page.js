@@ -452,13 +452,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
         
-        // Если нашли изображение, добавляем параметр обхода кэша
-        if (imageUrl && useCacheBuster) {
-          return addCacheBuster(imageUrl);
-        }
-        
-        return imageUrl;
-        
         // Приоритет 3: определяем по URL страницы (fallback)
         const currentPath = window.location.pathname.toLowerCase();
         if (currentPath.includes('13m')) {
