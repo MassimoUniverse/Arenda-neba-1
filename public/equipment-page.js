@@ -453,33 +453,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Приоритет 3: определяем по URL страницы (fallback)
-        const currentPath = window.location.pathname.toLowerCase();
-        if (currentPath.includes('13m')) {
-          return '../images/avtovyshka-13m.png';
-        } else if (currentPath.includes('15m')) {
-          return '../images/avtovyshka-15m.png';
-        } else if (currentPath.includes('16m')) {
-          return '../images/avtovyshka-15m.png';
-        } else if (currentPath.includes('17m')) {
-          return '../images/avtovyshka-18m.png';
-        } else if (currentPath.includes('18m')) {
-          return '../images/avtovyshka-18m.png';
-        } else if (currentPath.includes('21m')) {
-          return '../images/avtovyshka-21m.png';
-        } else if (currentPath.includes('25m')) {
-          return '../images/avtovyshka-25m.png';
-        } else if (currentPath.includes('29m')) {
-          return '../images/avtovyshka-29m.png';
-        } else if (currentPath.includes('45m')) {
-          return '../images/avtovyshka-29m.png';
-        } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
-          return '../images/avtovyshka-vezdehod-30m.png';
-        } else if (currentPath.includes('samohodnaya') || currentPath.includes('самоходная')) {
-          return '../images/avtovyshka-13m.png';
+        if (!imageUrl) {
+          const currentPath = window.location.pathname.toLowerCase();
+          if (currentPath.includes('13m')) {
+            imageUrl = '../images/avtovyshka-13m.png';
+          } else if (currentPath.includes('15m')) {
+            imageUrl = '../images/avtovyshka-15m.png';
+          } else if (currentPath.includes('16m')) {
+            imageUrl = '../images/avtovyshka-15m.png';
+          } else if (currentPath.includes('17m')) {
+            imageUrl = '../images/avtovyshka-18m.png';
+          } else if (currentPath.includes('18m')) {
+            imageUrl = '../images/avtovyshka-18m.png';
+          } else if (currentPath.includes('21m')) {
+            imageUrl = '../images/avtovyshka-21m.png';
+          } else if (currentPath.includes('25m')) {
+            imageUrl = '../images/avtovyshka-25m.png';
+          } else if (currentPath.includes('29m')) {
+            imageUrl = '../images/avtovyshka-29m.png';
+          } else if (currentPath.includes('45m')) {
+            imageUrl = '../images/avtovyshka-29m.png';
+          } else if (currentPath.includes('vezdehod') || currentPath.includes('вездеход')) {
+            imageUrl = '../images/avtovyshka-vezdehod-30m.png';
+          } else if (currentPath.includes('samohodnaya') || currentPath.includes('самоходная')) {
+            imageUrl = '../images/avtovyshka-13m.png';
+          } else {
+            // Fallback
+            imageUrl = '../images/avtovyshka-13m.png';
+          }
         }
         
-        // Fallback
-        return '../images/avtovyshka-13m.png';
+        // Если нашли изображение, добавляем параметр обхода кэша
+        if (imageUrl && useCacheBuster) {
+          return addCacheBuster(imageUrl);
+        }
+        
+        return imageUrl;
       }
       
       // Собираем все изображения: основное + дополнительные
