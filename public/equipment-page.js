@@ -1463,6 +1463,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       customShiftsSelect.appendChild(currentShiftsBtn);
       customShiftsSelect.appendChild(shiftsOptionsWrap);
 
+      // СНАЧАЛА скрываем нативный select (полностью, чтобы не мешал)
+      shiftsSelect.style.position = 'absolute';
+      shiftsSelect.style.opacity = '0';
+      shiftsSelect.style.pointerEvents = 'none';
+      shiftsSelect.style.width = '1px';
+      shiftsSelect.style.height = '1px';
+      shiftsSelect.style.overflow = 'hidden';
+      shiftsSelect.style.clip = 'rect(0, 0, 0, 0)';
+      shiftsSelect.style.zIndex = '-1';
+      shiftsSelect.style.left = '-9999px';
+      
       // Вставляем кастомный select перед нативным
       shiftsSelect.parentNode.insertBefore(customShiftsSelect, shiftsSelect);
       
@@ -1484,24 +1495,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      // Скрываем нативный select (полностью, чтобы не мешал)
-      shiftsSelect.style.position = 'absolute';
-      shiftsSelect.style.opacity = '0';
-      shiftsSelect.style.pointerEvents = 'none';
-      shiftsSelect.style.width = '1px';
-      shiftsSelect.style.height = '1px';
-      shiftsSelect.style.overflow = 'hidden';
-      shiftsSelect.style.clip = 'rect(0, 0, 0, 0)';
-      shiftsSelect.style.zIndex = '-1';
+      // Убеждаемся, что кнопка кликабельна
+      currentShiftsBtn.style.pointerEvents = 'auto';
+      currentShiftsBtn.style.cursor = 'pointer';
+      currentShiftsBtn.style.position = 'relative';
+      currentShiftsBtn.style.zIndex = '10';
 
-      currentShiftsBtn.addEventListener('click', (e) => {
+      // Добавляем обработчик клика с несколькими способами для надежности
+      const handleButtonClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        console.log('Button clicked, toggling dropdown');
         const isOpen = customShiftsSelect.classList.toggle('open');
         if (shiftsField) {
           shiftsField.classList.toggle('is-open', isOpen);
         }
+      };
+      
+      currentShiftsBtn.addEventListener('click', handleButtonClick);
+      currentShiftsBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
       });
+      
+      // Также добавляем обработчик на touch для мобильных
+      currentShiftsBtn.addEventListener('touchstart', handleButtonClick);
 
       document.addEventListener('click', (evt) => {
         if (!customShiftsSelect.contains(evt.target)) {
