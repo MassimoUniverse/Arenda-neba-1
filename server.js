@@ -1316,6 +1316,13 @@ app.get('/api/popular-cards', (req, res) => {
         }
       }
       
+      // ВАЖНО: Обрабатываем image_url через fixImageUrl для правильных путей
+      let fixedImageUrl = null;
+      if (row.image_url) {
+        fixedImageUrl = fixImageUrl(row.image_url);
+        console.log(`📸 Popular card ${row.id || row.title}: image_url=${row.image_url} -> fixed=${fixedImageUrl}`);
+      }
+      
       return {
         ...row,
         title: fixEncoding(row.title),
@@ -1323,6 +1330,8 @@ app.get('/api/popular-cards', (req, res) => {
         price: row.price ? fixEncoding(row.price) : row.price,
         card_bullets: card_bullets,
         images: images,
+        // ВАЖНО: Используем обработанный image_url
+        image_url: fixedImageUrl || row.image_url || null,
         // ВАЖНО: Включаем updated_at для cache busting изображений
         updated_at: row.updated_at || null
       };

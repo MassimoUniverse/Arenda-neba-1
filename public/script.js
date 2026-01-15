@@ -1636,12 +1636,21 @@ async function initOurCapabilitiesSlider() {
           const slideImage = getImageForService(service, true);
           const cleanedPrice = extractShiftPrice(service.price || '');
           
+          // Детальное логирование для диагностики
           console.log(`📸 Популярная карточка ${index + 1}:`, {
+            id: service.id,
             title: service.title,
-            image_url: service.image_url,
+            image_url: service.image_url || '(НЕТ)',
+            images: service.images || '(НЕТ)',
             slideImage: slideImage,
-            updated_at: service.updated_at
+            updated_at: service.updated_at || '(НЕТ)',
+            url: service.url || '(НЕТ)'
           });
+          
+          // Если image_url пустой, выводим предупреждение
+          if (!service.image_url && (!service.images || service.images.length === 0)) {
+            console.warn(`⚠️ Популярная карточка "${service.title}" не имеет image_url и images! Используется fallback.`);
+          }
           
           return {
             id: String(service.id),
