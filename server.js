@@ -2105,15 +2105,31 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     cardBulletsJson = card_bullets;
   }
   
+  // Логируем обновление image_url для диагностики
+  console.log('🔄 Обновление услуги в базе данных:');
+  console.log(`   ID: ${req.params.id}`);
+  console.log(`   image_url (до обработки): ${image_url}`);
+  console.log(`   image_url (после обработки): ${fixedImageUrl}`);
+  
   db.run(
     'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
     [title, description, price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, req.params.id],
     function(err) {
       if (err) {
+        console.error('❌ Ошибка при обновлении услуги:', err);
         res.status(500).json({ error: err.message });
         return;
       }
       console.log('✅ Service updated in database, page regenerated with new template');
+      console.log(`   Изменено строк: ${this.changes}`);
+      
+      // Проверяем, что image_url действительно сохранен
+      db.get('SELECT image_url FROM services WHERE id = ?', [req.params.id], (checkErr, row) => {
+        if (!checkErr && row) {
+          console.log(`   Проверка: image_url в базе = ${row.image_url}`);
+        }
+      });
+      
       res.json({ success: true, changes: this.changes });
     }
   );
