@@ -2540,10 +2540,39 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
   }
 });
 
+// Создаем необходимые директории при запуске сервера
+const uploadsDir = path.join(__dirname, 'uploads');
+const publicEquipmentDir = path.join(__dirname, 'public', 'equipment');
+
+// Создаем папку uploads, если её нет
+if (!fs.existsSync(uploadsDir)) {
+  console.log('📁 Создаем папку uploads...');
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✅ Папка uploads создана');
+} else {
+  console.log('✅ Папка uploads существует');
+  // Проверяем права доступа
+  try {
+    fs.accessSync(uploadsDir, fs.constants.W_OK);
+    console.log('✅ Папка uploads доступна для записи');
+  } catch (err) {
+    console.error('❌ ОШИБКА: Папка uploads не доступна для записи!');
+    console.error('   Исправьте права доступа: chmod 755 uploads');
+  }
+}
+
+// Создаем папку public/equipment, если её нет
+if (!fs.existsSync(publicEquipmentDir)) {
+  console.log('📁 Создаем папку public/equipment...');
+  fs.mkdirSync(publicEquipmentDir, { recursive: true });
+  console.log('✅ Папка public/equipment создана');
+}
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`📊 Admin panel: http://localhost:${PORT}/admin.html`);
+  console.log(`📁 Uploads directory: ${uploadsDir}`);
 });
 
 

@@ -36,6 +36,14 @@ git stash 2>/dev/null || true
 # Сбрасываем все локальные изменения
 git reset --hard HEAD 2>/dev/null || true
 
+# ВАЖНО: Создаем резервную копию uploads перед деплоем
+if [ -d "uploads" ] && [ "$(ls -A uploads 2>/dev/null)" ]; then
+    echo "💾 Создаем резервную копию uploads перед деплоем..."
+    BACKUP_UPLOADS_DIR="uploads_backup_$(date +%Y%m%d_%H%M%S)"
+    cp -r uploads "$BACKUP_UPLOADS_DIR" 2>/dev/null || true
+    echo "✅ Резервная копия создана: $BACKUP_UPLOADS_DIR"
+fi
+
 # Очищаем неотслеживаемые файлы (кроме uploads/ и database.db)
 git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
 
@@ -43,10 +51,30 @@ git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.bac
 git fetch origin
 
 # Принудительно синхронизируемся с удаленной веткой
-    git reset --hard origin/main
+git reset --hard origin/main
 
 # Очищаем неотслеживаемые файлы еще раз (кроме uploads/ и database.db)
 git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
+
+# ВАЖНО: Убеждаемся, что папка uploads существует и имеет правильные права
+if [ ! -d "uploads" ]; then
+    echo "📁 Создаем папку uploads..."
+    mkdir -p uploads
+    chmod 755 uploads
+    echo "✅ Папка uploads создана"
+else
+    echo "✅ Папка uploads существует"
+    # Восстанавливаем файлы из резервной копии, если они были удалены
+    if [ -d "$BACKUP_UPLOADS_DIR" ] && [ "$(ls -A uploads 2>/dev/null | wc -l)" -eq 0 ]; then
+        echo "🔄 Восстанавливаем файлы из резервной копии..."
+        cp -r "$BACKUP_UPLOADS_DIR"/* uploads/ 2>/dev/null || true
+        echo "✅ Файлы восстановлены"
+    fi
+fi
+
+# Устанавливаем правильные права на папку uploads
+chmod 755 uploads
+echo "✅ Права доступа установлены для uploads"
 
 # Установка зависимостей
 echo "📦 Устанавливаем зависимости..."
