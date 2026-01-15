@@ -1489,6 +1489,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (shiftsField) shiftsField.classList.remove('is-open');
         }
       });
+      
+      // Проверяем начальное значение и показываем поле, если нужно
+      if (shiftsSelect && shiftsSelect.value === 'more' && customShiftsInput) {
+        customShiftsInput.style.display = 'block';
+        customShiftsInput.style.marginTop = '8px';
+        customShiftsInput.required = true;
+      }
     }
     
     // Функция расчета стоимости
