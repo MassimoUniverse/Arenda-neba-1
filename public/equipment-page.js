@@ -1352,8 +1352,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (service && service.price) {
       const priceStr = service.price;
       
-      // Ищем цену за полсмену
-      const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+      // Ищем цену за полсмену - пробуем разные форматы
+      const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*полсмен/i);
       if (halfShiftMatch) {
         baseHalfShift = parseInt(halfShiftMatch[1].replace(/\s/g, ''), 10);
       } else {
@@ -1366,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       
       // Ищем цену за смену
-      const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+      const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*смен/i);
       if (shiftMatch) {
         basePrice = parseInt(shiftMatch[1].replace(/\s/g, ''), 10);
       } else {
@@ -1380,6 +1380,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           const match = priceStr.match(/(\d+[\s\d]*)/);
           if (match) basePrice = parseInt(match[1].replace(/\s/g, ''), 10);
         }
+      }
+    }
+    
+    // Если цена за полсмену не найдена в строке, пробуем извлечь из таблицы цен на странице
+    if (!baseHalfShift) {
+      const pricingTable = document.querySelector('.pricing-table');
+      if (pricingTable) {
+        const pricingRows = pricingTable.querySelectorAll('.pricing-row');
+        pricingRows.forEach(row => {
+          const text = row.textContent || '';
+          if (text.includes('Полсмены') || text.includes('полсмен')) {
+            const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
+            if (priceMatch) {
+              baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
+            }
+          }
+        });
       }
     }
     
