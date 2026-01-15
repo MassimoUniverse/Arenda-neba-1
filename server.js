@@ -752,6 +752,16 @@ app.get('/equipment/:filename(*)', (req, res) => {
 });
 
 // Serve static files from public directory (must be after specific routes)
+// Редирект с /index.html на /
+app.get('/index.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+// Явный маршрут для корневого пути
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.use(express.static('public'));
 
 app.use('/uploads', express.static('uploads'));
