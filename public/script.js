@@ -370,43 +370,48 @@ function getImageForService(service, useCacheBuster = true) {
     }
   }
   
+  // Если изображение не найдено, определяем по URL (fallback)
+  if (!imageUrl) {
+    const url = (service.url || '').toLowerCase();
+    if (url.includes('13m')) imageUrl = '/images/avtovyshka-13m.webp';
+    else if (url.includes('15m')) imageUrl = '/images/avtovyshka-15m.webp';
+    else if (url.includes('16m')) imageUrl = '/images/avtovyshka-16m.webp';
+    else if (url.includes('17m')) imageUrl = '/images/avtovyshka-17m.webp';
+    else if (url.includes('18m')) imageUrl = '/images/avtovyshka-18m.webp';
+    else if (url.includes('21m')) imageUrl = '/images/avtovyshka-21m.webp';
+    else if (url.includes('25m')) imageUrl = '/images/avtovyshka-25m.webp';
+    else if (url.includes('29m')) imageUrl = '/images/avtovyshka-29m.webp';
+    else if (url.includes('45m')) imageUrl = '/images/avtovyshka-45m.webp';
+    else if (url.includes('vezdehod') || url.includes('вездеход')) imageUrl = '/images/avtovyshka-vezdehod-30m.webp';
+    else if (url.includes('samohodnaya') || url.includes('самоходная')) imageUrl = '/images/avtovyshka-13m.webp';
+    else {
+      // Определяем по высоте из названия
+      const height = extractHeightFromTitle(service.title);
+      if (height) {
+        if (height === 13) imageUrl = '/images/avtovyshka-13m.webp';
+        else if (height === 15) imageUrl = '/images/avtovyshka-15m.webp';
+        else if (height === 16) imageUrl = '/images/avtovyshka-16m.webp';
+        else if (height === 17) imageUrl = '/images/avtovyshka-17m.webp';
+        else if (height === 18) imageUrl = '/images/avtovyshka-18m.webp';
+        else if (height === 21) imageUrl = '/images/avtovyshka-21m.webp';
+        else if (height === 25) imageUrl = '/images/avtovyshka-25m.webp';
+        else if (height === 29) imageUrl = '/images/avtovyshka-29m.webp';
+        else if (height === 45) imageUrl = '/images/avtovyshka-45m.webp';
+      }
+    }
+    
+    // Если всё ещё не найдено, используем fallback
+    if (!imageUrl) {
+      imageUrl = '/images/avtovyshka-13m.webp';
+    }
+  }
+  
   // Если нашли изображение, добавляем параметр обхода кэша
   if (imageUrl && useCacheBuster) {
     return addCacheBuster(imageUrl);
   }
   
   return imageUrl;
-  
-  // Определяем по URL (fallback)
-  const url = (service.url || '').toLowerCase();
-  if (url.includes('13m')) return '/images/avtovyshka-13m.webp';
-  if (url.includes('15m')) return '/images/avtovyshka-15m.webp';
-  if (url.includes('16m')) return '/images/avtovyshka-16m.webp';
-  if (url.includes('17m')) return '/images/avtovyshka-17m.webp';
-  if (url.includes('18m')) return '/images/avtovyshka-18m.webp';
-  if (url.includes('21m')) return '/images/avtovyshka-21m.webp';
-  if (url.includes('25m')) return '/images/avtovyshka-25m.webp';
-  if (url.includes('29m')) return '/images/avtovyshka-29m.webp';
-  if (url.includes('45m')) return '/images/avtovyshka-45m.webp';
-  if (url.includes('vezdehod') || url.includes('вездеход')) return '/images/avtovyshka-vezdehod-30m.webp';
-  if (url.includes('samohodnaya') || url.includes('самоходная')) return '/images/avtovyshka-13m.webp';
-  
-  // Определяем по высоте из названия
-  const height = extractHeightFromTitle(service.title);
-  if (height) {
-    if (height === 13) return '/images/avtovyshka-13m.webp';
-    if (height === 15) return '/images/avtovyshka-15m.webp';
-    if (height === 16) return '/images/avtovyshka-16m.webp';
-    if (height === 17) return '/images/avtovyshka-17m.webp';
-    if (height === 18) return '/images/avtovyshka-18m.webp';
-    if (height === 21) return '/images/avtovyshka-21m.webp';
-    if (height === 25) return '/images/avtovyshka-25m.webp';
-    if (height === 29) return '/images/avtovyshka-29m.webp';
-    if (height === 45) return '/images/avtovyshka-45m.webp';
-  }
-  
-  // Fallback
-  return '/images/avtovyshka-13m.webp';
 }
 
 // Функция для определения базовой цены из price
