@@ -2399,47 +2399,13 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
     const sizeKB = stats.size / 1024;
     const sizeMB = sizeKB / 1024;
     
-    // Оптимизируем если:
-    // 1. Файл > 1 MB, ИЛИ
-    // 2. Формат PNG (PNG всегда оптимизируем)
-    const shouldOptimize = ext === '.png' || sizeMB > 1;
+    // ВСЕГДА конвертируем в WebP для единообразия и оптимизации
+    // Исключение: если файл уже WebP и маленький (< 500KB), оставляем как есть
+    const isAlreadyWebp = ext === '.webp';
+    const isSmallWebp = isAlreadyWebp && sizeKB < 500;
     
-    if (shouldOptimize) {
-      console.log(`Оптимизация изображения: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
-      
-      const webpPath = path.join('uploads', `${filename}.webp`);
-      const jpegPath = path.join('uploads', `${filename}.jpg`);
-      
-      // Создаем WebP версию
-      await sharp(uploadedPath)
-        .resize(1920, null, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .webp({ quality: 85 })
-        .toFile(webpPath);
-      
-      // Создаем JPEG версию для совместимости
-      await sharp(uploadedPath)
-        .resize(1920, null, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 85 })
-        .toFile(jpegPath);
-      
-      // Удаляем оригинал
-      fs.unlinkSync(uploadedPath);
-      
-      res.json({ 
-        success: true,
-        filename: `${filename}.webp`,
-        url: `/uploads/${filename}.webp`,
-        optimized: true,
-        originalSize: sizeMB.toFixed(2) + ' MB'
-      });
-    } else {
-      console.log(`Файл уже оптимален: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
+    if (isSmallWebp) {
+      console.log(`Файл уже WebP и оптимален: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
       
       res.json({ 
         success: true,
@@ -2448,6 +2414,58 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         optimized: false,
         size: sizeMB.toFixed(2) + ' MB'
       });
+    } else {
+      // Конвертируем все остальные форматы в WebP
+      console.log(`Конвертация изображения в WebP: ${req.file.originalname} (${sizeMB.toFixed(2)} MB)`);
+      
+      const webpPath = path.join('uploads', `${filename}.webp`);
+      const jpegPath = path.join('uploads', `${filename}.jpg`);
+      
+      try {
+        // Создаем WebP версию (основной формат)
+        await sharp(uploadedPath)
+          .resize(1920, null, {
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({ quality: 85 })
+          .toFile(webpPath);
+        
+        // Создаем JPEG версию для совместимости (fallback)
+        await sharp(uploadedPath)
+          .resize(1920, null, {
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .jpeg({ quality: 85 })
+          .toFile(jpegPath);
+        
+        // Удаляем оригинал только если это не WebP файл
+        if (!isAlreadyWebp) {
+          fs.unlinkSync(uploadedPath);
+        }
+        
+        console.log(`✅ Изображение успешно конвертировано: ${filename}.webp`);
+        
+        res.json({ 
+          success: true,
+          filename: `${filename}.webp`,
+          url: `/uploads/${filename}.webp`,
+          optimized: true,
+          originalSize: sizeMB.toFixed(2) + ' MB'
+        });
+      } catch (optimizeError) {
+        console.error('❌ Ошибка при конвертации изображения:', optimizeError);
+        // Если конвертация не удалась, возвращаем оригинал
+        res.json({ 
+          success: true,
+          filename: req.file.filename,
+          url: `/uploads/${req.file.filename}`,
+          optimized: false,
+          error: 'Конвертация не удалась, используется оригинал',
+          size: sizeMB.toFixed(2) + ' MB'
+        });
+      }
     }
   } catch (error) {
     console.error('Error optimizing image:', error);
