@@ -1520,6 +1520,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Функция расчета стоимости
     const calculatePrice = () => {
+      if (!shiftsSelect || !resultEl) {
+        console.warn('Calculator elements not found for calculatePrice');
+        return;
+      }
+      
       const shiftsSelectValue = shiftsSelect?.value || '1';
       let shifts;
       if (shiftsSelectValue === 'more' && customShiftsInput) {
@@ -1562,13 +1567,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      resultEl.innerHTML = `
-        <p class="calc-result-text">
-          ${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : (shiftsSelectValue === 'more' ? shiftsText : `${shifts} ${shiftsText}`)} <span class="price-vat">без НДС</span>
-        </p>
-        ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
-      `;
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <p class="calc-result-text">
+            ${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : (shiftsSelectValue === 'more' ? shiftsText : `${shifts} ${shiftsText}`)} <span class="price-vat">без НДС</span>
+          </p>
+          ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
+        `;
+      }
     };
+    
+    // Вызываем расчет сразу после определения функции
+    if (shiftsSelect && resultEl) {
+      setTimeout(() => {
+        calculatePrice();
+      }, 200);
+    }
     
     // Автоматический расчет при изменении значения в поле для ввода количества смен
     if (customShiftsInput) {
@@ -1592,10 +1606,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     
-    // Автоматический расчет при загрузке страницы
+    // Автоматический расчет при загрузке страницы (после создания всех элементов)
     setTimeout(() => {
-      calculatePrice();
-    }, 300);
+      if (typeof calculatePrice === 'function') {
+        try {
+          calculatePrice();
+        } catch (error) {
+          console.error('Error calculating price:', error);
+          // Показываем начальное сообщение, если расчет не удался
+          resultEl.innerHTML = '<p class="calc-result-text">Выберите параметры для расчета</p>';
+        }
+      }
+    }, 500);
     
     // Обработка отправки формы заказа
     form.addEventListener('submit', async (e) => {
