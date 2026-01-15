@@ -804,16 +804,18 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
     
-    // Формат: service-{id}-{type}-{slug}-{timestamp}-{original}.ext
+    // Упрощенный формат: {slug}-{type}-{timestamp}.ext
     // Примеры: 
-    // service-15-main-image-avtovyshka-18-metrov-1704123456789-photo1.jpg
-    // service-15-gallery-avtovyshka-18-metrov-1704123456790-img2.jpg
-    // service-15-reach-diagram-avtovyshka-18-metrov-1704123456791-schema.jpg
+    // avtovyshka-18-metrov-main-1704123456789.jpg
+    // avtovyshka-18-metrov-gallery-1704123456790.jpg
+    // avtovyshka-18-metrov-reach-1704123456791.jpg
     let filename;
     if (slug) {
-      filename = `service-${serviceId}-${fileType}-${slug}-${timestamp}-${originalName}${ext}`;
+      // Используем только название услуги и тип файла
+      filename = `${slug}-${fileType}-${timestamp}${ext}`;
     } else {
-      filename = `service-${serviceId}-${fileType}-${timestamp}-${originalName}${ext}`;
+      // Fallback если нет названия услуги
+      filename = `service-${serviceId}-${fileType}-${timestamp}${ext}`;
     }
     
     cb(null, filename);
@@ -2456,10 +2458,9 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
           .jpeg({ quality: 85 })
           .toFile(jpegPath);
         
-        // Удаляем оригинал только если это не WebP файл
-        if (!isAlreadyWebp) {
-          fs.unlinkSync(uploadedPath);
-        }
+        // НЕ удаляем оригинал - сохраняем его для резервной копии
+        // Оригинал остается в папке uploads с исходным именем
+        console.log(`   Оригинал сохранен: ${uploadedPath}`);
         
         console.log(`✅ Изображение успешно конвертировано: ${filename}.webp`);
         console.log(`   WebP файл сохранен: ${webpPath}`);
@@ -2483,6 +2484,7 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
       } catch (optimizeError) {
         console.error('❌ Ошибка при конвертации изображения:', optimizeError);
         // Если конвертация не удалась, возвращаем оригинал
+        // Оригинал уже сохранен, так что просто возвращаем его URL
         res.json({ 
           success: true,
           filename: req.file.filename,
@@ -2494,13 +2496,21 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
       }
     }
   } catch (error) {
-    console.error('Error optimizing image:', error);
-    // Если оптимизация не удалась, возвращаем оригинал
-    res.json({ 
-      success: true,
-      filename: req.file.filename,
-      url: `/uploads/${req.file.filename}`
-    });
+    console.error('❌ Ошибка при обработке изображения:', error);
+    // Если обработка не удалась, возвращаем оригинал (если он был загружен)
+    if (req.file) {
+      res.json({ 
+        success: true,
+        filename: req.file.filename,
+        url: `/uploads/${req.file.filename}`,
+        error: 'Ошибка обработки, используется оригинал'
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Ошибка при загрузке файла',
+        details: error.message
+      });
+    }
   }
 });
 
