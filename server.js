@@ -839,7 +839,10 @@ const upload = multer({
 
 // Function to fix image URL - removes localhost and converts .png to .webp
 function fixImageUrl(url) {
-  if (!url || typeof url !== 'string') return url;
+  if (!url || typeof url !== 'string') {
+    console.warn('⚠️ fixImageUrl: пустой или неверный URL:', url);
+    return url || '';
+  }
   
   let fixed = url;
   
@@ -853,6 +856,11 @@ function fixImageUrl(url) {
   // Convert .png to .webp for /images/ and /uploads/ paths
   if ((fixed.startsWith('/images/') || fixed.startsWith('/uploads/')) && fixed.endsWith('.png')) {
     fixed = fixed.replace('.png', '.webp');
+  }
+  
+  // Логируем изменения для диагностики
+  if (fixed !== url) {
+    console.log('🔧 fixImageUrl:', url, '->', fixed);
   }
   
   return fixed;
