@@ -1606,6 +1606,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
       
+      // Проверяем, что если выбрано "Более 3 смен", то поле заполнено
+      if (shiftsSelect?.value === 'more' && customShiftsInput) {
+        const customValue = Number(customShiftsInput.value);
+        if (!customValue || customValue < 4) {
+          alert('Пожалуйста, введите количество смен (минимум 4)');
+          if (customShiftsInput) {
+            customShiftsInput.style.display = 'block';
+            customShiftsInput.style.visibility = 'visible';
+            customShiftsInput.focus();
+          }
+          return;
+        }
+      }
+      
       // Собираем данные формы
       const formData = new FormData(form);
       const data = {};
