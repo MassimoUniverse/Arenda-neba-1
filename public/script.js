@@ -756,25 +756,53 @@ function createServiceCard(service) {
   // WebP source
   const sourceWebp = document.createElement('source');
   const imageSrc = service.image || '/images/avtovyshka-13m.webp';
-  const webpSrc = imageSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+  // Не заменяем расширение, если это уже правильный формат
+  let webpSrc = imageSrc;
+  if (!imageSrc.includes('.webp') && !imageSrc.includes('?')) {
+    webpSrc = imageSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+  }
+  // Добавляем cache busting, если его еще нет
+  if (!webpSrc.includes('?') && !webpSrc.includes('&')) {
+    webpSrc = webpSrc + '?t=' + Date.now();
+  }
   sourceWebp.srcset = webpSrc;
   sourceWebp.type = 'image/webp';
   
   // JPEG fallback source
   const sourceJpeg = document.createElement('source');
-  const jpegSrc = imageSrc.replace(/\.(png|webp)$/i, '.jpg');
+  let jpegSrc = imageSrc;
+  if (!imageSrc.includes('.jpg') && !imageSrc.includes('.jpeg') && !imageSrc.includes('?')) {
+    jpegSrc = imageSrc.replace(/\.(png|webp)$/i, '.jpg');
+  }
+  // Добавляем cache busting, если его еще нет
+  if (!jpegSrc.includes('?') && !jpegSrc.includes('&')) {
+    jpegSrc = jpegSrc + '?t=' + Date.now();
+  }
   sourceJpeg.srcset = jpegSrc;
   sourceJpeg.type = 'image/jpeg';
   
-  // IMG fallback
+  // IMG fallback - используем оригинальный путь с cache busting
   const img = document.createElement('img');
-  img.src = jpegSrc;
+  // Принудительно добавляем cache busting
+  let finalImageSrc = imageSrc;
+  if (!finalImageSrc.includes('?') && !finalImageSrc.includes('&')) {
+    finalImageSrc = imageSrc + '?t=' + Date.now();
+  }
+  img.src = finalImageSrc;
   img.alt = service.title;
   img.loading = 'eager';
   img.decoding = 'async';
+  img.setAttribute('crossorigin', 'anonymous');
   
   img.onerror = function() {
-    this.src = '/images/avtovyshka-13m.webp';
+    // При ошибке загрузки используем fallback с cache busting
+    this.src = '/images/avtovyshka-13m.webp?t=' + Date.now();
+    // Удаляем source элементы, чтобы браузер использовал img
+    const picture = this.parentElement;
+    if (picture && picture.tagName === 'PICTURE') {
+      const sources = picture.querySelectorAll('source');
+      sources.forEach(s => s.remove());
+    }
   };
   
   picture.appendChild(sourceWebp);
@@ -817,7 +845,13 @@ async function displayServices() {
   grid.innerHTML = '';
   
   try {
-    const response = await fetch('/api/services');
+    // Добавляем cache busting к запросу API, чтобы получить свежие данные
+    const response = await fetch('/api/services?t=' + Date.now(), {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
     if (!response.ok) throw new Error('Failed to load services');
     const services = await response.json();
     
