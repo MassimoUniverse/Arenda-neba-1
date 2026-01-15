@@ -2118,8 +2118,17 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   // Логируем обновление image_url для диагностики
   console.log('🔄 Обновление услуги в базе данных:');
   console.log(`   ID: ${req.params.id}`);
-  console.log(`   image_url (до обработки): ${image_url}`);
-  console.log(`   image_url (после обработки): ${fixedImageUrl}`);
+  console.log(`   Title: ${title}`);
+  console.log(`   image_url (до обработки): ${image_url || '(пусто)'}`);
+  console.log(`   image_url (после обработки): ${fixedImageUrl || '(пусто)'}`);
+  
+  // Проверяем, что image_url не пустой перед сохранением
+  if (!fixedImageUrl || fixedImageUrl.trim() === '') {
+    console.warn('⚠️ ВНИМАНИЕ: image_url пустой! Изображение не будет сохранено.');
+    console.warn('   Проверьте, что изображение было загружено и поле serviceImage заполнено.');
+  } else {
+    console.log('✅ image_url будет сохранен:', fixedImageUrl);
+  }
   
   db.run(
     'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
