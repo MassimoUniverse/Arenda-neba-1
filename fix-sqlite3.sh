@@ -73,17 +73,53 @@ echo ""
 # Устанавливаем sqlite3 заново из исходников
 echo "📦 Устанавливаем sqlite3 из исходников..."
 echo "   Это может занять несколько минут..."
-npm install sqlite3 --build-from-source --verbose 2>&1 | tail -20
+if npm install sqlite3 --build-from-source 2>&1 | tee /tmp/sqlite3-install.log; then
+    echo "✅ Установка sqlite3 завершена"
+else
+    echo "⚠️  Первая попытка установки не удалась, пробуем альтернативный метод..."
+    echo "📦 Переустанавливаем sqlite3 без --build-from-source..."
+    npm install sqlite3 2>&1 | tail -10
+fi
 echo ""
 
-# Если установка не удалась, пробуем альтернативный метод
-if [ ! -f "node_modules/sqlite3/build/Release/node_sqlite3.node" ]; then
-    echo "⚠️  Первая попытка не удалась, пробуем альтернативный метод..."
-    echo "📦 Удаляем node_modules полностью..."
-    rm -rf node_modules
-    echo "📦 Переустанавливаем все зависимости..."
+# Проверяем установку sqlite3
+echo "🔍 Проверяем установку sqlite3..."
+if [ -d "node_modules/sqlite3" ]; then
+    echo "✅ Папка node_modules/sqlite3 существует"
+    
+    if [ -f "node_modules/sqlite3/package.json" ]; then
+        echo "✅ package.json найден"
+        SQLITE3_VERSION=$(grep '"version"' node_modules/sqlite3/package.json | head -1 | cut -d'"' -f4)
+        echo "   Версия: $SQLITE3_VERSION"
+    fi
+    
+    if [ -f "node_modules/sqlite3/build/Release/node_sqlite3.node" ]; then
+        echo "✅ Нативный модуль найден: node_modules/sqlite3/build/Release/node_sqlite3.node"
+        file node_modules/sqlite3/build/Release/node_sqlite3.node
+    else
+        echo "⚠️  Нативный модуль не найден, но папка существует"
+        echo "   Попробуем пересобрать..."
+        cd node_modules/sqlite3
+        npm run install 2>&1 | tail -10 || npm run rebuild 2>&1 | tail -10 || true
+        cd ../..
+    fi
+else
+    echo "❌ Папка node_modules/sqlite3 НЕ существует!"
+    echo "📦 Пробуем полную переустановку node_modules..."
+    rm -rf node_modules package-lock.json
     npm install
     echo ""
+fi
+echo ""
+
+# Финальная проверка
+if [ ! -d "node_modules/sqlite3" ]; then
+    echo "❌ КРИТИЧЕСКАЯ ОШИБКА: sqlite3 не установлен!"
+    echo ""
+    echo "Попробуйте вручную:"
+    echo "  rm -rf node_modules package-lock.json"
+    echo "  npm install"
+    exit 1
 fi
 
 # Проверяем установку
