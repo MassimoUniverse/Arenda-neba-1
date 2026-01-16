@@ -37,15 +37,21 @@ git stash 2>/dev/null || true
 git reset --hard HEAD 2>/dev/null || true
 
 # ВАЖНО: Создаем резервную копию uploads перед деплоем
+BACKUP_UPLOADS_DIR=""
 if [ -d "uploads" ] && [ "$(ls -A uploads 2>/dev/null)" ]; then
     echo "💾 Создаем резервную копию uploads перед деплоем..."
     BACKUP_UPLOADS_DIR="uploads_backup_$(date +%Y%m%d_%H%M%S)"
     cp -r uploads "$BACKUP_UPLOADS_DIR" 2>/dev/null || true
     echo "✅ Резервная копия создана: $BACKUP_UPLOADS_DIR"
+    echo "   Файлов в резервной копии: $(find "$BACKUP_UPLOADS_DIR" -type f | wc -l)"
 fi
 
-# Очищаем неотслеживаемые файлы (кроме uploads/ и database.db)
-git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
+# ВАЖНО: Временно переименовываем uploads, чтобы git clean не удалил его
+if [ -d "uploads" ]; then
+    echo "🔒 Защищаем папку uploads от удаления..."
+    mv uploads "uploads_temp_$(date +%s)" 2>/dev/null || true
+    UPLOADS_TEMP_NAME=$(ls -d uploads_temp_* 2>/dev/null | head -1)
+fi
 
 # Получаем последние изменения с удаленного репозитория
 git fetch origin
@@ -53,23 +59,31 @@ git fetch origin
 # Принудительно синхронизируемся с удаленной веткой
 git reset --hard origin/main
 
-# Очищаем неотслеживаемые файлы еще раз (кроме uploads/ и database.db)
-git clean -fd --exclude=uploads/ --exclude=database.db --exclude=database.db.backup
+# Очищаем неотслеживаемые файлы (uploads уже защищен переименованием)
+echo "🧹 Очищаем неотслеживаемые файлы..."
+git clean -fd
 
-# ВАЖНО: Убеждаемся, что папка uploads существует и имеет правильные права
-if [ ! -d "uploads" ]; then
+# ВАЖНО: Восстанавливаем папку uploads
+if [ -n "$UPLOADS_TEMP_NAME" ] && [ -d "$UPLOADS_TEMP_NAME" ]; then
+    echo "📁 Восстанавливаем папку uploads..."
+    mv "$UPLOADS_TEMP_NAME" uploads 2>/dev/null || true
+    echo "✅ Папка uploads восстановлена"
+    echo "   Файлов в uploads: $(find uploads -type f 2>/dev/null | wc -l)"
+elif [ ! -d "uploads" ]; then
     echo "📁 Создаем папку uploads..."
     mkdir -p uploads
-    chmod 755 uploads
     echo "✅ Папка uploads создана"
-else
-    echo "✅ Папка uploads существует"
-    # Восстанавливаем файлы из резервной копии, если они были удалены
-    if [ -d "$BACKUP_UPLOADS_DIR" ] && [ "$(ls -A uploads 2>/dev/null | wc -l)" -eq 0 ]; then
+    
+    # Восстанавливаем файлы из резервной копии, если она есть
+    if [ -n "$BACKUP_UPLOADS_DIR" ] && [ -d "$BACKUP_UPLOADS_DIR" ]; then
         echo "🔄 Восстанавливаем файлы из резервной копии..."
         cp -r "$BACKUP_UPLOADS_DIR"/* uploads/ 2>/dev/null || true
-        echo "✅ Файлы восстановлены"
+        echo "✅ Файлы восстановлены из резервной копии"
+        echo "   Файлов восстановлено: $(find uploads -type f 2>/dev/null | wc -l)"
     fi
+else
+    echo "✅ Папка uploads существует"
+    echo "   Файлов в uploads: $(find uploads -type f 2>/dev/null | wc -l)"
 fi
 
 # Устанавливаем правильные права на папку uploads

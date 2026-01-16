@@ -2437,14 +2437,31 @@ app.post('/api/admin/upload-video', authenticateToken, videoUpload.single('video
 
 // File upload endpoint (Protected) with automatic optimization
 app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (req, res) => {
+  console.log('📤 Запрос на загрузку изображения получен');
+  console.log('   Файл:', req.file ? req.file.originalname : 'НЕТ');
+  console.log('   Размер:', req.file ? (req.file.size / 1024).toFixed(2) + ' KB' : 'НЕТ');
+  
   if (!req.file) {
+    console.error('❌ Ошибка: файл не загружен');
     return res.status(400).json({ error: 'No file uploaded' });
+  }
+  
+  // Проверяем, что папка uploads существует и доступна для записи
+  const uploadsDir = path.join(__dirname, 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    console.log('📁 Папка uploads не существует, создаем...');
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('✅ Папка uploads создана');
   }
   
   try {
     const uploadedPath = req.file.path;
     const filename = path.parse(req.file.filename).name;
     const ext = path.extname(req.file.originalname).toLowerCase();
+    
+    console.log('📁 Путь загруженного файла:', uploadedPath);
+    console.log('📝 Имя файла:', filename);
+    console.log('📎 Расширение:', ext);
     
     // Проверяем размер файла
     const stats = fs.statSync(uploadedPath);
@@ -2504,13 +2521,23 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         // Проверяем, что файлы действительно существуют
         if (!fs.existsSync(webpPath)) {
           console.error(`❌ ОШИБКА: WebP файл не найден после конвертации: ${webpPath}`);
+          throw new Error('WebP файл не был создан');
         } else {
           const webpStats = fs.statSync(webpPath);
           const originalStats = fs.statSync(uploadedPath);
-          console.log(`   Оригинал размер: ${(originalStats.size / 1024).toFixed(2)} KB`);
-          console.log(`   WebP размер: ${(webpStats.size / 1024).toFixed(2)} KB`);
-          console.log(`   Экономия: ${((1 - webpStats.size / originalStats.size) * 100).toFixed(1)}%`);
+          console.log(`   ✅ Оригинал размер: ${(originalStats.size / 1024).toFixed(2)} KB`);
+          console.log(`   ✅ WebP размер: ${(webpStats.size / 1024).toFixed(2)} KB`);
+          console.log(`   ✅ Экономия: ${((1 - webpStats.size / originalStats.size) * 100).toFixed(1)}%`);
         }
+        
+        // Проверяем, что файлы действительно существуют перед отправкой ответа
+        const finalWebpPath = path.join(__dirname, 'uploads', `${filename}.webp`);
+        if (!fs.existsSync(finalWebpPath)) {
+          console.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: WebP файл не найден: ${finalWebpPath}`);
+          throw new Error('WebP файл не найден после конвертации');
+        }
+        
+        console.log(`✅ Изображение успешно загружено и обработано: /uploads/${filename}.webp`);
         
         // Возвращаем WebP версию для использования на сайте
         res.json({ 
