@@ -105,7 +105,13 @@ npm install
 
 # Пересобираем sqlite3 на всякий случай
 echo "🔨 Пересобираем нативные модули..."
-npm rebuild sqlite3 2>/dev/null || true
+# Удаляем старый sqlite3 перед пересборкой, чтобы избежать ошибки "invalid ELF header"
+if [ -d "node_modules/sqlite3" ]; then
+    echo "   Удаляем старый sqlite3..."
+    rm -rf node_modules/sqlite3
+fi
+# Пересобираем sqlite3 из исходников для текущей архитектуры
+npm install sqlite3 --build-from-source 2>/dev/null || npm rebuild sqlite3 2>/dev/null || true
 
 # Оптимизируем PNG файлы в uploads (конвертируем в WebP)
 echo "🖼️  Оптимизируем изображения в uploads..."
