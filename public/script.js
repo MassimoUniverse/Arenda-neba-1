@@ -1633,7 +1633,44 @@ async function initOurCapabilitiesSlider() {
           }
           
           // Используем getImageForService с cache busting для популярных карточек
-          const slideImage = getImageForService(service, true);
+          // ВАЖНО: Принудительно используем image_url из базы, если он есть
+          let slideImage = null;
+          
+          // Приоритет 1: image_url из базы (если есть)
+          if (service.image_url) {
+            let imgUrl = service.image_url;
+            // Убираем localhost если есть
+            if (imgUrl.startsWith('http://localhost:3000/')) {
+              imgUrl = imgUrl.replace('http://localhost:3000', '');
+            }
+            // Убираем домен если есть
+            if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
+              const urlObj = new URL(imgUrl);
+              imgUrl = urlObj.pathname;
+            }
+            // Добавляем cache busting
+            slideImage = addCacheBuster(imgUrl, service.updated_at);
+            console.log(`📸 Популярная карточка ${index + 1}: используем image_url из базы: ${slideImage}`);
+          }
+          // Приоритет 2: первое изображение из массива images
+          else if (service.images && Array.isArray(service.images) && service.images.length > 0) {
+            let imgUrl = typeof service.images[0] === 'string' ? service.images[0] : (service.images[0].url || service.images[0]);
+            if (imgUrl.startsWith('http://localhost:3000/')) {
+              imgUrl = imgUrl.replace('http://localhost:3000', '');
+            }
+            if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
+              const urlObj = new URL(imgUrl);
+              imgUrl = urlObj.pathname;
+            }
+            slideImage = addCacheBuster(imgUrl, service.updated_at);
+            console.log(`📸 Популярная карточка ${index + 1}: используем первое изображение из images: ${slideImage}`);
+          }
+          // Приоритет 3: fallback через getImageForService
+          else {
+            slideImage = getImageForService(service, true);
+            console.log(`📸 Популярная карточка ${index + 1}: используем fallback: ${slideImage}`);
+          }
+          
           const cleanedPrice = extractShiftPrice(service.price || '');
           
           // Детальное логирование для диагностики
@@ -1770,10 +1807,22 @@ async function initOurCapabilitiesSlider() {
 
     const counter = `${String(index0 + 1).padStart(2, '0')}/${totalCardsStr}`;
 
+    // Добавляем cache busting к изображению, если его еще нет
+    let imageSrc = slide.image;
+    if (imageSrc && !imageSrc.includes('?v=') && !imageSrc.includes('?t=')) {
+      // Если в slide есть updated_at, используем его для cache busting
+      const updatedAt = slide.updated_at || slide.updatedAt;
+      if (updatedAt) {
+        imageSrc = addCacheBuster(imageSrc, updatedAt);
+      } else {
+        imageSrc = imageSrc + '?t=' + Date.now();
+      }
+    }
+    
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${slide.image}" alt="${slide.title}" loading="eager" fetchpriority="high" crossorigin="anonymous" onerror="this.onerror=null; this.src='/images/avtovyshka-13m.webp?t=' + Date.now();" />
+          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" crossorigin="anonymous" onerror="this.onerror=null; this.src='${imageSrc.split('?')[0]}?t=' + Date.now();" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>
