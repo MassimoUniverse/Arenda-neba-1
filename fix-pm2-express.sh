@@ -74,18 +74,21 @@ echo ""
 
 # 6. Запускаем приложение с явным указанием всех параметров
 echo "5️⃣  Запускаем приложение с правильными параметрами..."
-echo "   Команда: pm2 start server.js --name arenda-neba --cwd \"$CURRENT_DIR\""
+echo "   Команда: cd \"$CURRENT_DIR\" && pm2 start server.js --name arenda-neba --cwd \"$CURRENT_DIR\""
+
+# Убеждаемся, что мы в правильной директории
+cd "$CURRENT_DIR" || exit 1
 
 # Удаляем старый процесс, если есть
 pm2 delete arenda-neba 2>/dev/null || true
+sleep 2
 
-# Запускаем с явным указанием рабочей директории и переменных окружения
-pm2 start server.js \
+# Запускаем с явным указанием рабочей директории
+# Используем полный путь к server.js для надежности
+pm2 start "$CURRENT_DIR/server.js" \
     --name arenda-neba \
     --cwd "$CURRENT_DIR" \
-    --interpreter node \
-    --merge-logs \
-    --log-date-format "YYYY-MM-DD HH:mm:ss Z"
+    --interpreter node
 
 # Сохраняем конфигурацию
 pm2 save
@@ -100,8 +103,14 @@ echo ""
 
 # 8. Проверяем рабочую директорию PM2
 echo "7️⃣  Проверяем рабочую директорию PM2..."
-PM2_CWD=$(pm2 jlist 2>/dev/null | grep -A 50 '"name":"arenda-neba"' | grep '"cwd"' | head -1 | cut -d'"' -f4 || echo "")
-if [ -n "$PM2_CWD" ]; then
+# Используем более надежный способ получения рабочей директории
+PM2_CWD=$(pm2 describe arenda-neba 2>/dev/null | grep "cwd" | awk '{print $4}' || echo "")
+if [ -z "$PM2_CWD" ]; then
+    # Альтернативный способ через pm2 jlist
+    PM2_CWD=$(pm2 jlist 2>/dev/null | python3 -c "import sys, json; data=json.load(sys.stdin); app=[x for x in data if x.get('name')=='arenda-neba']; print(app[0]['pm2_env']['cwd'] if app and 'pm2_env' in app[0] and 'cwd' in app[0]['pm2_env'] else '')" 2>/dev/null || echo "")
+fi
+
+if [ -n "$PM2_CWD" ] && [ "$PM2_CWD" != "name" ]; then
     echo "   Рабочая директория PM2: $PM2_CWD"
     if [ "$PM2_CWD" = "$CURRENT_DIR" ]; then
         echo -e "${GREEN}✅ Рабочая директория правильная${NC}"
@@ -109,9 +118,24 @@ if [ -n "$PM2_CWD" ]; then
         echo -e "${YELLOW}⚠️  Рабочая директория отличается!${NC}"
         echo "   Ожидалось: $CURRENT_DIR"
         echo "   Получено: $PM2_CWD"
+        echo ""
+        echo -e "${YELLOW}💡 Перезапускаем с правильной директорией...${NC}"
+        pm2 delete arenda-neba 2>/dev/null || true
+        sleep 2
+        cd "$CURRENT_DIR"
+        pm2 start server.js --name arenda-neba --cwd "$CURRENT_DIR"
+        pm2 save
+        sleep 3
     fi
 else
-    echo -e "${YELLOW}⚠️  Не удалось получить рабочую директорию${NC}"
+    echo -e "${YELLOW}⚠️  Не удалось получить рабочую директорию или она некорректна${NC}"
+    echo "   Перезапускаем с явным указанием директории..."
+    pm2 delete arenda-neba 2>/dev/null || true
+    sleep 2
+    cd "$CURRENT_DIR"
+    pm2 start server.js --name arenda-neba --cwd "$CURRENT_DIR"
+    pm2 save
+    sleep 3
 fi
 echo ""
 
