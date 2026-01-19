@@ -1,11 +1,22 @@
 // Скрипт для проверки сохранности загруженных изображений
 // Использование: node check-uploads-persistence.js
 
-const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
 
-const db = new sqlite3.Database('./database.db');
+// Проверяем наличие sqlite3
+let sqlite3;
+let db;
+try {
+  sqlite3 = require('sqlite3').verbose();
+  db = new sqlite3.Database('./database.db');
+} catch (err) {
+  console.error('⚠️  Модуль sqlite3 не найден. Проверка базы данных будет пропущена.');
+  console.error('   Решение: npm install sqlite3 --build-from-source');
+  console.error('   Или запустите: ./install-sqlite3.sh');
+  console.log('');
+  db = null;
+}
 
 console.log('🔍 ПРОВЕРКА СОХРАННОСТИ ЗАГРУЖЕННЫХ ИЗОБРАЖЕНИЙ');
 console.log('================================================');
@@ -60,6 +71,14 @@ console.log('');
 // 2. Проверка image_url в базе данных
 console.log('2️⃣  ПРОВЕРКА IMAGE_URL В БАЗЕ ДАННЫХ');
 console.log('------------------------------------');
+
+if (!db) {
+  console.log('⚠️  База данных недоступна (sqlite3 не установлен)');
+  console.log('   Пропускаем проверку базы данных.');
+  console.log('');
+  console.log('✅ Проверка завершена (только файлы)');
+  process.exit(0);
+}
 
 db.all('SELECT id, title, image_url, updated_at FROM services WHERE image_url IS NOT NULL AND image_url != "" ORDER BY updated_at DESC LIMIT 20', [], (err, rows) => {
   if (err) {
