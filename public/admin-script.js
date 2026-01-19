@@ -596,7 +596,7 @@ function showServiceModal(id = null) {
 Вылет стрелы: до 14 м
 Грузоподъёмность: 200 кг
 Проезд в арку: 3300 мм"></textarea>
-                    <small class="form-hint">Укажите 4 пункта - каждый с новой строки</small>
+                    <small class="form-hint">Пункты автоматически генерируются из характеристик выше. Вы можете отредактировать их вручную при необходимости.</small>
                 </div>
             </div>
 
@@ -677,6 +677,72 @@ function showServiceModal(id = null) {
     
     // Устанавливаем обработчики после того, как форма добавлена в DOM
     setTimeout(() => {
+        // Функция для автоматической генерации пунктов карточки из характеристик
+        function generateCardBulletsFromSpecs() {
+            const heightLift = document.getElementById('serviceHeightLift')?.value.trim() || '';
+            const maxReach = document.getElementById('serviceMaxReach')?.value.trim() || '';
+            const maxCapacity = document.getElementById('serviceMaxCapacity')?.value.trim() || '';
+            const width = document.getElementById('serviceWidth')?.value.trim() || '';
+            const transportHeight = document.getElementById('serviceTransportHeight')?.value.trim() || '';
+            const transportLength = document.getElementById('serviceTransportLength')?.value.trim() || '';
+            
+            const bullets = [];
+            
+            // 1. Высота подъема люльки
+            if (heightLift) {
+                bullets.push(`Высота подъёма: ${heightLift}`);
+            }
+            
+            // 2. Максимальный вылет
+            if (maxReach) {
+                bullets.push(`Вылет стрелы: до ${maxReach}`);
+            }
+            
+            // 3. Максимальная грузоподъемность
+            if (maxCapacity) {
+                bullets.push(`Грузоподъёмность: ${maxCapacity}`);
+            }
+            
+            // 4. Ширина или Высота в транспортном положении (приоритет ширине)
+            if (width) {
+                bullets.push(`Ширина: ${width}`);
+            } else if (transportHeight) {
+                bullets.push(`Высота в транспортном положении: ${transportHeight}`);
+            } else if (transportLength) {
+                bullets.push(`Длина в транспортном положении: ${transportLength}`);
+            }
+            
+            // Если не хватает до 4 пунктов, добавляем дополнительные характеристики
+            if (bullets.length < 4) {
+                if (transportLength && !bullets.some(b => b.includes('Длина'))) {
+                    bullets.push(`Длина в транспортном положении: ${transportLength}`);
+                }
+                if (transportHeight && !bullets.some(b => b.includes('Высота в транспортном'))) {
+                    bullets.push(`Высота в транспортном положении: ${transportHeight}`);
+                }
+            }
+            
+            return bullets.slice(0, 4); // Возвращаем максимум 4 пункта
+        }
+        
+        // Функция для обновления поля card_bullets из характеристик
+        function updateCardBulletsFromSpecs() {
+            const cardBulletsTextarea = document.getElementById('serviceCardBullets');
+            if (!cardBulletsTextarea) return;
+            
+            // Генерируем пункты из характеристик
+            const bullets = generateCardBulletsFromSpecs();
+            
+            // Обновляем textarea только если есть хотя бы один пункт
+            if (bullets.length > 0) {
+                cardBulletsTextarea.value = bullets.join('\n');
+                
+                // Триггерим событие change для обновления данных формы
+                cardBulletsTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                cardBulletsTextarea.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+        
         // Обработчик чекбокса "Популярная техника"
         const isPopularCheckbox = document.getElementById('serviceIsPopular');
         const popularOrderGroup = document.getElementById('popularOrderGroup');
@@ -687,8 +753,43 @@ function showServiceModal(id = null) {
                 const isChecked = this.checked;
                 popularOrderGroup.style.display = isChecked ? 'block' : 'none';
                 cardBulletsGroup.style.display = isChecked ? 'block' : 'none';
+                
+                // При включении популярной техники автоматически генерируем пункты
+                if (isChecked) {
+                    updateCardBulletsFromSpecs();
+                }
             });
         }
+        
+        // Добавляем обработчики событий на все поля характеристик
+        const specFields = [
+            'serviceHeightLift',
+            'serviceMaxReach',
+            'serviceMaxCapacity',
+            'serviceWidth',
+            'serviceTransportHeight',
+            'serviceTransportLength'
+        ];
+        
+        specFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                // Обновляем при изменении поля
+                field.addEventListener('input', function() {
+                    // Обновляем только если популярная техника включена
+                    if (isPopularCheckbox && isPopularCheckbox.checked) {
+                        updateCardBulletsFromSpecs();
+                    }
+                });
+                
+                field.addEventListener('change', function() {
+                    // Обновляем только если популярная техника включена
+                    if (isPopularCheckbox && isPopularCheckbox.checked) {
+                        updateCardBulletsFromSpecs();
+                    }
+                });
+            }
+        });
         
         const form = document.getElementById('serviceForm');
         const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
@@ -998,6 +1099,42 @@ async function loadServiceData(id) {
                         bullets = [];
                     }
                 }
+                
+                // Если card_bullets пустые или не заполнены, автоматически генерируем из характеристик
+                if (!bullets || bullets.length === 0 || bullets.every(b => !b || !b.trim())) {
+                    // Генерируем пункты из характеристик
+                    const generatedBullets = [];
+                    
+                    if (service.height_lift) {
+                        generatedBullets.push(`Высота подъёма: ${service.height_lift}`);
+                    }
+                    if (service.max_reach) {
+                        generatedBullets.push(`Вылет стрелы: до ${service.max_reach}`);
+                    }
+                    if (service.max_capacity) {
+                        generatedBullets.push(`Грузоподъёмность: ${service.max_capacity}`);
+                    }
+                    if (service.width) {
+                        generatedBullets.push(`Ширина: ${service.width}`);
+                    } else if (service.transport_height) {
+                        generatedBullets.push(`Высота в транспортном положении: ${service.transport_height}`);
+                    } else if (service.transport_length) {
+                        generatedBullets.push(`Длина в транспортном положении: ${service.transport_length}`);
+                    }
+                    
+                    // Если не хватает до 4 пунктов, добавляем дополнительные
+                    if (generatedBullets.length < 4) {
+                        if (service.transport_length && !generatedBullets.some(b => b.includes('Длина'))) {
+                            generatedBullets.push(`Длина в транспортном положении: ${service.transport_length}`);
+                        }
+                        if (service.transport_height && !generatedBullets.some(b => b.includes('Высота в транспортном'))) {
+                            generatedBullets.push(`Высота в транспортном положении: ${service.transport_height}`);
+                        }
+                    }
+                    
+                    bullets = generatedBullets.slice(0, 4);
+                }
+                
                 cardBulletsTextarea.value = Array.isArray(bullets) ? bullets.join('\n') : '';
             }
             
