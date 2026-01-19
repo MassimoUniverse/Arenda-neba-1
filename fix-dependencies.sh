@@ -125,10 +125,44 @@ fi
 
 echo ""
 
-# Перезапускаем приложение
-echo "🔄 Перезапускаем приложение..."
-pm2 restart arenda-neba 2>/dev/null || pm2 start server.js --name arenda-neba
-sleep 3
+# Удаляем старое приложение из PM2 (если есть)
+echo "🗑️  Удаляем старое приложение из PM2..."
+pm2 delete arenda-neba 2>/dev/null || true
+sleep 2
+echo "✅ Старое приложение удалено"
+echo ""
+
+# Убеждаемся, что мы в правильной директории
+CURRENT_DIR=$(pwd)
+echo "📂 Текущая директория: $CURRENT_DIR"
+
+# Проверяем, что server.js существует
+if [ ! -f "server.js" ]; then
+    echo -e "${RED}❌ server.js не найден в текущей директории!${NC}"
+    exit 1
+fi
+
+# Проверяем, что node_modules существует
+if [ ! -d "node_modules" ]; then
+    echo -e "${RED}❌ node_modules не найден!${NC}"
+    exit 1
+fi
+
+# Проверяем, что express установлен
+if [ ! -d "node_modules/express" ]; then
+    echo -e "${RED}❌ express не найден в node_modules!${NC}"
+    echo "   Попробуйте: npm install express"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Все файлы на месте${NC}"
+echo ""
+
+# Запускаем приложение с правильной рабочей директорией
+echo "🔄 Запускаем приложение с правильной рабочей директорией..."
+pm2 start server.js --name arenda-neba --cwd "$CURRENT_DIR"
+pm2 save
+sleep 5
 echo ""
 
 # Проверяем статус
@@ -136,9 +170,14 @@ echo "📊 Статус приложения:"
 pm2 status arenda-neba
 echo ""
 
+# Проверяем рабочую директорию PM2
+echo "📂 Рабочая директория PM2:"
+pm2 info arenda-neba 2>/dev/null | grep "cwd" || echo "   (не удалось получить)"
+echo ""
+
 # Проверяем логи на ошибки
-echo "📋 Проверяем логи (последние 20 строк)..."
-pm2 logs arenda-neba --lines 20 --nostream | tail -20
+echo "📋 Проверяем логи (последние 30 строк)..."
+pm2 logs arenda-neba --lines 30 --nostream | tail -30
 echo ""
 
 # Проверяем на ошибки модулей
@@ -147,16 +186,25 @@ if [ "$ERROR_COUNT" -eq 0 ]; then
     echo -e "${GREEN}✅ Ошибок модулей не найдено!${NC}"
     echo ""
     echo -e "${GREEN}✅ ВСЁ ИСПРАВЛЕНО!${NC}"
+    echo ""
+    echo "💡 Проверьте работу приложения:"
+    echo "   curl http://localhost:3000"
+    echo "   pm2 logs arenda-neba --lines 50"
 else
     echo -e "${RED}❌ Найдено ошибок модулей: $ERROR_COUNT${NC}"
     echo "   Последние ошибки:"
     pm2 logs arenda-neba --lines 50 --nostream 2>&1 | grep -iE "Cannot find module|MODULE_NOT_FOUND" | tail -5
     echo ""
-    echo -e "${YELLOW}💡 Попробуйте:${NC}"
+    echo -e "${YELLOW}💡 Проблема может быть в рабочей директории PM2${NC}"
+    echo "   Попробуйте вручную:"
     echo "   1. pm2 delete arenda-neba"
     echo "   2. cd /opt/arenda-neba"
-    echo "   3. pm2 start server.js --name arenda-neba"
+    echo "   3. pm2 start server.js --name arenda-neba --cwd /opt/arenda-neba"
     echo "   4. pm2 save"
+    echo ""
+    echo "   Или проверьте:"
+    echo "   - pm2 info arenda-neba | grep cwd"
+    echo "   - ls -la /opt/arenda-neba/node_modules/express"
 fi
 
 echo ""
