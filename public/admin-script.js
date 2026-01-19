@@ -1136,6 +1136,53 @@ async function loadServiceData(id) {
                 }
                 
                 cardBulletsTextarea.value = Array.isArray(bullets) ? bullets.join('\n') : '';
+                
+                // После загрузки всех данных, если популярная техника включена, 
+                // автоматически обновляем пункты из характеристик (если они были изменены)
+                if (isPopularCheckbox && isPopularCheckbox.checked) {
+                    setTimeout(() => {
+                        // Вызываем обновление через событие на одном из полей характеристик
+                        const heightLiftField = document.getElementById('serviceHeightLift');
+                        if (heightLiftField) {
+                            // Создаем и вызываем функцию обновления напрямую
+                            const cardBulletsTextareaForUpdate = document.getElementById('serviceCardBullets');
+                            if (cardBulletsTextareaForUpdate) {
+                                const heightLift = document.getElementById('serviceHeightLift')?.value.trim() || '';
+                                const maxReach = document.getElementById('serviceMaxReach')?.value.trim() || '';
+                                const maxCapacity = document.getElementById('serviceMaxCapacity')?.value.trim() || '';
+                                const width = document.getElementById('serviceWidth')?.value.trim() || '';
+                                const transportHeight = document.getElementById('serviceTransportHeight')?.value.trim() || '';
+                                const transportLength = document.getElementById('serviceTransportLength')?.value.trim() || '';
+                                
+                                const generatedBullets = [];
+                                if (heightLift) generatedBullets.push(`Высота подъёма: ${heightLift}`);
+                                if (maxReach) generatedBullets.push(`Вылет стрелы: до ${maxReach}`);
+                                if (maxCapacity) generatedBullets.push(`Грузоподъёмность: ${maxCapacity}`);
+                                if (width) {
+                                    generatedBullets.push(`Ширина: ${width}`);
+                                } else if (transportHeight) {
+                                    generatedBullets.push(`Высота в транспортном положении: ${transportHeight}`);
+                                } else if (transportLength) {
+                                    generatedBullets.push(`Длина в транспортном положении: ${transportLength}`);
+                                }
+                                
+                                if (generatedBullets.length < 4) {
+                                    if (transportLength && !generatedBullets.some(b => b.includes('Длина'))) {
+                                        generatedBullets.push(`Длина в транспортном положении: ${transportLength}`);
+                                    }
+                                    if (transportHeight && !generatedBullets.some(b => b.includes('Высота в транспортном'))) {
+                                        generatedBullets.push(`Высота в транспортном положении: ${transportHeight}`);
+                                    }
+                                }
+                                
+                                // Обновляем только если есть хотя бы один пункт
+                                if (generatedBullets.length > 0) {
+                                    cardBulletsTextareaForUpdate.value = generatedBullets.slice(0, 4).join('\n');
+                                }
+                            }
+                        }
+                    }, 200);
+                }
             }
             
             // Старое поле для совместимости
