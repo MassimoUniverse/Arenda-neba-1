@@ -527,6 +527,27 @@ const db = new sqlite3.Database('./database.db', (err) => {
     console.error('Error connecting to database:', err);
   } else {
     console.log('✅ Connected to database');
+    
+    // КРИТИЧЕСКИ ВАЖНО: Создаем папку uploads при запуске сервера
+    const uploadsDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      console.log('📁 Папка uploads не существует, создаем...');
+      fs.mkdirSync(uploadsDir, { recursive: true });
+      console.log('✅ Папка uploads создана');
+    } else {
+      console.log('☑ Папка uploads существует');
+    }
+    
+    // Проверяем права доступа на запись
+    try {
+      const testFile = path.join(uploadsDir, '.test-write');
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
+      console.log('☑ Папка uploads доступна для записи');
+    } catch (writeErr) {
+      console.error('❌ ОШИБКА: Папка uploads НЕ доступна для записи!', writeErr.message);
+      console.error('   Решение: chmod 755 uploads');
+    }
     // Add url column to services table if it doesn't exist
     db.run(`ALTER TABLE services ADD COLUMN url TEXT`, (err) => {
       if (err && !err.message.includes('duplicate column name')) {
