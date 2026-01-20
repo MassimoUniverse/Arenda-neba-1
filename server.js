@@ -1355,8 +1355,8 @@ app.get('/api/popular-cards', (req, res) => {
       if (service13m) {
         console.log(`🔍 ДИАГНОСТИКА вышки 13м: ID=${service13m.id}, image_url="${service13m.image_url || '(НЕТ)'}", updated_at="${service13m.updated_at || '(НЕТ)'}"`);
       }
-    
-    const fixedRows = rows.map(row => {
+      
+      const fixedRows = rows.map(row => {
       let card_bullets = [];
       if (row.card_bullets) {
         try {
