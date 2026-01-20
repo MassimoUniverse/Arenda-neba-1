@@ -1312,16 +1312,49 @@ app.get('/api/homepage', (req, res) => {
 
 // Get popular cards
 app.get('/api/popular-cards', (req, res) => {
-  db.all('SELECT * FROM services WHERE active = 1 AND is_popular = 1 ORDER BY popular_order', [], (err, rows) => {
+  // ВАЖНО: Сначала проверяем, есть ли вообще популярные карточки (даже неактивные)
+  db.all('SELECT COUNT(*) as count FROM services WHERE is_popular = 1', [], (err, countRows) => {
     if (err) {
+      console.error('❌ Ошибка при проверке популярных карточек:', err.message);
       res.status(500).json({ error: err.message });
       return;
     }
     
-    console.log(`📸 API /api/popular-cards: найдено ${rows.length} популярных карточек`);
-    rows.forEach((row, idx) => {
-      console.log(`   ${idx + 1}. ID=${row.id}, title="${row.title}", image_url="${row.image_url || '(НЕТ)'}", updated_at="${row.updated_at || '(НЕТ)'}"`);
-    });
+    const totalPopular = countRows[0]?.count || 0;
+    console.log(`📸 API /api/popular-cards: всего популярных карточек в базе: ${totalPopular}`);
+    
+    // Теперь получаем только активные
+    db.all('SELECT * FROM services WHERE active = 1 AND is_popular = 1 ORDER BY popular_order', [], (err, rows) => {
+      if (err) {
+        console.error('❌ Ошибка при получении популярных карточек:', err.message);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      
+      console.log(`📸 API /api/popular-cards: найдено ${rows.length} активных популярных карточек`);
+      
+      if (rows.length === 0 && totalPopular > 0) {
+        console.warn('⚠️  ВНИМАНИЕ: Есть популярные карточки, но они неактивны!');
+        // Получаем неактивные для диагностики
+        db.all('SELECT id, title, active, is_popular FROM services WHERE is_popular = 1', [], (err, allPopular) => {
+          if (!err && allPopular.length > 0) {
+            console.log('   Неактивные популярные карточки:');
+            allPopular.forEach(row => {
+              console.log(`      ID=${row.id}, title="${row.title}", active=${row.active}`);
+            });
+          }
+        });
+      }
+      
+      rows.forEach((row, idx) => {
+        console.log(`   ${idx + 1}. ID=${row.id}, title="${row.title}", image_url="${row.image_url || '(НЕТ)'}", updated_at="${row.updated_at || '(НЕТ)'}"`);
+      });
+      
+      // ВАЖНО: Логируем для диагностики проблем с обновлением изображений
+      const service13m = rows.find(r => r.title && r.title.toLowerCase().includes('13'));
+      if (service13m) {
+        console.log(`🔍 ДИАГНОСТИКА вышки 13м: ID=${service13m.id}, image_url="${service13m.image_url || '(НЕТ)'}", updated_at="${service13m.updated_at || '(НЕТ)'}"`);
+      }
     
     const fixedRows = rows.map(row => {
       let card_bullets = [];
@@ -1352,13 +1385,13 @@ app.get('/api/popular-cards', (req, res) => {
       
       return {
         ...row,
+        // ВАЖНО: Используем обработанный image_url (исправленный через fixImageUrl)
+        image_url: fixedImageUrl || row.image_url || null,
         title: fixEncoding(row.title),
         description: fixEncoding(row.description),
         price: row.price ? fixEncoding(row.price) : row.price,
         card_bullets: card_bullets,
         images: images,
-        // ВАЖНО: Используем обработанный image_url
-        image_url: fixedImageUrl || row.image_url || null,
         // ВАЖНО: Включаем updated_at для cache busting изображений
         updated_at: row.updated_at || null
       };

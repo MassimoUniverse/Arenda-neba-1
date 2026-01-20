@@ -1609,10 +1609,13 @@ async function initOurCapabilitiesSlider() {
   try {
     // Сначала пробуем загрузить из нового API для популярных карточек
     // Добавляем cache busting к запросу API, чтобы получить свежие данные
-    const popularResponse = await fetch('/api/popular-cards?t=' + Date.now(), {
+    // ВАЖНО: Добавляем cache busting для получения свежих данных
+    const cacheBuster = 't=' + Date.now() + '&_=' + Math.random();
+    const popularResponse = await fetch('/api/popular-cards?' + cacheBuster, {
       cache: 'no-store',
       headers: {
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
     if (popularResponse.ok) {
@@ -1636,7 +1639,7 @@ async function initOurCapabilitiesSlider() {
           // ВАЖНО: Принудительно используем image_url из базы, если он есть
           let slideImage = null;
           
-          // Приоритет 1: image_url из базы (если есть)
+          // Приоритет 1: image_url из базы (если есть) - ОБЯЗАТЕЛЬНО для популярных карточек
           if (service.image_url) {
             let imgUrl = service.image_url;
             // Убираем localhost если есть
@@ -1645,12 +1648,24 @@ async function initOurCapabilitiesSlider() {
             }
             // Убираем домен если есть
             if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
-              const urlObj = new URL(imgUrl);
-              imgUrl = urlObj.pathname;
+              try {
+                const urlObj = new URL(imgUrl);
+                imgUrl = urlObj.pathname;
+              } catch (e) {
+                // Если не удалось распарсить URL, оставляем как есть
+                console.warn('⚠️ Не удалось распарсить URL:', imgUrl);
+              }
             }
-            // Добавляем cache busting
-            slideImage = addCacheBuster(imgUrl, service.updated_at);
-            console.log(`📸 Популярная карточка ${index + 1}: используем image_url из базы: ${slideImage}`);
+            // Убеждаемся, что путь начинается с /
+            if (!imgUrl.startsWith('/')) {
+              imgUrl = '/' + imgUrl;
+            }
+            // Добавляем cache busting с timestamp из updated_at или текущим временем
+            const cacheBuster = service.updated_at 
+              ? new Date(service.updated_at).getTime() 
+              : Date.now();
+            slideImage = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 't=' + cacheBuster;
+            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): используем image_url из базы: ${slideImage}`);
           }
           // Приоритет 2: первое изображение из массива images
           else if (service.images && Array.isArray(service.images) && service.images.length > 0) {
@@ -1807,9 +1822,11 @@ async function initOurCapabilitiesSlider() {
 
     const counter = `${String(index0 + 1).padStart(2, '0')}/${totalCardsStr}`;
 
-    // Добавляем cache busting к изображению, если его еще нет
+    // ВАЖНО: Используем image из slide (который уже содержит правильный image_url из базы)
     let imageSrc = slide.image;
-    if (imageSrc && !imageSrc.includes('?v=') && !imageSrc.includes('?t=')) {
+    
+    // Убеждаемся, что imageSrc содержит cache buster
+    if (imageSrc && !imageSrc.includes('?t=') && !imageSrc.includes('&t=')) {
       // Если в slide есть updated_at, используем его для cache busting
       const updatedAt = slide.updated_at || slide.updatedAt;
       if (updatedAt) {
