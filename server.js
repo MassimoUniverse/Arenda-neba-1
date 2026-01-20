@@ -1357,46 +1357,48 @@ app.get('/api/popular-cards', (req, res) => {
       }
       
       const fixedRows = rows.map(row => {
-      let card_bullets = [];
-      if (row.card_bullets) {
-        try {
-          card_bullets = JSON.parse(row.card_bullets);
-        } catch (e) {
-          // Если не JSON, пробуем разбить по переносам
-          card_bullets = String(row.card_bullets).split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+        let card_bullets = [];
+        if (row.card_bullets) {
+          try {
+            card_bullets = JSON.parse(row.card_bullets);
+          } catch (e) {
+            // Если не JSON, пробуем разбить по переносам
+            card_bullets = String(row.card_bullets).split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+          }
         }
-      }
-      
-      let images = [];
-      if (row.images) {
-        try {
-          images = JSON.parse(row.images);
-        } catch (e) {
-          images = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(Boolean);
+        
+        let images = [];
+        if (row.images) {
+          try {
+            images = JSON.parse(row.images);
+          } catch (e) {
+            images = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(Boolean);
+          }
         }
-      }
+        
+        // ВАЖНО: Обрабатываем image_url через fixImageUrl для правильных путей
+        let fixedImageUrl = null;
+        if (row.image_url) {
+          fixedImageUrl = fixImageUrl(row.image_url);
+          console.log(`📸 Popular card ${row.id || row.title}: image_url=${row.image_url} -> fixed=${fixedImageUrl}`);
+        }
+        
+        return {
+          ...row,
+          // ВАЖНО: Используем обработанный image_url (исправленный через fixImageUrl)
+          image_url: fixedImageUrl || row.image_url || null,
+          title: fixEncoding(row.title),
+          description: fixEncoding(row.description),
+          price: row.price ? fixEncoding(row.price) : row.price,
+          card_bullets: card_bullets,
+          images: images,
+          // ВАЖНО: Включаем updated_at для cache busting изображений
+          updated_at: row.updated_at || null
+        };
+      });
       
-      // ВАЖНО: Обрабатываем image_url через fixImageUrl для правильных путей
-      let fixedImageUrl = null;
-      if (row.image_url) {
-        fixedImageUrl = fixImageUrl(row.image_url);
-        console.log(`📸 Popular card ${row.id || row.title}: image_url=${row.image_url} -> fixed=${fixedImageUrl}`);
-      }
-      
-      return {
-        ...row,
-        // ВАЖНО: Используем обработанный image_url (исправленный через fixImageUrl)
-        image_url: fixedImageUrl || row.image_url || null,
-        title: fixEncoding(row.title),
-        description: fixEncoding(row.description),
-        price: row.price ? fixEncoding(row.price) : row.price,
-        card_bullets: card_bullets,
-        images: images,
-        // ВАЖНО: Включаем updated_at для cache busting изображений
-        updated_at: row.updated_at || null
-      };
+      res.json(fixedRows);
     });
-    res.json(fixedRows);
   });
 });
 
