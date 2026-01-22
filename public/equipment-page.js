@@ -1436,16 +1436,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
             if (priceMatch) {
               baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
+              console.log('✅ Найдена цена за полсмену из таблицы цен:', baseHalfShift);
             }
           }
         });
       }
     }
     
-    // Если цена не найдена, используем значение по умолчанию
+    // Если цена за полсмену все еще не найдена, но есть цена за смену, вычисляем как 83% от смены
+    if (!baseHalfShift && basePrice && basePrice > 0) {
+      baseHalfShift = Math.round(basePrice * 0.83);
+      console.log('💡 Цена за полсмену вычислена как 83% от смены:', baseHalfShift);
+    }
+    
+    // Если цена за смену не найдена, пробуем извлечь из таблицы цен на странице
+    if (!basePrice || basePrice === 0) {
+      const pricingTable = document.querySelector('.pricing-table');
+      if (pricingTable) {
+        const pricingRows = pricingTable.querySelectorAll('.pricing-row');
+        pricingRows.forEach(row => {
+          const text = row.textContent || '';
+          if ((text.includes('смен') || text.includes('8 часов')) && !text.includes('полсмен')) {
+            const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
+            if (priceMatch) {
+              basePrice = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
+              console.log('✅ Найдена цена за смену из таблицы цен:', basePrice);
+            }
+          }
+        });
+      }
+    }
+    
+    // Если цена все еще не найдена, используем значение по умолчанию
     if (!basePrice || basePrice === 0) {
       basePrice = 18000; // Значение по умолчанию
+      console.warn('⚠️ Цена за смену не найдена, используется значение по умолчанию:', basePrice);
     }
+    
+    // Если цена за полсмену все еще не найдена после всех попыток, вычисляем как 83% от смены
+    if (!baseHalfShift && basePrice && basePrice > 0) {
+      baseHalfShift = Math.round(basePrice * 0.83);
+      console.log('💡 Цена за полсмену вычислена как 83% от смены (fallback):', baseHalfShift);
+    }
+    
+    console.log('💰 Итоговые цены для калькулятора:', { baseHalfShift, basePrice });
     
     console.log('Initializing calculator.');
     
@@ -1670,6 +1704,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
                 if (priceMatch) {
                   baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
+                  console.log('✅ Найдена цена за полсмену из таблицы цен (в расчете):', baseHalfShift);
                   break;
                 }
               }
@@ -1682,6 +1717,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
           // Если полсмены нет, используем 83% от полной смены (округление)
           total = Math.round(basePrice * 0.83);
+          console.log('💡 Цена за полсмену вычислена как 83% от смены (в расчете):', total);
         }
       } else {
         total = basePrice * shifts;
