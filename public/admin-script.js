@@ -1676,7 +1676,9 @@ async function deleteService(id) {
 // Reviews Management
 async function loadReviews() {
     try {
-        const response = await fetch(`${API_URL}/api/reviews`);
+        const response = await fetch(`${API_URL}/api/admin/reviews`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
         const reviews = await response.json();
 
         const html = reviews.map(review => `

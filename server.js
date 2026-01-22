@@ -1926,14 +1926,17 @@ app.post('/api/admin/reviews', authenticateToken, (req, res) => {
 app.put('/api/admin/reviews/:id', authenticateToken, (req, res) => {
   const { client_name, company, rating, text, date, image_url, active } = req.body;
 
+  // Поддерживаем оба поля: text и review_text для совместимости
   db.run(
-    'UPDATE reviews SET client_name = ?, company = ?, rating = ?, text = ?, date = ?, image_url = ?, active = ? WHERE id = ?',
-    [client_name, company, rating, text, date, image_url, active !== undefined ? active : 1, req.params.id],
+    'UPDATE reviews SET client_name = ?, company = ?, rating = ?, text = ?, review_text = ?, date = ?, image_url = ?, active = ? WHERE id = ?',
+    [client_name, company, rating, text, text, date, image_url, active !== undefined ? active : 1, req.params.id],
     function(err) {
       if (err) {
+        console.error('❌ Ошибка при обновлении отзыва:', err.message);
         res.status(500).json({ error: err.message });
         return;
       }
+      console.log(`✅ Отзыв ID ${req.params.id} обновлен через админ-панель`);
       res.json({ success: true, changes: this.changes });
     }
   );
@@ -1950,6 +1953,28 @@ app.delete('/api/admin/reviews/:id', authenticateToken, (req, res) => {
 });
 
 // Get all services for admin (with fixEncoding to prevent encoding issues)
+// Get all reviews for admin (including inactive)
+app.get('/api/admin/reviews', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM reviews ORDER BY created_at DESC', [], (err, rows) => {
+    if (err) {
+      console.error('❌ Ошибка при получении отзывов для админ-панели:', err.message);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    // Apply fixEncoding to text fields
+    const fixedRows = rows.map(row => ({
+      ...row,
+      client_name: row.client_name ? fixEncoding(row.client_name) : row.client_name,
+      company: row.company ? fixEncoding(row.company) : row.company,
+      // Поддерживаем оба поля: text и review_text
+      text: row.text ? fixEncoding(row.text) : (row.review_text ? fixEncoding(row.review_text) : ''),
+      review_text: row.review_text ? fixEncoding(row.review_text) : (row.text ? fixEncoding(row.text) : '')
+    }));
+    console.log(`📝 API /api/admin/reviews: возвращено ${fixedRows.length} отзывов (включая неактивные)`);
+    res.json(fixedRows);
+  });
+});
+
 app.get('/api/admin/services', authenticateToken, (req, res) => {
   db.all('SELECT * FROM services ORDER BY order_num', [], (err, rows) => {
     if (err) {

@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 const db = new sqlite3.Database('./database.db');
 
-// Отзывы для восстановления (из реального сайта)
+// Отзывы для восстановления (только 6 основных отзывов)
 const reviews = [
   {
     client_name: 'Широбоков В. К.',
@@ -51,30 +51,6 @@ const reviews = [
     text: 'Требовался монтаж металлоконструкций. Операторы по телефону грамотно проконсультировали, ответили на все вопросы, подобрали и оперативно предоставили необходимую спецтехнику автокран 25 т. и автовышку 50 м. для выполнения конкретных задач. Еще и дополнительную скидку предоставили. Надеемся на сотрудничество и в будущем.',
     date: '2024-11-15',
     active: 1
-  },
-  {
-    client_name: 'Алексей',
-    company: 'рекламное агентство',
-    rating: 5,
-    text: 'Регулярно заказываем автовышку для обслуживания наружной рекламы. Всегда приезжают вовремя, техника в хорошем состоянии, операторы работают аккуратно.',
-    date: '2024-12-01',
-    active: 1
-  },
-  {
-    client_name: 'Ирина',
-    company: 'строительная компания',
-    rating: 5,
-    text: 'Нужна была автовышка 25 м для монтажа фасадных панелей. Всё сделали чётко, помогли подобрать нужную технику под объект.',
-    date: '2024-12-05',
-    active: 1
-  },
-  {
-    client_name: 'Сергей',
-    company: 'управляющая компания',
-    rating: 5,
-    text: 'Заказывали автовышку для обрезки деревьев во дворе. Приехали быстро, отработали без нареканий, помогли с оформлением перекрытия участка.',
-    date: '2024-12-10',
-    active: 1
   }
 ];
 
@@ -121,20 +97,15 @@ db.serialize(() => {
   });
 
   function addReviews() {
-    // Проверяем, сколько отзывов уже есть
-    db.get('SELECT COUNT(*) as count FROM reviews', [], (err, row) => {
+    // Удаляем все старые отзывы перед добавлением новых
+    console.log('🗑️  Удаляем все старые отзывы...\n');
+    db.run('DELETE FROM reviews', (err) => {
       if (err) {
-        console.error('❌ Ошибка при проверке отзывов:', err.message);
+        console.error('❌ Ошибка при удалении старых отзывов:', err.message);
         db.close();
         process.exit(1);
       }
-
-      const existingCount = row.count;
-      console.log(`📊 Текущее количество отзывов в базе: ${existingCount}\n`);
-
-      if (existingCount > 0) {
-        console.log('⚠️  В базе уже есть отзывы. Добавляем новые...\n');
-      }
+      console.log('✅ Старые отзывы удалены\n');
 
       // Добавляем все отзывы
       const stmt = db.prepare(`
@@ -144,7 +115,6 @@ db.serialize(() => {
       `);
 
       let added = 0;
-      let skipped = 0;
       let errors = 0;
 
       reviews.forEach((review, index) => {
@@ -158,23 +128,17 @@ db.serialize(() => {
           review.active,
           function(err) {
             if (err) {
-              if (err.message.includes('UNIQUE constraint')) {
-                skipped++;
-                console.log(`⏭️  ${index + 1}. ${review.client_name} - уже существует, пропущен`);
-              } else {
-                errors++;
-                console.error(`❌ Ошибка при добавлении отзыва "${review.client_name}":`, err.message);
-              }
+              errors++;
+              console.error(`❌ Ошибка при добавлении отзыва "${review.client_name}":`, err.message);
             } else {
               added++;
               console.log(`✅ ${index + 1}. ${review.client_name} - добавлен`);
             }
 
             // Когда все отзывы обработаны
-            if (added + skipped + errors === reviews.length) {
+            if (added + errors === reviews.length) {
               stmt.finalize(() => {
-                console.log(`\n✅ Всего добавлено новых: ${added}`);
-                console.log(`⏭️  Пропущено (уже существуют): ${skipped}`);
+                console.log(`\n✅ Всего добавлено: ${added} из ${reviews.length} отзывов`);
                 if (errors > 0) {
                   console.log(`❌ Ошибок: ${errors}`);
                 }
