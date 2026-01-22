@@ -315,24 +315,64 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Обновляем цены в таблице стоимости
       const pricingTable = document.querySelector('.pricing-table');
-      if (pricingTable && fixedService.price) {
+      if (pricingTable) {
         // Парсим цены из строки
         let priceHalfShift = '';
         let priceShift = '';
         const deliveryPerKm = fixedService.delivery_per_km || 85;
         
-        const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
-        if (halfShiftMatch) {
-          priceHalfShift = halfShiftMatch[1].replace(/\s/g, '');
+        if (fixedService.price) {
+          const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+          if (halfShiftMatch) {
+            priceHalfShift = halfShiftMatch[1].replace(/\s/g, '');
+          }
+          
+          const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+          if (shiftMatch) {
+            priceShift = shiftMatch[1].replace(/\s/g, '');
+          } else {
+            // Если нет цены за смену в строке, пробуем найти любое число
+            const anyPriceMatch = fixedService.price.match(/(\d+[\s\d]*)/);
+            if (anyPriceMatch) {
+              priceShift = anyPriceMatch[1].replace(/\s/g, '');
+            }
+          }
         }
         
-        const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
-        if (shiftMatch) {
-          priceShift = shiftMatch[1].replace(/\s/g, '');
+        // ВАЖНО: Если цена за полсмену не найдена, но есть цена за смену, вычисляем как 83% от смены
+        if (!priceHalfShift && priceShift) {
+          const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
+          if (shiftNum && shiftNum > 0) {
+            priceHalfShift = Math.round(shiftNum * 0.83).toString();
+            console.log('💡 Цена за полсмену вычислена как 83% от смены:', priceHalfShift);
+          }
+        }
+        
+        // Если цена за смену не найдена, но есть цена за полсмену, вычисляем смену
+        if (!priceShift && priceHalfShift) {
+          const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''), 10);
+          if (halfShiftNum && halfShiftNum > 0) {
+            priceShift = Math.round(halfShiftNum / 0.83).toString();
+            console.log('💡 Цена за смену вычислена из полсмены:', priceShift);
+          }
+        }
+        
+        // Если обе цены не найдены, используем значения по умолчанию
+        if (!priceShift) {
+          priceShift = '18000';
+          priceHalfShift = Math.round(18000 * 0.83).toString();
+          console.warn('⚠️ Цены не найдены, используются значения по умолчанию');
+        } else if (!priceHalfShift) {
+          // Если есть только смена, вычисляем полсмену
+          const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
+          if (shiftNum && shiftNum > 0) {
+            priceHalfShift = Math.round(shiftNum * 0.83).toString();
+          }
         }
         
         pricingTable.innerHTML = '';
         
+        // ВСЕГДА показываем цену за полсмену, если она вычислена
         if (priceHalfShift) {
           const row = document.createElement('div');
           row.className = 'pricing-row';
@@ -343,6 +383,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           pricingTable.appendChild(row);
         }
         
+        // ВСЕГДА показываем цену за смену
         if (priceShift) {
           const row = document.createElement('div');
           row.className = 'pricing-row';
@@ -357,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         deliveryRow.className = 'pricing-row';
         deliveryRow.innerHTML = `
           <span>Подача техники (за КАД)</span>
-          <span class="pricing-value">${deliveryPerKm} ₽/км</span>
+          <span class="pricing-value">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</span>
         `;
         pricingTable.appendChild(deliveryRow);
       }

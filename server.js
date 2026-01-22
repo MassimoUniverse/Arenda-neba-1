@@ -111,12 +111,34 @@ function generateEquipmentPageHTML(service) {
     }
   }
   
-  // Если цена за полсмену не найдена, но есть цена за смену, вычисляем как 83% от смены
+  // ВАЖНО: Если цена за полсмену не найдена, но есть цена за смену, ВСЕГДА вычисляем как 83% от смены
   if (!priceHalfShift && priceShift) {
     const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
     if (shiftNum && shiftNum > 0) {
       priceHalfShift = Math.round(shiftNum * 0.83).toString();
       console.log(`💡 Цена за полсмену вычислена как 83% от смены: ${priceHalfShift} (смена: ${priceShift})`);
+    }
+  }
+  
+  // Если цена за смену не найдена, но есть цена за полсмену, вычисляем смену
+  if (!priceShift && priceHalfShift) {
+    const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''), 10);
+    if (halfShiftNum && halfShiftNum > 0) {
+      priceShift = Math.round(halfShiftNum / 0.83).toString();
+      console.log(`💡 Цена за смену вычислена из полсмены: ${priceShift} (полсмена: ${priceHalfShift})`);
+    }
+  }
+  
+  // Если обе цены не найдены, используем значения по умолчанию
+  if (!priceShift) {
+    priceShift = '18000'; // Значение по умолчанию
+    priceHalfShift = Math.round(18000 * 0.83).toString();
+    console.warn(`⚠️ Цены не найдены, используются значения по умолчанию: смена=${priceShift}, полсмена=${priceHalfShift}`);
+  } else if (!priceHalfShift) {
+    // Если есть только смена, вычисляем полсмену
+    const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
+    if (shiftNum && shiftNum > 0) {
+      priceHalfShift = Math.round(shiftNum * 0.83).toString();
     }
   }
   
