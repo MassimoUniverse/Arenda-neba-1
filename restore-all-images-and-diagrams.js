@@ -110,14 +110,34 @@ const currentDb = new sqlite3.Database(currentDbPath, (err) => {
   console.log('✅ Текущая БД открыта\n');
 });
 
-// Получаем данные из бэкапа
-backupDb.all('SELECT id, title, url, image_url, images, reach_diagrams, reach_diagram_url FROM services WHERE active = 1', [], (err, backupRows) => {
+// Сначала проверяем, есть ли таблица services в бэкапе
+backupDb.all("SELECT name FROM sqlite_master WHERE type='table' AND name='services'", [], (err, tables) => {
   if (err) {
-    console.error('❌ Ошибка чтения бэкапа:', err.message);
+    console.error('❌ Ошибка проверки таблиц:', err.message);
     backupDb.close();
     currentDb.close();
     return;
   }
+  
+  if (tables.length === 0) {
+    console.error('❌ Таблица "services" не найдена в бэкапе!');
+    console.log('\n💡 Возможные варианты:');
+    console.log('   1. Проверьте структуру бэкапа: node check-backup-structure.js ' + backupDbPath);
+    console.log('   2. Используйте другой бэкап');
+    console.log('   3. Восстановите данные вручную через админ-панель');
+    backupDb.close();
+    currentDb.close();
+    return;
+  }
+  
+  // Получаем данные из бэкапа
+  backupDb.all('SELECT id, title, url, image_url, images, reach_diagrams, reach_diagram_url FROM services WHERE active = 1', [], (err, backupRows) => {
+    if (err) {
+      console.error('❌ Ошибка чтения бэкапа:', err.message);
+      backupDb.close();
+      currentDb.close();
+      return;
+    }
 
   console.log(`📊 Найдено услуг в бэкапе: ${backupRows.length}\n`);
 
@@ -262,5 +282,6 @@ backupDb.all('SELECT id, title, url, image_url, images, reach_diagrams, reach_di
       console.log('\n🔄 Теперь перегенерируйте страницы автовышек через админ-панель');
       console.log('   или перезапустите приложение: pm2 restart arenda-neba');
     }, 2000);
+  });
   });
 });
