@@ -88,6 +88,29 @@ function generateEquipmentPageHTML(service) {
   const imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
   const url = service.url || '';
   
+  // Парсим схемы вылета стрелы
+  let reachDiagrams = [];
+  if (service.reach_diagrams) {
+    if (Array.isArray(service.reach_diagrams)) {
+      reachDiagrams = service.reach_diagrams;
+    } else if (typeof service.reach_diagrams === 'string' && service.reach_diagrams.trim()) {
+      try {
+        const parsed = JSON.parse(service.reach_diagrams);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          reachDiagrams = parsed;
+        }
+      } catch (e) {
+        // Если не JSON, считаем это одной схемой
+        reachDiagrams = [{ url: service.reach_diagrams, title: 'Схема вылета стрелы' }];
+      }
+    }
+  }
+  
+  // Если массив пустой, но есть reach_diagram_url, используем его
+  if (reachDiagrams.length === 0 && service.reach_diagram_url) {
+    reachDiagrams = [{ url: service.reach_diagram_url, title: 'Схема вылета стрелы' }];
+  }
+  
   // Парсим цены из строки
   let priceHalfShift = '';
   let priceShift = '';
