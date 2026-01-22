@@ -102,6 +102,21 @@ function generateEquipmentPageHTML(service) {
     const shiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
     if (shiftMatch) {
       priceShift = shiftMatch[1].replace(/\s/g, '');
+    } else {
+      // Если нет цены за смену в строке, пробуем найти любое число
+      const anyPriceMatch = price.match(/(\d+[\s\d]*)/);
+      if (anyPriceMatch) {
+        priceShift = anyPriceMatch[1].replace(/\s/g, '');
+      }
+    }
+  }
+  
+  // Если цена за полсмену не найдена, но есть цена за смену, вычисляем как 83% от смены
+  if (!priceHalfShift && priceShift) {
+    const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
+    if (shiftNum && shiftNum > 0) {
+      priceHalfShift = Math.round(shiftNum * 0.83).toString();
+      console.log(`💡 Цена за полсмену вычислена как 83% от смены: ${priceHalfShift} (смена: ${priceShift})`);
     }
   }
   
