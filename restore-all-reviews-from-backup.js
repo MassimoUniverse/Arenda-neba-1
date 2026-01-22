@@ -48,16 +48,59 @@ const currentDb = new sqlite3.Database('./database.db', (err) => {
   }
 });
 
-console.log('📖 Читаем отзывы из бекапа...\n');
+console.log('📖 Проверяем структуру бекапа...\n');
 
-// Читаем все отзывы из бекапа
-backupDb.all('SELECT * FROM reviews ORDER BY created_at DESC', [], (err, reviews) => {
+// Сначала проверяем, есть ли таблица reviews в бекапе
+backupDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='reviews'", [], (err, row) => {
   if (err) {
-    console.error('❌ Ошибка при чтении отзывов из бекапа:', err.message);
+    console.error('❌ Ошибка при проверке структуры бекапа:', err.message);
     backupDb.close();
     currentDb.close();
     process.exit(1);
   }
+
+  if (!row) {
+    console.log('⚠️  В бекапе нет таблицы reviews. Проверяем текущую базу...\n');
+    backupDb.close();
+    
+    // Проверяем текущую базу
+    currentDb.all('SELECT * FROM reviews WHERE active = 1', [], (err, currentReviews) => {
+      if (err) {
+        console.error('❌ Ошибка при чтении текущих отзывов:', err.message);
+        currentDb.close();
+        process.exit(1);
+      }
+      
+      console.log(`📊 В текущей базе: ${currentReviews.length} активных отзывов`);
+      if (currentReviews.length > 0) {
+        console.log('\n📝 Список отзывов:');
+        currentReviews.forEach((review, index) => {
+          console.log(`   ${index + 1}. ${review.client_name || 'Без имени'} - ${review.company || 'Без компании'}`);
+          console.log(`      Текст: ${(review.text || review.review_text || '').substring(0, 50)}...`);
+          console.log(`      Активен: ${review.active === 1 ? 'Да' : 'Нет'}`);
+        });
+        console.log('\n💡 Используйте скрипт restore-reviews.js для добавления стандартных отзывов');
+      } else {
+        console.log('\n⚠️  В текущей базе нет активных отзывов');
+        console.log('💡 Запустите: node restore-reviews.js');
+      }
+      currentDb.close();
+      process.exit(0);
+    });
+    return;
+  }
+
+  console.log('✅ Таблица reviews найдена в бекапе\n');
+  console.log('📖 Читаем отзывы из бекапа...\n');
+
+  // Читаем все отзывы из бекапа
+  backupDb.all('SELECT * FROM reviews ORDER BY created_at DESC', [], (err, reviews) => {
+    if (err) {
+      console.error('❌ Ошибка при чтении отзывов из бекапа:', err.message);
+      backupDb.close();
+      currentDb.close();
+      process.exit(1);
+    }
 
   if (!reviews || reviews.length === 0) {
     console.log('⚠️  В бекапе нет отзывов. Проверяем текущую базу...\n');
