@@ -59,29 +59,78 @@ db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='services'", 
         }
       }
 
-      // Проверяем существование файла
+      // Проверяем существование файла с разными расширениями
+      const imageDir = path.dirname(imagePath);
+      const imageBase = path.basename(imagePath, path.extname(imagePath));
+      const extensions = ['.webp', '.jpg', '.png', '.jpeg'];
+      
+      let foundFile = null;
+      let foundPath = null;
+      
+      // Сначала проверяем оригинальный путь
       const fullPath = path.join(__dirname, 'public', imagePath.startsWith('/') ? imagePath.substring(1) : imagePath);
-      const uploadsPath = path.join(__dirname, 'uploads', path.basename(imagePath));
-
       if (fs.existsSync(fullPath)) {
-        console.log(`   ✅ Файл существует: ${fullPath}`);
-      } else if (fs.existsSync(uploadsPath)) {
-        console.log(`   ⚠️  Файл в uploads: ${uploadsPath}`);
-        // Исправляем путь
-        const correctPath = '/uploads/' + path.basename(imagePath);
-        db.run('UPDATE services SET image_url = ? WHERE id = ?', [correctPath, service.id], (err) => {
-          if (err) {
-            console.error(`   ❌ Ошибка при обновлении: ${err.message}`);
-            errors++;
-          } else {
-            console.log(`   ✅ Исправлен путь: ${correctPath}`);
-            fixed++;
+        foundFile = imagePath;
+        foundPath = fullPath;
+      } else {
+        // Пробуем разные расширения
+        for (const ext of extensions) {
+          const testPath = path.join(__dirname, 'public', imageDir.startsWith('/') ? imageDir.substring(1) : imageDir, imageBase + ext);
+          if (fs.existsSync(testPath)) {
+            foundFile = (imageDir.startsWith('/') ? imageDir : '/' + imageDir) + '/' + imageBase + ext;
+            foundPath = testPath;
+            break;
           }
-        });
+        }
+        
+        // Если не нашли в public, проверяем uploads
+        if (!foundFile) {
+          const uploadsPath = path.join(__dirname, 'uploads', path.basename(imagePath));
+          if (fs.existsSync(uploadsPath)) {
+            foundFile = '/uploads/' + path.basename(imagePath);
+            foundPath = uploadsPath;
+          } else {
+            // Пробуем разные расширения в uploads
+            for (const ext of extensions) {
+              const testPath = path.join(__dirname, 'uploads', imageBase + ext);
+              if (fs.existsSync(testPath)) {
+                foundFile = '/uploads/' + imageBase + ext;
+                foundPath = testPath;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (foundFile && foundPath) {
+        if (foundFile !== service.image_url) {
+          console.log(`   ⚠️  Файл найден, но путь отличается`);
+          console.log(`      Текущий: ${service.image_url}`);
+          console.log(`      Найден: ${foundFile}`);
+          // Обновляем путь в базе
+          db.run('UPDATE services SET image_url = ? WHERE id = ?', [foundFile, service.id], (err) => {
+            if (err) {
+              console.error(`   ❌ Ошибка при обновлении: ${err.message}`);
+              errors++;
+            } else {
+              console.log(`   ✅ Исправлен путь: ${foundFile}`);
+              fixed++;
+            }
+          });
+        } else {
+          console.log(`   ✅ Файл существует: ${foundPath}`);
+        }
       } else {
         console.log(`   ❌ Файл не найден: ${imagePath}`);
         console.log(`      Проверено: ${fullPath}`);
-        console.log(`      Проверено: ${uploadsPath}`);
+        // Показываем, что пробовали
+        extensions.forEach(ext => {
+          const testPath = path.join(__dirname, 'public', imageDir.startsWith('/') ? imageDir.substring(1) : imageDir, imageBase + ext);
+          if (!fs.existsSync(testPath)) {
+            console.log(`      Проверено: ${testPath} (не найден)`);
+          }
+        });
       }
     } else {
       console.log(`   ⚠️  Нет image_url`);
