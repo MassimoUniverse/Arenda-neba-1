@@ -312,7 +312,7 @@ echo ""
 # Рекомендация 1: Перезапуск приложения
 if pm2 list | grep -q "arenda-neba"; then
     RESTARTS=$(pm2 jlist 2>/dev/null | grep -o '"name":"arenda-neba"[^}]*"restart_time":[0-9]*' | grep -o '"restart_time":[0-9]*' | cut -d':' -f2 || echo "0")
-    if [ "$RESTARTS" -gt 10 ]; then
+    if [ -n "$RESTARTS" ] && [ "$RESTARTS" -gt 10 ] 2>/dev/null; then
         echo -e "${YELLOW}1️⃣  ПЕРЕЗАПУСТИТЕ ПРИЛОЖЕНИЕ:${NC}"
         echo "   pm2 restart arenda-neba"
         echo "   или"
