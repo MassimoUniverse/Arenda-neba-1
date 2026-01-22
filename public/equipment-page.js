@@ -850,7 +850,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Поддержка нескольких схем через массив или одну схему
         let diagrams = [];
-        if (service.reach_diagrams) {
+        
+        // Сначала проверяем данные из window (переданные из HTML)
+        if (window.serviceReachDiagrams && Array.isArray(window.serviceReachDiagrams) && window.serviceReachDiagrams.length > 0) {
+          diagrams = window.serviceReachDiagrams.map(d => {
+            if (typeof d === 'string') {
+              return { url: d, title: 'Схема вылета стрелы' };
+            } else if (d && typeof d === 'object') {
+              return { 
+                url: d.url || d, 
+                title: d.title || 'Схема вылета стрелы' 
+              };
+            }
+            return null;
+          }).filter(d => d !== null && d.url);
+          console.log('✅ Использованы схемы из window.serviceReachDiagrams:', diagrams.length);
+        }
+        
+        // Если нет данных из window, проверяем service.reach_diagrams
+        if (diagrams.length === 0 && service.reach_diagrams) {
           if (Array.isArray(service.reach_diagrams)) {
             // Если есть массив схем (проверяем, что он не пустой)
             if (service.reach_diagrams.length > 0) {
@@ -892,8 +910,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Если массив пустой, проверяем старый формат reach_diagram_url
-        if (diagrams.length === 0 && service.reach_diagram_url) {
-          diagrams = [{ url: service.reach_diagram_url, title: 'Схема вылета стрелы' }];
+        if (diagrams.length === 0 && (service.reach_diagram_url || window.serviceReachDiagramUrl)) {
+          const diagramUrl = service.reach_diagram_url || window.serviceReachDiagramUrl;
+          diagrams = [{ url: diagramUrl, title: 'Схема вылета стрелы' }];
         }
         
         console.log('🔍 Processing reach diagrams:', {
