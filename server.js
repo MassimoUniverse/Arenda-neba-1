@@ -298,29 +298,57 @@ function generateEquipmentPageHTML(service) {
                                     ${heightLift ? `<div class="spec-item">
                                         <div class="spec-icon">📏</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Высота подъема люльки</div>
+                                            <div class="spec-label">Высота подъема</div>
                                             <div class="spec-value">${heightLift}</div>
                                         </div>
                                     </div>` : ''}
                                     ${maxReach ? `<div class="spec-item">
                                         <div class="spec-icon">📐</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Максимальный вылет</div>
+                                            <div class="spec-label">Вылет стрелы</div>
                                             <div class="spec-value">${maxReach}</div>
                                         </div>
                                     </div>` : ''}
                                     ${maxCapacity ? `<div class="spec-item">
                                         <div class="spec-icon">⚖️</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Максимальная грузоподъемность</div>
+                                            <div class="spec-label">Грузоподъемность корзины</div>
                                             <div class="spec-value">${maxCapacity}</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${service.basket_size ? `<div class="spec-item">
+                                        <div class="spec-icon">📦</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Размер корзины (платформы)</div>
+                                            <div class="spec-value">${fixEncoding(service.basket_size)}</div>
                                         </div>
                                     </div>` : ''}
                                     ${liftType ? `<div class="spec-item">
                                         <div class="spec-icon">🚗</div>
                                         <div class="spec-info">
-                                            <div class="spec-label">Тип подъемника</div>
+                                            <div class="spec-label">Тип</div>
                                             <div class="spec-value">${liftType}</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${service.voltage ? `<div class="spec-item">
+                                        <div class="spec-icon">🔋</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Напряжение</div>
+                                            <div class="spec-value">${fixEncoding(service.voltage)}</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${service.maneuverability ? `<div class="spec-item">
+                                        <div class="spec-icon">🎯</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Маневренность</div>
+                                            <div class="spec-value">${fixEncoding(service.maneuverability)}</div>
+                                        </div>
+                                    </div>` : ''}
+                                    ${service.setup_time ? `<div class="spec-item">
+                                        <div class="spec-icon">⏱️</div>
+                                        <div class="spec-info">
+                                            <div class="spec-label">Время установки</div>
+                                            <div class="spec-value">${fixEncoding(service.setup_time)}</div>
                                         </div>
                                     </div>` : ''}
                                     ${transportLength ? `<div class="spec-item">
@@ -647,6 +675,30 @@ const db = new sqlite3.Database('./database.db', (err) => {
     db.run(`ALTER TABLE services ADD COLUMN basket_rotation_angle TEXT`, (err) => {
       if (err && !err.message.includes('duplicate column name')) {
         console.error('Error adding basket_rotation_angle column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN basket_size TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding basket_size column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN voltage TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding voltage column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN maneuverability TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding maneuverability column:', err);
+      }
+    });
+    
+    db.run(`ALTER TABLE services ADD COLUMN setup_time TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding setup_time column:', err);
       }
     });
     
@@ -1270,15 +1322,19 @@ app.get('/api/advantages', (req, res) => {
 app.get('/api/reviews', (req, res) => {
   db.all('SELECT * FROM reviews WHERE active = 1 ORDER BY created_at DESC', [], (err, rows) => {
     if (err) {
+      console.error('❌ Ошибка при получении отзывов:', err.message);
       res.status(500).json({ error: err.message });
       return;
     }
+    console.log(`📝 API /api/reviews: найдено ${rows.length} активных отзывов`);
     // Apply fixEncoding to text fields
     const fixedRows = rows.map(row => ({
       ...row,
       client_name: row.client_name ? fixEncoding(row.client_name) : row.client_name,
       company: row.company ? fixEncoding(row.company) : row.company,
-      text: row.text ? fixEncoding(row.text) : row.text
+      // Поддерживаем оба поля: text и review_text
+      text: row.text ? fixEncoding(row.text) : (row.review_text ? fixEncoding(row.review_text) : ''),
+      review_text: row.review_text ? fixEncoding(row.review_text) : (row.text ? fixEncoding(row.text) : '')
     }));
     res.json(fixedRows);
   });
