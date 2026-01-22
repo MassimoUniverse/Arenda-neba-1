@@ -112,5 +112,4 @@ db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='services'", 
     });
   }, 2000);
   });
-  });
 });
