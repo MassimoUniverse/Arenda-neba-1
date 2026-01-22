@@ -6,13 +6,30 @@ const db = new sqlite3.Database('./database.db');
 
 console.log('🔍 Проверка изображений в базе данных...\n');
 
-// Проверяем популярные карточки
-db.all('SELECT id, title, image_url, images, is_popular, active FROM services WHERE is_popular = 1', [], (err, popularServices) => {
+// Сначала проверяем, существует ли таблица services
+db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='services'", [], (err, row) => {
   if (err) {
-    console.error('❌ Ошибка при получении популярных карточек:', err.message);
+    console.error('❌ Ошибка при проверке таблицы services:', err.message);
     db.close();
     process.exit(1);
   }
+
+  if (!row) {
+    console.log('⚠️  Таблица services не найдена в базе данных!');
+    console.log('💡 Запустите сначала: node init-database-safe.js');
+    db.close();
+    process.exit(1);
+  }
+
+  console.log('✅ Таблица services найдена\n');
+
+  // Проверяем популярные карточки
+  db.all('SELECT id, title, image_url, images, is_popular, active FROM services WHERE is_popular = 1', [], (err, popularServices) => {
+    if (err) {
+      console.error('❌ Ошибка при получении популярных карточек:', err.message);
+      db.close();
+      process.exit(1);
+    }
 
   console.log(`📸 Найдено ${popularServices.length} популярных карточек\n`);
 
@@ -94,4 +111,6 @@ db.all('SELECT id, title, image_url, images, is_popular, active FROM services WH
       process.exit(0);
     });
   }, 2000);
+  });
+  });
 });
