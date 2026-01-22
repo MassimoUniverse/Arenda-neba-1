@@ -447,10 +447,15 @@ function generateEquipmentPageHTML(service) {
                                         </div>
                                     </div>` : ''}
                                 </div>
-                                <div class="reach-diagrams-container" id="reachDiagramsContainer" style="display: none;">
+                                <div class="reach-diagrams-container" id="reachDiagramsContainer" style="display: ${reachDiagrams.length > 0 ? 'block' : 'none'};">
                                     <h3 class="reach-diagrams-title">Схемы вылета стрелы</h3>
                                     <div class="reach-diagrams-grid" id="reachDiagramsGrid"></div>
                                 </div>
+                                <script>
+                                // Данные схем вылета стрелы для JavaScript
+                                window.serviceReachDiagrams = ${JSON.stringify(reachDiagrams)};
+                                window.serviceReachDiagramUrl = ${JSON.stringify(service.reach_diagram_url || '')};
+                                </script>
                             </div>
                         </div>
 
