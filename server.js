@@ -786,7 +786,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
           console.error('Error adding delivery_per_km column:', err);
         }
       });
-    }
+    });
     
     // Create homepage table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS homepage (
