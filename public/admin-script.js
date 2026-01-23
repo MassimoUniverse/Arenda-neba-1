@@ -72,12 +72,26 @@ async function uploadImage(file, imageUrlInputId, previewId, fileType = 'image')
             
             return relativeUrl;
         } else {
-            const errorData = await response.json().catch(() => ({ error: 'Ошибка загрузки' }));
-            alert('Ошибка при загрузке изображения: ' + (errorData.error || 'Неизвестная ошибка'));
+            let errorMessage = 'Ошибка загрузки';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                console.error('❌ Ошибка сервера при загрузке:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorData
+                });
+            } catch (jsonError) {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                console.error('❌ Ошибка при парсинге ответа сервера:', jsonError);
+                console.error('   Статус:', response.status, response.statusText);
+            }
+            alert('Ошибка при загрузке изображения: ' + errorMessage);
             return null;
         }
     } catch (error) {
-        alert('Ошибка при загрузке изображения: ' + error.message);
+        console.error('❌ Ошибка при загрузке файла:', error);
+        alert('Ошибка при загрузке изображения: ' + (error.message || 'Неизвестная ошибка'));
         return null;
     }
 }
@@ -2261,27 +2275,32 @@ async function handleMultipleReachDiagramsUpload(fileInput, previewContainerId) 
     
     for (const file of validFiles) {
         try {
+            console.log(`📤 Загрузка схемы: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
             const url = await uploadImage(file, null, null, 'reach-diagram');
             if (url) {
+                console.log(`✅ Схема загружена успешно: ${url}`);
                 uploadedDiagrams.push({ url: url, title: `Схема вылета стрелы ${serviceReachDiagramsArray.length + uploadedDiagrams.length + 1}` });
             } else {
-                uploadErrors.push(file.name);
+                console.error(`❌ Схема не загружена: ${file.name}`);
+                uploadErrors.push({ name: file.name, error: 'Загрузка вернула null' });
             }
         } catch (error) {
-            console.error('Error uploading diagram:', error);
-            uploadErrors.push(file.name);
+            console.error(`❌ Ошибка при загрузке схемы ${file.name}:`, error);
+            uploadErrors.push({ name: file.name, error: error.message || 'Неизвестная ошибка' });
         }
     }
     
     // Показываем ошибки, если есть
     if (uploadErrors.length > 0) {
-        alert(`Не удалось загрузить ${uploadErrors.length} файл(ов): ${uploadErrors.join(', ')}`);
+        const errorMessages = uploadErrors.map(e => `${e.name}: ${e.error}`).join('\n');
+        console.error('❌ Ошибки загрузки:', errorMessages);
+        alert(`Не удалось загрузить ${uploadErrors.length} файл(ов):\n\n${errorMessages}`);
     }
     
     // Если ничего не загрузилось, скрываем контейнер
     if (uploadedDiagrams.length === 0 && uploadErrors.length > 0) {
         container.style.display = 'none';
-        previewContainer.innerHTML = '';
+        previewContainer.innerHTML = '<div style="color: red; padding: 10px;">Ошибка загрузки файлов. Проверьте консоль браузера (F12) для деталей.</div>';
         fileInput.value = '';
         return;
     }
