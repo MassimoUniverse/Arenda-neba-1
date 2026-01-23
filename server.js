@@ -2753,6 +2753,22 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
         });
       } catch (optimizeError) {
         console.error('❌ Ошибка при конвертации изображения:', optimizeError);
+        console.error('   Детали ошибки:', {
+          message: optimizeError.message,
+          stack: optimizeError.stack,
+          file: req.file.originalname,
+          path: uploadedPath
+        });
+        
+        // Проверяем, существует ли оригинальный файл
+        if (!fs.existsSync(uploadedPath)) {
+          console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Оригинальный файл не найден после загрузки!');
+          return res.status(500).json({ 
+            error: 'Ошибка при обработке файла',
+            details: 'Файл не был сохранен на сервере'
+          });
+        }
+        
         // Если конвертация не удалась, возвращаем оригинал
         // Оригинал уже сохранен, так что просто возвращаем его URL
         res.json({ 
@@ -2767,18 +2783,28 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
     }
   } catch (error) {
     console.error('❌ Ошибка при обработке изображения:', error);
+    console.error('   Детали ошибки:', {
+      message: error.message,
+      stack: error.stack,
+      file: req.file ? req.file.originalname : 'НЕТ',
+      uploadsDir: uploadsDir
+    });
+    
     // Если обработка не удалась, возвращаем оригинал (если он был загружен)
-    if (req.file) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      console.log('   ✅ Оригинальный файл существует, возвращаем его');
       res.json({ 
         success: true,
         filename: req.file.filename,
         url: `/uploads/${req.file.filename}`,
-        error: 'Ошибка обработки, используется оригинал'
+        error: 'Ошибка обработки, используется оригинал',
+        details: error.message
       });
     } else {
+      console.error('   ❌ Файл не был загружен или не найден');
       res.status(500).json({ 
         error: 'Ошибка при загрузке файла',
-        details: error.message
+        details: error.message || 'Неизвестная ошибка'
       });
     }
   }
