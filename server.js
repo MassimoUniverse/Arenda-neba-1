@@ -641,137 +641,152 @@ const db = new sqlite3.Database('./database.db', (err) => {
       console.error('❌ ОШИБКА: Папка uploads НЕ доступна для записи!', writeErr.message);
       console.error('   Решение: chmod 755 uploads');
     }
-    // Add url column to services table if it doesn't exist
-    db.run(`ALTER TABLE services ADD COLUMN url TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding url column:', err);
+    // Проверяем существование таблицы services перед добавлением колонок
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='services'", (err, tableExists) => {
+      if (err) {
+        console.error('Error checking services table:', err);
+        return;
       }
-    });
-    
-    // Add reach_diagram_url column to services table if it doesn't exist
-    db.run(`ALTER TABLE services ADD COLUMN reach_diagram_url TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding reach_diagram_url column:', err);
+      
+      if (!tableExists) {
+        console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Таблица services не существует!');
+        console.error('   Запустите: node fix-services-table.js');
+        return;
       }
-    });
-    
-    // Add reach_diagrams column to services table if it doesn't exist (JSON array of diagrams with url and title)
-    db.run(`ALTER TABLE services ADD COLUMN reach_diagrams TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding reach_diagrams column:', err);
-      }
-    });
-    
-    // Add images column to services table if it doesn't exist (JSON array of image URLs)
-    db.run(`ALTER TABLE services ADD COLUMN images TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding images column:', err);
-      }
-    });
-    
-    // Add popular card settings
-    db.run(`ALTER TABLE services ADD COLUMN is_popular INTEGER DEFAULT 0`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding is_popular column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN popular_order INTEGER DEFAULT 0`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding popular_order column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN card_bullets TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding card_bullets column:', err);
-      }
-    });
-    
-    // Add equipment specifications columns
-    db.run(`ALTER TABLE services ADD COLUMN height_lift TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding height_lift column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN max_reach TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding max_reach column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN max_capacity TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding max_capacity column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN lift_type TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding lift_type column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN transport_length TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding transport_length column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN transport_height TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding transport_height column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN width TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding width column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN boom_rotation_angle TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding boom_rotation_angle column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN basket_rotation_angle TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding basket_rotation_angle column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN basket_size TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding basket_size column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN voltage TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding voltage column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN maneuverability TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding maneuverability column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN setup_time TEXT`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding setup_time column:', err);
-      }
-    });
-    
-    db.run(`ALTER TABLE services ADD COLUMN delivery_per_km INTEGER DEFAULT 85`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error('Error adding delivery_per_km column:', err);
-      }
-    });
+      
+      // Таблица существует - добавляем колонки
+      // Add url column to services table if it doesn't exist
+      db.run(`ALTER TABLE services ADD COLUMN url TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding url column:', err);
+        }
+      });
+      
+      // Add reach_diagram_url column to services table if it doesn't exist
+      db.run(`ALTER TABLE services ADD COLUMN reach_diagram_url TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding reach_diagram_url column:', err);
+        }
+      });
+      
+      // Add reach_diagrams column to services table if it doesn't exist (JSON array of diagrams with url and title)
+      db.run(`ALTER TABLE services ADD COLUMN reach_diagrams TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding reach_diagrams column:', err);
+        }
+      });
+      
+      // Add images column to services table if it doesn't exist (JSON array of image URLs)
+      db.run(`ALTER TABLE services ADD COLUMN images TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding images column:', err);
+        }
+      });
+      
+      // Add popular card settings
+      db.run(`ALTER TABLE services ADD COLUMN is_popular INTEGER DEFAULT 0`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding is_popular column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN popular_order INTEGER DEFAULT 0`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding popular_order column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN card_bullets TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding card_bullets column:', err);
+        }
+      });
+      
+      // Add equipment specifications columns
+      db.run(`ALTER TABLE services ADD COLUMN height_lift TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding height_lift column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN max_reach TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding max_reach column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN max_capacity TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding max_capacity column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN lift_type TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding lift_type column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN transport_length TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding transport_length column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN transport_height TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding transport_height column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN width TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding width column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN boom_rotation_angle TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding boom_rotation_angle column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN basket_rotation_angle TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding basket_rotation_angle column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN basket_size TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding basket_size column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN voltage TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding voltage column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN maneuverability TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding maneuverability column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN setup_time TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding setup_time column:', err);
+        }
+      });
+      
+      db.run(`ALTER TABLE services ADD COLUMN delivery_per_km INTEGER DEFAULT 85`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding delivery_per_km column:', err);
+        }
+      });
+    }
     
     // Create homepage table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS homepage (
