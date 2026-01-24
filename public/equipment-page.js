@@ -646,6 +646,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           
           if (imgEl) {
             const imageUrl = normalizeImageUrl(allImages[index]);
+            
+            // Принудительно устанавливаем стили для правильного масштабирования
+            imgEl.style.maxWidth = '100%';
+            imgEl.style.maxHeight = '100%';
+            imgEl.style.width = 'auto';
+            imgEl.style.height = 'auto';
+            imgEl.style.objectFit = 'contain';
+            imgEl.style.objectPosition = 'center';
+            imgEl.style.display = 'block';
+            
             imgEl.src = imageUrl;
             imgEl.alt = `${service.title} - вид ${index + 1}`;
             
@@ -731,6 +741,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           };
           imgEl.onload = function() {
             console.log('✅ Main image loaded successfully:', this.src);
+            // Принудительно применяем стили после загрузки изображения
+            this.style.maxWidth = '100%';
+            this.style.maxHeight = '100%';
+            this.style.width = 'auto';
+            this.style.height = 'auto';
+            this.style.objectFit = 'contain';
+            this.style.objectPosition = 'center';
           };
         }
         

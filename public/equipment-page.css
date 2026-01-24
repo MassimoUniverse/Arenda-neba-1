@@ -307,32 +307,35 @@ body {
 
 .main-image {
   position: relative;
-  width: 100%;
+  width: 100% !important;
   height: 500px !important; /* Строго фиксированная высота контейнера */
   min-height: 500px !important;
   max-height: 500px !important; /* Максимальная высота тоже фиксирована */
-  overflow: hidden; /* Обрезаем изображение, выходящее за границы */
+  overflow: hidden !important; /* Обрезаем изображение, выходящее за границы */
   border-radius: 12px;
   background: #f8f9fc;
   cursor: pointer;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box; /* Учитываем padding и border в размерах */
-  flex-shrink: 0; /* Контейнер не сжимается */
+  box-sizing: border-box !important; /* Учитываем padding и border в размерах */
+  flex-shrink: 0 !important; /* Контейнер не сжимается */
 }
 
-.main-image img {
+.main-image img,
+.main-image img#mainEquipmentImage {
   max-width: 100% !important;
   max-height: 100% !important; /* Строго ограничиваем высоту контейнером */
-  width: auto;
-  height: auto;
-  display: block;
+  width: auto !important;
+  height: auto !important;
+  display: block !important;
   border-radius: 12px;
   object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
-  object-position: center;
+  object-position: center !important;
   transition: transform 0.3s ease;
-  flex-shrink: 0; /* Изображение не сжимается */
+  flex-shrink: 0 !important; /* Изображение не сжимается */
+  /* Дополнительные ограничения для вертикальных изображений */
+  contain: layout style paint;
 }
 
 .main-image:hover img {
