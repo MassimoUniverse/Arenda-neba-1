@@ -648,10 +648,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const imageUrl = normalizeImageUrl(allImages[index]);
             
             // Принудительно устанавливаем стили для правильного масштабирования
+            // Все изображения должны занимать одинаковое пространство
+            imgEl.style.width = '100%';
+            imgEl.style.height = '100%';
             imgEl.style.maxWidth = '100%';
             imgEl.style.maxHeight = '100%';
-            imgEl.style.width = 'auto';
-            imgEl.style.height = 'auto';
             imgEl.style.objectFit = 'contain';
             imgEl.style.objectPosition = 'center';
             imgEl.style.display = 'block';
@@ -742,10 +743,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           imgEl.onload = function() {
             console.log('✅ Main image loaded successfully:', this.src);
             // Принудительно применяем стили после загрузки изображения
+            // Все изображения должны занимать одинаковое пространство
+            this.style.width = '100%';
+            this.style.height = '100%';
             this.style.maxWidth = '100%';
             this.style.maxHeight = '100%';
-            this.style.width = 'auto';
-            this.style.height = 'auto';
             this.style.objectFit = 'contain';
             this.style.objectPosition = 'center';
           };

@@ -324,13 +324,13 @@ body {
 
 .main-image img,
 .main-image img#mainEquipmentImage {
+  width: 100% !important; /* Все изображения занимают всю ширину контейнера */
+  height: 100% !important; /* Все изображения занимают всю высоту контейнера */
   max-width: 100% !important;
-  max-height: 100% !important; /* Строго ограничиваем высоту контейнером */
-  width: auto !important;
-  height: auto !important;
+  max-height: 100% !important;
   display: block !important;
   border-radius: 12px;
-  object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
+  object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
   object-position: center !important;
   transition: transform 0.3s ease;
   flex-shrink: 0 !important; /* Изображение не сжимается */
@@ -1542,11 +1542,11 @@ body {
   }
   
   .main-image img {
+    width: 100% !important; /* Все изображения занимают всю ширину контейнера */
+    height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
-    width: auto;
-    height: auto;
-    object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
+    object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     object-position: center;
     flex-shrink: 0;
   }
@@ -1718,13 +1718,12 @@ body {
   }
   
   .main-image img {
+    width: 100% !important; /* Все изображения занимают всю ширину контейнера */
+    height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
-    width: auto;
-    height: auto;
-    object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
+    object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     flex-shrink: 0;
-    object-fit: contain;
     border-radius: 8px;
   }
   
