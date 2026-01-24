@@ -306,8 +306,9 @@ body {
 .main-image {
   position: relative;
   width: 100%;
-  height: 500px; /* Фиксированная высота контейнера */
-  min-height: 500px; /* Минимальная высота контейнера */
+  height: 500px !important; /* Строго фиксированная высота контейнера */
+  min-height: 500px !important;
+  max-height: 500px !important; /* Максимальная высота тоже фиксирована */
   overflow: hidden; /* Обрезаем изображение, выходящее за границы */
   border-radius: 12px;
   background: #f8f9fc;
@@ -315,18 +316,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box; /* Учитываем padding и border в размерах */
+  flex-shrink: 0; /* Контейнер не сжимается */
 }
 
 .main-image img {
-  max-width: 100%;
-  max-height: 100%; /* Ограничиваем высоту контейнером */
+  max-width: 100% !important;
+  max-height: 100% !important; /* Строго ограничиваем высоту контейнером */
   width: auto;
   height: auto;
   display: block;
   border-radius: 12px;
-  object-fit: contain; /* Вертикальные и горизонтальные фото помещаются без изменения размера контейнера */
+  object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
   object-position: center;
   transition: transform 0.3s ease;
+  flex-shrink: 0; /* Изображение не сжимается */
 }
 
 .main-image:hover img {
@@ -1525,16 +1529,21 @@ body {
   .main-image {
     width: 100%;
     max-width: 100%;
-    height: 400px; /* Фиксированная высота на мобильных */
+    height: 400px !important; /* Строго фиксированная высота на мобильных */
+    min-height: 400px !important;
+    max-height: 400px !important;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
   
   .main-image img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 100% !important;
+    max-height: 100% !important;
     width: auto;
     height: auto;
-    object-fit: contain;
+    object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
     object-position: center;
+    flex-shrink: 0;
   }
   
   .gallery-thumbnails {
@@ -1695,15 +1704,21 @@ body {
   }
   
   .main-image {
-    height: 300px; /* Фиксированная высота на очень маленьких экранах */
+    height: 300px !important; /* Строго фиксированная высота на очень маленьких экранах */
+    min-height: 300px !important;
+    max-height: 300px !important;
     margin-bottom: 0; /* Убираем отступ снизу, чтобы миниатюры не обрезались */
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
   
   .main-image img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 100% !important;
+    max-height: 100% !important;
     width: auto;
     height: auto;
+    object-fit: contain !important; /* Вертикальные фото масштабируются, чтобы поместиться целиком */
+    flex-shrink: 0;
     object-fit: contain;
     border-radius: 8px;
   }
