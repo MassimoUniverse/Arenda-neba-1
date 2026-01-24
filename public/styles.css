@@ -666,6 +666,11 @@ a.logo:hover {
   color: #fff;
   box-shadow: 0 4px 16px rgba(255, 107, 53, 0.35), 0 2px 4px rgba(255, 107, 53, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box; /* Учитываем padding в размерах */
+  touch-action: manipulation; /* Предотвращаем двойной тап */
+  -webkit-touch-callout: none; /* Отключаем контекстное меню на iOS */
+  width: auto; /* Автоматическая ширина */
+  max-width: 100%; /* Ограничиваем максимальную ширину */
 }
 
 .btn-primary:hover {
@@ -677,6 +682,8 @@ a.logo:hover {
   transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
   box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
   transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  width: auto !important; /* Сохраняем автоматическую ширину */
+  max-width: 100% !important; /* Ограничиваем максимальную ширину */
 }
 
 .btn-primary .ripple {
@@ -2373,12 +2380,18 @@ input[type='number'] {
   font-size: 16px;
   font-weight: 600;
   margin-top: 8px;
+  box-sizing: border-box; /* Учитываем padding в размерах */
+  touch-action: manipulation; /* Предотвращаем двойной тап */
+  -webkit-touch-callout: none; /* Отключаем контекстное меню на iOS */
+  max-width: 100%; /* Ограничиваем максимальную ширину */
 }
 
 .quick-contact-form .btn-submit:active {
   transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
   box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
   transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  width: 100% !important; /* Сохраняем ширину 100% */
+  max-width: 100% !important; /* Ограничиваем максимальную ширину */
 }
 
 .form-message {
@@ -2422,6 +2435,8 @@ input[type='number'] {
 .messenger-btn {
   flex: 1;
   min-width: 0;
+  max-width: 100%; /* Ограничиваем максимальную ширину */
+  width: auto; /* Автоматическая ширина, не растягивается */
   padding: 14px 24px;
   border-radius: 10px;
   font-size: 15px;
@@ -2436,6 +2451,9 @@ input[type='number'] {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box; /* Учитываем padding в размерах */
+  touch-action: manipulation; /* Предотвращаем двойной тап */
+  -webkit-touch-callout: none; /* Отключаем контекстное меню на iOS */
 }
 
 .messenger-btn.whatsapp {
@@ -2471,6 +2489,9 @@ input[type='number'] {
   transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
   transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  width: auto !important; /* Сохраняем автоматическую ширину */
+  max-width: 100% !important; /* Ограничиваем максимальную ширину */
+  flex: 1 !important; /* Сохраняем flex-поведение */
 }
 
 .messenger-btn .ripple {
