@@ -3494,22 +3494,49 @@ input[type='number'] {
 
 /* Исправление анимации кнопок на мобильных устройствах */
 @media (max-width: 768px) {
+  .messenger-btn {
+    max-width: 100% !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+    touch-action: manipulation !important;
+  }
+  
   .messenger-btn:active {
     transform: translateY(0) scale(0.95) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+    width: auto !important; /* Сохраняем автоматическую ширину */
+    max-width: 100% !important; /* Ограничиваем максимальную ширину */
+    flex: 1 !important; /* Сохраняем flex-поведение */
+  }
+  
+  .btn-primary {
+    max-width: 100% !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+    touch-action: manipulation !important;
   }
   
   .btn-primary:active {
     transform: translateY(0) scale(0.95) !important;
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
     transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+    width: auto !important; /* Сохраняем автоматическую ширину */
+    max-width: 100% !important; /* Ограничиваем максимальную ширину */
+  }
+  
+  .quick-contact-form .btn-submit {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    touch-action: manipulation !important;
   }
   
   .quick-contact-form .btn-submit:active {
     transform: translateY(0) scale(0.95) !important;
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
     transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+    width: 100% !important; /* Сохраняем ширину 100% */
+    max-width: 100% !important; /* Ограничиваем максимальную ширину */
   }
 }
 
