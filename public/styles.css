@@ -1618,7 +1618,7 @@ input[type='number'] {
   }
   
   .sidebar-features {
-    gap: 16px;
+    display: none !important; /* Скрываем список преимуществ на мобильных */
   }
   
   .sidebar-feature-icon {
@@ -1738,7 +1738,7 @@ input[type='number'] {
   }
   
   .sidebar-features {
-    gap: 14px;
+    display: none !important; /* Скрываем список преимуществ на мобильных */
   }
   
   .sidebar-feature {
