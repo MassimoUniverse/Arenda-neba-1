@@ -329,11 +329,12 @@ body {
   max-width: 100% !important;
   max-height: 100% !important;
   display: block !important;
-  border-radius: 12px;
+  border-radius: 12px !important; /* Закругленные углы для всех фотографий */
   object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
   object-position: center !important;
   transition: transform 0.3s ease;
   flex-shrink: 0 !important; /* Изображение не сжимается */
+  overflow: hidden; /* Обрезаем изображение по закругленным углам */
   /* Дополнительные ограничения для вертикальных изображений */
   contain: layout style paint;
 }
@@ -1546,9 +1547,11 @@ body {
     height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
+    border-radius: 12px !important; /* Закругленные углы для всех фотографий */
     object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     object-position: center;
     flex-shrink: 0;
+    overflow: hidden; /* Обрезаем изображение по закругленным углам */
   }
   
   .gallery-thumbnails {
@@ -1722,9 +1725,10 @@ body {
     height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
+    border-radius: 8px !important; /* Закругленные углы для всех фотографий на мобильных */
     object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     flex-shrink: 0;
-    border-radius: 8px;
+    overflow: hidden; /* Обрезаем изображение по закругленным углам */
   }
   
   .main-image-nav {

@@ -653,9 +653,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             imgEl.style.height = '100%';
             imgEl.style.maxWidth = '100%';
             imgEl.style.maxHeight = '100%';
+            imgEl.style.borderRadius = '12px'; // Закругленные углы
             imgEl.style.objectFit = 'contain';
             imgEl.style.objectPosition = 'center';
             imgEl.style.display = 'block';
+            imgEl.style.overflow = 'hidden'; // Обрезаем по закругленным углам
             
             imgEl.src = imageUrl;
             imgEl.alt = `${service.title} - вид ${index + 1}`;
@@ -748,8 +750,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             this.style.height = '100%';
             this.style.maxWidth = '100%';
             this.style.maxHeight = '100%';
+            this.style.borderRadius = '12px'; // Закругленные углы
             this.style.objectFit = 'contain';
             this.style.objectPosition = 'center';
+            this.style.overflow = 'hidden'; // Обрезаем по закругленным углам
           };
         }
         
