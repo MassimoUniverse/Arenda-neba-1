@@ -12,8 +12,10 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Парсинг флагов
+# Парсинг флагов и аргументов
 CREATE_ARCHIVE=""
+PROJECT_DIR=""
+
 for arg in "$@"; do
     case "$arg" in
         --archive|-a)
@@ -22,13 +24,17 @@ for arg in "$@"; do
         --no-archive|-n)
             CREATE_ARCHIVE="0"
             ;;
+        *)
+            # Если это не флаг, считаем это путем к проекту
+            if [ -z "$PROJECT_DIR" ] && [ -d "$arg" ]; then
+                PROJECT_DIR="$arg"
+            fi
+            ;;
     esac
 done
 
-# Определяем директорию проекта
-if [ -n "$1" ]; then
-    PROJECT_DIR="$1"
-else
+# Определяем директорию проекта (если не указана)
+if [ -z "$PROJECT_DIR" ]; then
     # Пытаемся определить автоматически
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     if [ -f "$SCRIPT_DIR/server.js" ] || [ -f "$SCRIPT_DIR/../server.js" ]; then
