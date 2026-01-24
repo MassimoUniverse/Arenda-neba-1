@@ -674,8 +674,9 @@ a.logo:hover {
 }
 
 .btn-primary:active {
-  transform: scale(0.98) translateY(0);
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
 }
 
 .btn-primary .ripple {
@@ -2374,6 +2375,12 @@ input[type='number'] {
   margin-top: 8px;
 }
 
+.quick-contact-form .btn-submit:active {
+  transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
 .form-message {
   padding: 12px 16px;
   border-radius: 10px;
@@ -2461,8 +2468,9 @@ input[type='number'] {
 }
 
 .messenger-btn:active {
-  transform: scale(0.98) translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(0) scale(0.95) !important; /* Уменьшаем, а не увеличиваем */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
 }
 
 .messenger-btn .ripple {
@@ -3463,6 +3471,48 @@ input[type='number'] {
   pointer-events: auto !important;
 }
 
+/* Исправление анимации кнопок на мобильных устройствах */
+@media (max-width: 768px) {
+  .messenger-btn:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
+  
+  .quick-contact-form .btn-submit:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
+}
+
 .calc-select {
   pointer-events: auto !important;
+}
+
+/* Исправление анимации кнопок на мобильных устройствах */
+@media (max-width: 768px) {
+  .messenger-btn:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
+  
+  .quick-contact-form .btn-submit:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  }
 }
