@@ -285,7 +285,7 @@ function generateEquipmentPageHTML(service) {
                 <div class="equipment-left">
                     <div class="equipment-gallery">
                         <div class="main-image">
-                            <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="${title}" id="mainEquipmentImage">
+                            <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="${title}" id="mainEquipmentImage" style="border-radius: 12px; overflow: hidden;">
                         </div>
                         <div class="gallery-thumbnails" id="galleryThumbnails">
                             <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="Вид 1" class="active">
