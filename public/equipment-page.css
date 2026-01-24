@@ -301,6 +301,8 @@ body {
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   overflow: visible; /* Убеждаемся, что изображения не обрезаются */
   position: relative; /* Для правильного позиционирования */
+  display: flex;
+  flex-direction: column;
 }
 
 .main-image {
