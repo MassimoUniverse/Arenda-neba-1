@@ -649,15 +649,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Принудительно устанавливаем стили для правильного масштабирования
             // Все изображения должны занимать одинаковое пространство
-            imgEl.style.width = '100%';
-            imgEl.style.height = '100%';
-            imgEl.style.maxWidth = '100%';
-            imgEl.style.maxHeight = '100%';
-            imgEl.style.borderRadius = '12px'; // Закругленные углы
-            imgEl.style.objectFit = 'contain';
-            imgEl.style.objectPosition = 'center';
-            imgEl.style.display = 'block';
-            imgEl.style.overflow = 'hidden'; // Обрезаем по закругленным углам
+            imgEl.style.setProperty('width', '100%', 'important');
+            imgEl.style.setProperty('height', '100%', 'important');
+            imgEl.style.setProperty('max-width', '100%', 'important');
+            imgEl.style.setProperty('max-height', '100%', 'important');
+            imgEl.style.setProperty('border-radius', '12px', 'important'); // Закругленные углы
+            imgEl.style.setProperty('-webkit-border-radius', '12px', 'important');
+            imgEl.style.setProperty('-moz-border-radius', '12px', 'important');
+            imgEl.style.setProperty('object-fit', 'contain', 'important');
+            imgEl.style.setProperty('object-position', 'center', 'important');
+            imgEl.style.setProperty('display', 'block', 'important');
+            imgEl.style.setProperty('overflow', 'hidden', 'important'); // Обрезаем по закругленным углам
             
             imgEl.src = imageUrl;
             imgEl.alt = `${service.title} - вид ${index + 1}`;
@@ -690,6 +692,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Устанавливаем первое изображение как главное
         if (imgEl) {
           const mainImageContainer = imgEl.parentElement;
+          
+          // Принудительно применяем закругленные углы к контейнеру
+          if (mainImageContainer && mainImageContainer.classList.contains('main-image')) {
+            mainImageContainer.style.setProperty('border-radius', '12px', 'important');
+            mainImageContainer.style.setProperty('overflow', 'hidden', 'important');
+          }
           
           // Создаем кнопки навигации для главного изображения, если их еще нет
           let mainPrevBtn = mainImageContainer.querySelector('.main-image-nav.prev');
@@ -746,14 +754,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('✅ Main image loaded successfully:', this.src);
             // Принудительно применяем стили после загрузки изображения
             // Все изображения должны занимать одинаковое пространство
-            this.style.width = '100%';
-            this.style.height = '100%';
-            this.style.maxWidth = '100%';
-            this.style.maxHeight = '100%';
-            this.style.borderRadius = '12px'; // Закругленные углы
-            this.style.objectFit = 'contain';
-            this.style.objectPosition = 'center';
-            this.style.overflow = 'hidden'; // Обрезаем по закругленным углам
+            this.style.setProperty('width', '100%', 'important');
+            this.style.setProperty('height', '100%', 'important');
+            this.style.setProperty('max-width', '100%', 'important');
+            this.style.setProperty('max-height', '100%', 'important');
+            this.style.setProperty('border-radius', '12px', 'important'); // Закругленные углы
+            this.style.setProperty('-webkit-border-radius', '12px', 'important');
+            this.style.setProperty('-moz-border-radius', '12px', 'important');
+            this.style.setProperty('object-fit', 'contain', 'important');
+            this.style.setProperty('object-position', 'center', 'important');
+            this.style.setProperty('overflow', 'hidden', 'important'); // Обрезаем по закругленным углам
           };
         }
         

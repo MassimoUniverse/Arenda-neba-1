@@ -312,7 +312,7 @@ body {
   min-height: 500px !important;
   max-height: 500px !important; /* Максимальная высота тоже фиксирована */
   overflow: hidden !important; /* Обрезаем изображение, выходящее за границы */
-  border-radius: 12px;
+  border-radius: 12px !important; /* Закругленные углы для контейнера */
   background: #f8f9fc;
   cursor: pointer;
   display: flex !important;
@@ -323,18 +323,22 @@ body {
 }
 
 .main-image img,
-.main-image img#mainEquipmentImage {
+.main-image img#mainEquipmentImage,
+.equipment-gallery .main-image img,
+.equipment-gallery .main-image img#mainEquipmentImage {
   width: 100% !important; /* Все изображения занимают всю ширину контейнера */
   height: 100% !important; /* Все изображения занимают всю высоту контейнера */
   max-width: 100% !important;
   max-height: 100% !important;
   display: block !important;
   border-radius: 12px !important; /* Закругленные углы для всех фотографий */
+  -webkit-border-radius: 12px !important; /* Для Safari */
+  -moz-border-radius: 12px !important; /* Для Firefox */
   object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
   object-position: center !important;
   transition: transform 0.3s ease;
   flex-shrink: 0 !important; /* Изображение не сжимается */
-  overflow: hidden; /* Обрезаем изображение по закругленным углам */
+  overflow: hidden !important; /* Обрезаем изображение по закругленным углам */
   /* Дополнительные ограничения для вертикальных изображений */
   contain: layout style paint;
 }
@@ -1538,20 +1542,24 @@ body {
     height: 400px !important; /* Строго фиксированная высота на мобильных */
     min-height: 400px !important;
     max-height: 400px !important;
+    border-radius: 12px !important; /* Закругленные углы для контейнера */
     box-sizing: border-box;
     flex-shrink: 0;
   }
   
-  .main-image img {
+  .main-image img,
+  .main-image img#mainEquipmentImage {
     width: 100% !important; /* Все изображения занимают всю ширину контейнера */
     height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
     border-radius: 12px !important; /* Закругленные углы для всех фотографий */
+    -webkit-border-radius: 12px !important;
+    -moz-border-radius: 12px !important;
     object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     object-position: center;
     flex-shrink: 0;
-    overflow: hidden; /* Обрезаем изображение по закругленным углам */
+    overflow: hidden !important; /* Обрезаем изображение по закругленным углам */
   }
   
   .gallery-thumbnails {
@@ -1715,20 +1723,24 @@ body {
     height: 300px !important; /* Строго фиксированная высота на очень маленьких экранах */
     min-height: 300px !important;
     max-height: 300px !important;
+    border-radius: 8px !important; /* Закругленные углы для контейнера */
     margin-bottom: 0; /* Убираем отступ снизу, чтобы миниатюры не обрезались */
     box-sizing: border-box;
     flex-shrink: 0;
   }
   
-  .main-image img {
+  .main-image img,
+  .main-image img#mainEquipmentImage {
     width: 100% !important; /* Все изображения занимают всю ширину контейнера */
     height: 100% !important; /* Все изображения занимают всю высоту контейнера */
     max-width: 100% !important;
     max-height: 100% !important;
     border-radius: 8px !important; /* Закругленные углы для всех фотографий на мобильных */
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
     object-fit: contain !important; /* Изображения масштабируются, чтобы поместиться целиком, но занимают одинаковое пространство */
     flex-shrink: 0;
-    overflow: hidden; /* Обрезаем изображение по закругленным углам */
+    overflow: hidden !important; /* Обрезаем изображение по закругленным углам */
   }
   
   .main-image-nav {
