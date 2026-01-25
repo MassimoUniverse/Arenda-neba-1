@@ -10,12 +10,38 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
     });
     
-    // Закрытие меню при клике на ссылку
+    // Закрытие меню при клике на ссылку и плавный скролл
     mobileNav.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        mobileMenuBtn.classList.remove('active');
-        mobileNav.classList.remove('active');
-        document.body.style.overflow = '';
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          const targetId = href.substring(1);
+          const targetElement = document.getElementById(targetId);
+          
+          if (targetElement) {
+            // Закрываем меню
+            mobileMenuBtn.classList.remove('active');
+            mobileNav.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // Плавный скролл с учетом фиксированного хедера
+            const headerHeight = document.querySelector('.site-header')?.offsetHeight || 80;
+            // Дополнительный отступ для формы "Быстрая заявка"
+            const extraOffset = targetId === 'quick-contact-form' ? 20 : 0;
+            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - extraOffset;
+            
+            window.scrollTo({
+              top: Math.max(0, targetPosition),
+              behavior: 'smooth'
+            });
+          }
+        } else {
+          // Для внешних ссылок просто закрываем меню
+          mobileMenuBtn.classList.remove('active');
+          mobileNav.classList.remove('active');
+          document.body.style.overflow = '';
+        }
       });
     });
     
@@ -2001,7 +2027,7 @@ function initStackCardsEffect(element) {
 
 // Обработчик формы быстрой заявки
 function initQuickContactForm() {
-  const form = document.getElementById('quick-contact-form');
+  const form = document.querySelector('.quick-contact-form');
   const messageDiv = document.getElementById('form-message');
   
   if (!form) return;
