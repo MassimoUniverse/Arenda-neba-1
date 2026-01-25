@@ -31,7 +31,69 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Load homepage data
   loadHomepageData();
+  
+  // Make contact cards clickable
+  initContactCards();
 });
+
+// Make contact cards clickable
+function initContactCards() {
+  const phoneCard = document.querySelector('.contact-card-phone');
+  const emailCard = document.querySelector('.contact-card-email');
+  const addressCard = document.querySelector('.contact-card-address');
+  
+  // If cards are still divs (not converted to links yet), make them clickable
+  if (phoneCard) {
+    if (phoneCard.tagName === 'DIV') {
+      phoneCard.style.cursor = 'pointer';
+      phoneCard.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = 'tel:+79910009111';
+      });
+    }
+    // Also make icon clickable
+    const phoneIcon = phoneCard.querySelector('.contact-card-icon');
+    if (phoneIcon) {
+      phoneIcon.style.pointerEvents = 'auto';
+      phoneIcon.style.cursor = 'pointer';
+    }
+  }
+  
+  if (emailCard) {
+    if (emailCard.tagName === 'DIV') {
+      emailCard.style.cursor = 'pointer';
+      emailCard.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = 'mailto:suedima@rambler.ru';
+      });
+    }
+    // Also make icon clickable
+    const emailIcon = emailCard.querySelector('.contact-card-icon');
+    if (emailIcon) {
+      emailIcon.style.pointerEvents = 'auto';
+      emailIcon.style.cursor = 'pointer';
+    }
+  }
+  
+  if (addressCard) {
+    if (addressCard.tagName === 'DIV') {
+      addressCard.style.cursor = 'pointer';
+      addressCard.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open('https://yandex.ru/maps/?text=Санкт-Петербург,+улица+Беринга+27+корпус+5', '_blank', 'noopener');
+      });
+    }
+    // Also make icon clickable
+    const addressIcon = addressCard.querySelector('.contact-card-icon');
+    if (addressIcon) {
+      addressIcon.style.pointerEvents = 'auto';
+      addressIcon.style.cursor = 'pointer';
+    }
+  }
+}
 
 // Load homepage data from API
 async function loadHomepageData() {

@@ -2526,6 +2526,9 @@ input[type='number'] {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   opacity: 1;
   transform: translateY(0);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .contact-card::before {
@@ -2546,6 +2549,11 @@ input[type='number'] {
   border-color: var(--accent);
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.contact-card:active {
+  transform: translateY(-2px) scale(0.98) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
 }
 
 .contact-card:hover::before {
@@ -2601,35 +2609,6 @@ input[type='number'] {
   font-weight: 600;
   line-height: 1.6;
   word-break: break-word;
-}
-
-.contact-card a {
-  display: inline-block;
-  text-align: center;
-  white-space: nowrap;
-  text-decoration: none;
-  color: inherit;
-  transition: color 0.3s ease;
-  position: relative;
-}
-
-.contact-card a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--accent);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.contact-card a:hover {
-  color: var(--accent);
-}
-
-.contact-card a:hover::after {
-  width: 100%;
 }
 
 .contact-card p br {
