@@ -54,6 +54,13 @@ body {
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
 }
 
+/* Бургер на страницах техники всегда тёмный и виден (в styles.css при :not(.scrolled) он белый — пропадал на светлом фоне) */
+body.equipment-page .site-header .mobile-menu-btn span,
+body.equipment-page .site-header:not(.scrolled) .mobile-menu-btn span,
+body.equipment-page .site-header.scrolled .mobile-menu-btn span {
+  background: #1f2933 !important;
+}
+
 /* Стили для кнопок мессенджеров в хедере на страницах оборудования */
 .header-messenger {
   width: 40px;
