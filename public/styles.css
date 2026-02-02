@@ -2971,11 +2971,42 @@ input[type='number'] {
   .calculator-form {
     grid-template-columns: 1fr;
     padding: 20px 16px;
-    gap: 16px;
+    gap: 18px;
+  }
+  
+  /* Превью с фото техники — показываем на мобильном, компактный блок */
+  .calculator-side {
+    order: 0;
   }
   
   .calculator-preview {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .calculator-preview-image {
+    aspect-ratio: 16 / 10;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+  
+  .calculator-preview-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  
+  .calculator-specs {
+    font-size: 13px;
+    margin-top: 8px;
+    padding-left: 16px;
+  }
+  
+  .calculator-specs li + li {
+    margin-top: 2px;
   }
   
   .field {
@@ -2988,11 +3019,48 @@ input[type='number'] {
     font-weight: 600;
   }
   
+  /* Минимум 16px — без зума при фокусе на iOS; высота для удобного тапа */
   .calculator-form select,
-  .calculator-form input {
-    padding: 12px 14px;
-    font-size: 14px;
-    border-radius: 8px;
+  .calculator-form input,
+  .calculator-form textarea {
+    padding: 14px 16px;
+    font-size: 16px;
+    border-radius: 10px;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  .calculator-form textarea {
+    min-height: 88px;
+    padding: 14px 16px;
+  }
+  
+  .calculator-form .field-equipment .calc-select-current,
+  .calculator-form .field .calc-select-current {
+    min-height: 48px;
+    padding: 14px 40px 14px 16px;
+    font-size: 16px;
+  }
+  
+  /* Выпадающие списки на мобильном — удобный тап, на всю ширину */
+  .calculator-form .calc-select-options {
+    min-width: 0;
+    width: 100%;
+    max-height: min(70vh, 320px);
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .calculator-form .calc-select-option {
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .quick-order-divider {
+    margin: 12px 0 16px;
   }
   
   .number-btn {
@@ -3217,14 +3285,14 @@ input[type='number'] {
     font-size: 14px;
   }
   
-  /* Калькулятор */
+  /* Калькулятор — на маленьком экране тоже удобные поля и фото */
   .calculator-section {
     overflow-x: hidden;
   }
   
   .calculator-form {
-    padding: 14px 10px;
-    gap: 12px;
+    padding: 16px 12px;
+    gap: 14px;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -3237,16 +3305,61 @@ input[type='number'] {
   }
   
   .field-label {
-    font-size: 12px;
-    margin-bottom: 5px;
+    font-size: 13px;
+    margin-bottom: 6px;
   }
   
+  /* 16px — без зума на iOS при фокусе; 44px+ — удобный тап */
   .calculator-form select,
-  .calculator-form input {
-    padding: 10px 12px;
-    font-size: 13px;
+  .calculator-form input,
+  .calculator-form textarea {
+    padding: 12px 14px;
+    font-size: 16px;
+    min-height: 44px;
     width: 100%;
     box-sizing: border-box;
+  }
+  
+  .calculator-form textarea {
+    min-height: 80px;
+  }
+  
+  .calculator-form .calc-select-current {
+    min-height: 44px;
+    padding: 12px 36px 12px 14px;
+    font-size: 16px;
+  }
+  
+  .calculator-form .calc-select-option {
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+  
+  /* Превью на очень узком экране — компактная горизонтальная полоска с фото */
+  .calculator-preview {
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px;
+    align-items: center;
+  }
+  
+  .calculator-preview-image {
+    flex: 0 0 120px;
+    width: 120px;
+    min-width: 120px;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 0;
+  }
+  
+  .calculator-preview-title {
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .calculator-specs {
+    display: none;
   }
   
   /* Уменьшаем кнопки и gap для маленьких экранов */
