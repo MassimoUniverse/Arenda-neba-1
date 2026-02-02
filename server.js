@@ -1797,10 +1797,10 @@ function processServiceRow(row, res) {
     console.log('   Diagrams:', reach_diagrams.map(d => d.url || d));
   }
   
-  // Apply fixEncoding to text fields
+  // Apply fixEncoding to text fields; title — без fixEncoding, чтобы сохранялся дефис (Автовышка-платформа)
   const fixedRow = {
     ...row,
-    title: fixEncoding(row.title),
+    title: row.title != null ? row.title : '',
     description: fixEncoding(row.description),
     specifications: fixEncoding(row.specifications),
     price: row.price ? fixEncoding(row.price) : row.price,
@@ -2083,7 +2083,7 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
       }
       return {
         ...row,
-        title: fixEncoding(row.title),
+        title: row.title != null ? row.title : '',
         description: fixEncoding(row.description),
         specifications: fixEncoding(row.specifications),
         price: row.price ? fixEncoding(row.price) : row.price,
