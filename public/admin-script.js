@@ -1455,6 +1455,10 @@ window.saveService = async function(event, id) {
     
     data.price = priceStr;
     
+    // Явно берём название из поля (чтобы дефис «Автовышка-платформа» не терялся)
+    const titleFromInput = document.getElementById('serviceTitle')?.value?.trim() || '';
+    if (titleFromInput) data.title = titleFromInput;
+
     // Логируем данные перед отправкой для диагностики
     console.log('💾 Данные для сохранения:', {
         title: data.title,

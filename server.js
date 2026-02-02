@@ -82,7 +82,8 @@ function generateUrlFromTitle(title) {
 
 // Function to generate equipment page HTML
 function generateEquipmentPageHTML(service) {
-  const title = service.title ? fixEncoding(service.title) : 'Автовышка';
+  // title — без fixEncoding, чтобы сохранялся дефис (Автовышка-платформа)
+  const title = (service.title != null && String(service.title).trim()) ? String(service.title).trim() : 'Автовышка';
   const description = service.description ? fixEncoding(service.description) : '';
   const price = service.price ? fixEncoding(service.price) : '';
   const imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
@@ -1523,7 +1524,7 @@ app.get('/api/popular-cards', (req, res) => {
           ...row,
           // ВАЖНО: Используем обработанный image_url (исправленный через fixImageUrl)
           image_url: fixedImageUrl || row.image_url || null,
-          title: fixEncoding(row.title),
+          title: row.title != null ? row.title : '',
           description: fixEncoding(row.description),
           price: row.price ? fixEncoding(row.price) : row.price,
           card_bullets: card_bullets,
@@ -1595,7 +1596,7 @@ app.get('/api/services', (req, res) => {
       }
       return {
         ...row,
-        title: fixEncoding(row.title),
+        title: row.title != null ? row.title : '',
         description: fixEncoding(row.description),
         specifications: fixEncoding(row.specifications),
         price: row.price ? fixEncoding(row.price) : row.price,
