@@ -256,8 +256,20 @@ function generateEquipmentPageHTML(service) {
                         </a>
                     </div>
                 </div>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Меню" type="button">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
+        <nav class="mobile-nav" id="mobile-nav">
+            <a href="../index.html#calculator">Калькулятор</a>
+            <a href="../index.html#autopark">Наш автопарк</a>
+            <a href="../index.html#reviews">Отзывы</a>
+            <a href="../index.html#quick-contact-form">Оставить заявку</a>
+            <a href="../index.html#contacts">Контакты</a>
+        </nav>
     </header>
 
     <!-- Breadcrumbs -->
