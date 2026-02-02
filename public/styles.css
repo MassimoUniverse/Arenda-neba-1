@@ -2387,7 +2387,17 @@ input[type='number'] {
 
 .contacts-layout--no-form {
   grid-template-columns: 1fr;
-  max-width: 560px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* На ПК — карточки контактов в ряд, без пустого места справа */
+.contacts-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  width: 100%;
 }
 
 .contacts-form-wrapper {
@@ -2577,15 +2587,6 @@ input[type='number'] {
   background: rgba(255, 255, 255, 0.5);
   transform: translate(-50%, -50%) scale(0);
   transform-origin: center;
-}
-
-.contacts-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  margin-top: 16px;
-  gap: 16px;
-  width: 100%;
-  margin-top: 24px;
 }
 
 .contact-card {
@@ -2838,6 +2839,10 @@ input[type='number'] {
   
   .contacts-layout {
     grid-template-columns: 1fr;
+  }
+  
+  .contacts-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .footer-inner {
@@ -3123,9 +3128,21 @@ input[type='number'] {
     gap: 20px;
   }
   
-  /* Контакты */
+  /* Контакты — на мобильном центрируем «Способы связи» и кнопки */
   .contacts-panel {
     padding: 24px 16px;
+  }
+  
+  .contacts-messengers {
+    text-align: center;
+  }
+  
+  .contacts-messengers h3 {
+    text-align: center;
+  }
+  
+  .messenger-buttons {
+    justify-content: center;
   }
   
   .contacts-cards {
