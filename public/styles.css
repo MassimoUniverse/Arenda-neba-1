@@ -844,11 +844,54 @@ input[type='number'] {
 }
 
 .calculator-form select:focus,
-.calculator-form input:focus {
+.calculator-form input:focus,
+.calculator-form textarea:focus {
   outline: none;
   border-color: var(--accent);
   background: #fff;
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.calculator-form textarea {
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-order-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0 16px;
+}
+
+.calculator-form .btn-submit {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 0;
+  box-sizing: border-box;
+  touch-action: manipulation;
+}
+
+.calculator-form .btn-submit:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.calculator-form .form-message {
+  grid-column: 1 / -1;
 }
 
 /* Красивый контрол расстояния с большими стрелками */
@@ -875,15 +918,7 @@ input[type='number'] {
   line-height: 1;
 }
 
-/* Выравнивание кнопки "Рассчитать" */
-.calculator-form > .btn-calc {
-  align-self: end;
-  margin-top: 0;
-  height: 48px;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 0 32px;
-}
+/* Кнопка отправки заявки в калькуляторе — стили выше в .calculator-form .btn-submit */
 
 .number-btn {
   width: 44px;
@@ -2350,6 +2385,11 @@ input[type='number'] {
   align-items: start;
 }
 
+.contacts-layout--no-form {
+  grid-template-columns: 1fr;
+  max-width: 560px;
+}
+
 .contacts-form-wrapper {
   width: 100%;
 }
@@ -2967,7 +3007,7 @@ input[type='number'] {
     height: 40px;
   }
   
-  .calculator-form > .btn-calc {
+  .calculator-form .btn-submit {
     margin-top: 0;
     width: 100%;
     padding: 14px;
@@ -3230,7 +3270,7 @@ input[type='number'] {
     flex-shrink: 0;
   }
   
-  .calculator-form > .btn-calc {
+  .calculator-form .btn-submit {
     padding: 12px;
     font-size: 14px;
     width: 100%;

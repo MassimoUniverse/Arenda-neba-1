@@ -28,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Плавный скролл с учетом фиксированного хедера
             const headerHeight = document.querySelector('.site-header')?.offsetHeight || 80;
             // Дополнительный отступ для формы "Быстрая заявка"
-            const extraOffset = targetId === 'quick-contact-form' ? 20 : 0;
-            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - extraOffset;
+            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
             
             window.scrollTo({
               top: Math.max(0, targetPosition),
@@ -1264,6 +1263,73 @@ function initCalculator() {
   const specsList = document.getElementById('calculator-specs');
   if (!form || !sumEl) return;
 
+  // Возвращает результат расчёта для отображения и отправки в заявке
+  function getCalculatorResult() {
+    const equipmentKey = document.getElementById('calc-equipment')?.value;
+    const shiftsValue = document.getElementById('calc-shifts')?.value;
+    const customShiftsInput = document.getElementById('calc-shifts-custom');
+    let shifts;
+    if (shiftsValue === 'more') {
+      shifts = Number(customShiftsInput?.value) || 4;
+      if (shifts < 4) shifts = 4;
+    } else {
+      shifts = Number(shiftsValue) || 1;
+    }
+    const config = equipmentKey ? CALC_EQUIPMENT[equipmentKey] : null;
+    if (!config) return null;
+    let total;
+    if (shifts === 0.5 && config.baseHalfShift) {
+      total = config.baseHalfShift;
+    } else if (shifts === 0.5 && !config.baseHalfShift) {
+      total = Math.round((config.baseShift || 0) * 0.83);
+    } else {
+      total = (config.baseShift || 0) * Math.max(shifts, 1);
+    }
+    const formatted = total.toLocaleString('ru-RU');
+    let shiftsText;
+    let timeText = '';
+    if (shifts === 0.5) {
+      shiftsText = 'полсмены';
+      timeText = 'Полсмены включает в себя 3 часа работы и один час подачи';
+    } else {
+      timeText = 'Смена включает в себя 7 часов работы и один час подачи';
+      if (shiftsValue === 'more') {
+        shiftsText = shifts === 4 ? '4 смены' : `${shifts} смен`;
+      } else if (shifts === 1) shiftsText = 'смену';
+      else if (shifts === 2 || shifts === 3) shiftsText = 'смены';
+      else if (shifts < 5) shiftsText = 'смены';
+      else shiftsText = 'смен';
+    }
+    return {
+      total,
+      formatted,
+      equipmentName: config.name,
+      shiftsText,
+      timeText,
+      shiftsValue
+    };
+  }
+
+  function updateCalculatorSum() {
+    const result = getCalculatorResult();
+    if (!result) return;
+    const { formatted, shiftsText, timeText, shiftsValue } = result;
+    const shiftsVal = document.getElementById('calc-shifts')?.value;
+    const customShiftsInput = document.getElementById('calc-shifts-custom');
+    let shiftsNum;
+    if (shiftsVal === 'more') {
+      shiftsNum = Number(customShiftsInput?.value) || 4;
+      if (shiftsNum < 4) shiftsNum = 4;
+    } else {
+      shiftsNum = Number(shiftsVal) || 1;
+    }
+    if (shiftsValue === 'more') {
+      sumEl.innerHTML = `${formatted} ₽ за ${shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
+    } else {
+      sumEl.innerHTML = `${formatted} ₽ за ${shiftsNum === 0.5 ? 'полсмены' : shiftsNum} ${shiftsNum === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
+    }
+  }
+
   function updatePreview() {
     if (!selectEl || !previewImage || !previewTitle) return;
     const key = selectEl.value;
@@ -1416,6 +1482,7 @@ function initCalculator() {
     // Обработчик изменения select (для обновления при динамической загрузке)
     selectEl.addEventListener('change', () => {
       updatePreview();
+      updateCalculatorSum();
       // Обновляем кастомный select
       const customSelect = selectEl.parentNode.querySelector('.calc-select');
       if (customSelect) {
@@ -1434,6 +1501,7 @@ function initCalculator() {
 
     // стартовое состояние
     updatePreview();
+    updateCalculatorSum();
   }
 
   // Создаём кастомный выпадающий список для количества смен
@@ -1488,8 +1556,8 @@ function initCalculator() {
           }
         }
         
-        // Триггерим пересчет
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        // Обновляем отображение цены
+        updateCalculatorSum();
       });
       shiftsList.appendChild(li);
     });
@@ -1540,73 +1608,77 @@ function initCalculator() {
         }
       }
     });
+
+    const customShiftsInput = document.getElementById('calc-shifts-custom');
+    if (customShiftsInput) {
+      customShiftsInput.addEventListener('input', updateCalculatorSum);
+      customShiftsInput.addEventListener('change', updateCalculatorSum);
+    }
   }
 
-
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const equipmentKey = document.getElementById('calc-equipment').value;
-    const shiftsValue = document.getElementById('calc-shifts').value;
-    const customShiftsInput = document.getElementById('calc-shifts-custom');
-    let shifts;
-    if (shiftsValue === 'more') {
-      shifts = Number(customShiftsInput?.value) || 4;
-      if (shifts < 4) shifts = 4; // Минимум 4 смены для "Более 3 смен"
-    } else {
-      shifts = Number(shiftsValue) || 1;
-    }
-    const config = CALC_EQUIPMENT[equipmentKey];
-    if (!config) {
-      console.error('Config not found for equipment:', equipmentKey);
-      return;
+    const result = getCalculatorResult();
+    const formData = new FormData(form);
+    const messageDiv = document.getElementById('form-message');
+    const submitBtn = form.querySelector('.btn-submit');
+    const originalText = submitBtn ? submitBtn.textContent : '';
+
+    const data = {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      email: formData.get('email') || '',
+      message: formData.get('message') || '',
+      privacy_agreed: true
+    };
+    if (result) {
+      data.equipment = result.equipmentName;
+      data.price = result.formatted + ' ₽';
+      data.price_raw = result.total;
     }
 
-    // Поддержка полсмены (0.5)
-    let total;
-    if (shifts === 0.5 && config.baseHalfShift) {
-      total = config.baseHalfShift;
-    } else if (shifts === 0.5 && !config.baseHalfShift) {
-      // Если полсмены нет, но выбрана полсмена, используем 83% от полной смены
-      total = Math.round((config.baseShift || 0) * 0.83);
-    } else {
-      total = (config.baseShift || 0) * Math.max(shifts, 1);
+    if (messageDiv) messageDiv.classList.remove('show', 'success', 'error');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправка...';
     }
 
-    const formatted = total.toLocaleString('ru-RU');
-    
-    
-    let shiftsText;
-    let timeText = '';
-    
-    // Определяем время работы для одной смены/полсмены
-    if (shifts === 0.5) {
-      shiftsText = 'полсмены';
-      timeText = 'Полсмены включает в себя 3 часа работы и один час подачи';
-    } else {
-      // Для всех остальных вариантов показываем время одной смены
-      timeText = 'Смена включает в себя 7 часов работы и один час подачи';
-      
-      if (shiftsValue === 'more') {
-        shiftsText = shifts === 4 ? '4 смены' : `${shifts} смен`;
-      } else if (shifts === 1) {
-        shiftsText = 'смену';
-      } else if (shifts === 2) {
-        shiftsText = 'смены';
-      } else if (shifts === 3) {
-        shiftsText = 'смены';
-      } else if (shifts < 5) {
-        shiftsText = 'смены';
+    try {
+      const response = await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const res = await response.json();
+
+      if (response.ok && res.success) {
+        if (messageDiv) {
+          messageDiv.textContent = res.message || 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.';
+          messageDiv.classList.add('show', 'success');
+        }
+        form.reset();
+        updateCalculatorSum();
       } else {
-        shiftsText = 'смен';
+        if (messageDiv) {
+          messageDiv.textContent = res.error || 'Ошибка при отправке. Попробуйте позже.';
+          messageDiv.classList.add('show', 'error');
+        }
+      }
+    } catch (err) {
+      console.error('Ошибка отправки формы:', err);
+      if (messageDiv) {
+        messageDiv.textContent = 'Ошибка подключения. Проверьте интернет.';
+        messageDiv.classList.add('show', 'error');
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
     }
-    
-    if (shiftsValue === 'more') {
-      sumEl.innerHTML = `${formatted} ₽ за ${shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
-    } else {
-      sumEl.innerHTML = `${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : shifts} ${shifts === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
-    }
   });
+
+  updateCalculatorSum();
 }
 
 // =============================================

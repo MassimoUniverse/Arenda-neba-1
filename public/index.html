@@ -52,7 +52,7 @@
       <a href="/" class="logo">Аренда Неба</a>
       <div class="header-right">
         <nav class="main-nav" id="main-nav">
-          <a href="#calculator">Калькулятор</a>
+          <a href="#calculator">Быстрая заявка</a>
           <div class="nav-dropdown">
             <a href="#autopark" class="dropdown-trigger">Наш автопарк</a>
             <div class="dropdown-menu" id="equipment-dropdown">
@@ -90,10 +90,10 @@
       </div>
     </div>
     <nav class="mobile-nav" id="mobile-nav">
-      <a href="#calculator">Калькулятор</a>
+      <a href="#calculator">Быстрая заявка</a>
       <a href="#autopark">Наш автопарк</a>
       <a href="#reviews">Отзывы</a>
-      <a href="#quick-contact-form">Оставить заявку</a>
+      <a href="#calculator">Оставить заявку</a>
       <a href="#contacts">Контакты</a>
     </nav>
   </header>
@@ -121,7 +121,7 @@
           </div>
         </div>
         <div class="hero-actions">
-          <a href="#contacts" class="btn btn-primary">Оставить заявку</a>
+          <a href="#calculator" class="btn btn-primary">Оставить заявку</a>
           <a href="#autopark" class="btn btn-ghost">Посмотреть автопарк</a>
         </div>
       </div>
@@ -192,11 +192,11 @@
       </div>
     </section>
 
-    <!-- CALCULATOR (выше автопарка) -->
+    <!-- БЫСТРАЯ ЗАЯВКА (калькулятор + форма) -->
     <section id="calculator" class="section calculator-section">
       <div class="container section-header" data-fade-in>
-        <h2>Онлайн‑калькулятор аренды</h2>
-        <p>Прикиньте ориентировочную стоимость аренды автовышки. Точную цену менеджер подтвердит после уточнения задачи и адреса.</p>
+        <h2>Быстрая заявка</h2>
+        <p>Выберите технику и количество смен — цена посчитается сразу. Заполните контакты и нажмите «Оставить заявку», менеджер свяжется и уточнит детали.</p>
       </div>
       <div class="container calculator-layout">
         <div class="calculator-side">
@@ -211,7 +211,7 @@
           </div>
         </div>
 
-        <form class="calculator-form" id="calculator-form">
+        <form class="calculator-form quick-order-form" id="calculator-form">
           <label class="field field-equipment">
             <span class="field-label">Техника</span>
             <select id="calc-equipment" required>
@@ -241,13 +241,31 @@
             <input type="number" id="calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
           </label>
 
-
-          <button type="submit" class="btn btn-primary btn-calc">Рассчитать</button>
-
-          <p class="calculator-sum-inline" id="calculator-sum">Выберите параметры и нажмите «Рассчитать»</p>
+          <p class="calculator-sum-inline" id="calculator-sum">Выберите параметры — цена посчитается автоматически</p>
           <p class="calculator-note-inline">
-            Цена примерная и не является публичной офертой. Позвоните нам или оставьте заявку, чтобы получить точный расчёт под вашу задачу.
+            Цена примерная и не является публичной офертой. Менеджер подтвердит расчёт после уточнения задачи и адреса.
           </p>
+
+          <div class="quick-order-divider" aria-hidden="true"></div>
+
+          <label class="field">
+            <span class="field-label">Ваше имя *</span>
+            <input type="text" name="name" required placeholder="Иван Иванов" />
+          </label>
+          <label class="field">
+            <span class="field-label">Телефон *</span>
+            <input type="tel" name="phone" required placeholder="+7 (999) 123-45-67" />
+          </label>
+          <label class="field">
+            <span class="field-label">Email</span>
+            <input type="email" name="email" placeholder="example@mail.ru" />
+          </label>
+          <label class="field">
+            <span class="field-label">Сообщение</span>
+            <textarea name="message" rows="3" placeholder="Опишите задачу или адрес объекта (необязательно)"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary btn-submit">Оставить заявку</button>
+          <div class="form-message" id="form-message"></div>
         </form>
       </div>
     </section>
@@ -297,31 +315,7 @@
             <h2>Контакты</h2>
             <p>Свяжитесь с нами удобным для вас способом.</p>
           </div>
-          <div class="contacts-layout">
-            <div class="contacts-form-wrapper" id="quick-contact-form">
-              <h3>Быстрая заявка</h3>
-              <form class="quick-contact-form">
-                <label class="field">
-                  <span class="field-label">Ваше имя *</span>
-                  <input type="text" name="name" required placeholder="Иван Иванов" />
-                </label>
-                <label class="field">
-                  <span class="field-label">Телефон *</span>
-                  <input type="tel" name="phone" required placeholder="+7 (999) 123-45-67" />
-                </label>
-                <label class="field">
-                  <span class="field-label">Email</span>
-                  <input type="email" name="email" placeholder="example@mail.ru" />
-                </label>
-                <label class="field">
-                  <span class="field-label">Сообщение</span>
-                  <textarea name="message" rows="4" placeholder="Опишите вашу задачу или задайте вопрос"></textarea>
-                </label>
-                <button type="submit" class="btn btn-primary btn-submit">Отправить заявку</button>
-                <div class="form-message" id="form-message"></div>
-              </form>
-            </div>
-
+          <div class="contacts-layout contacts-layout--no-form">
             <div class="contacts-messengers">
               <h3>Способы связи</h3>
               <div class="messenger-buttons">
@@ -376,7 +370,7 @@
       <div class="footer-col">
         <h4>Навигация</h4>
         <ul>
-          <li><a href="#calculator">Калькулятор</a></li>
+          <li><a href="#calculator">Быстрая заявка</a></li>
           <li><a href="#autopark">Наш автопарк</a></li>
           <li><a href="#reviews">Отзывы</a></li>
           <li><a href="#contacts">Контакты</a></li>

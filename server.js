@@ -1835,15 +1835,17 @@ function processServiceRow(row, res) {
 
 // Submit request
 app.post('/api/requests', (req, res) => {
-  const { name, phone, email, message, equipment, privacy_agreed } = req.body;
+  const { name, phone, email, message, equipment, price, privacy_agreed } = req.body;
   
   if (!name || !phone || !privacy_agreed) {
     return res.status(400).json({ error: 'Name, phone, and privacy agreement are required' });
   }
 
+  const equipmentText = [equipment, price].filter(Boolean).join(' — ') || '';
+
   db.run(
     'INSERT INTO requests (name, phone, email, message, equipment) VALUES (?, ?, ?, ?, ?)',
-    [name, phone, email || '', message || '', equipment || ''],
+    [name, phone, email || '', message || '', equipmentText],
     function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -1855,7 +1857,7 @@ app.post('/api/requests', (req, res) => {
                                   `<b>Имя:</b> ${name}\n` +
                                   `<b>Телефон:</b> ${phone}\n` +
                                   (email ? `<b>Email:</b> ${email}\n` : '') +
-                                  (equipment ? `<b>Техника:</b> ${equipment}\n` : '') +
+                                  (equipmentText ? `<b>Техника / цена:</b> ${equipmentText}\n` : '') +
                                   (message ? `<b>Сообщение:</b> ${message}\n` : '') +
                                   `<b>Время:</b> ${new Date().toLocaleString('ru-RU')}`;
       sendTelegramNotification(notificationMessage);
