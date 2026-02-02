@@ -143,22 +143,17 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   gap: 24px;
 }
 
+.site-header .logo,
 .logo,
 .logo-image {
-  height: 36px;
-  font-size: 20px;
-  font-weight: 700;
+  height: auto;
+  min-height: 36px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   color: #1a1f36;
   text-decoration: none;
-}
-
-.logo,
-.logo-image {
-  height: 36px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1f36;
-  text-decoration: none;
+  text-transform: uppercase;
 }
 
 .nav-content {
@@ -1533,10 +1528,12 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
     padding: 0 16px;
   }
   
+  .site-header .logo,
   .logo,
   .logo-image {
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
   }
   
   .header-right {
@@ -1571,6 +1568,8 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 50%;
+    font-size: 18px;
+    font-weight: 800;
   }
   
   .header-contacts-mini {
@@ -1766,14 +1765,16 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   }
   
   .site-header .logo {
-    font-size: 14px;
-    max-width: 45%;
+    font-size: 17px;
+    font-weight: 800;
+    max-width: 50%;
   }
   
   .logo,
   .logo-image {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
   }
   
   .header-right {
