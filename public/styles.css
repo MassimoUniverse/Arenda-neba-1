@@ -1572,6 +1572,7 @@ input[type='number'] {
   justify-content: space-between;
   gap: 16px;
   margin-top: auto;
+  padding-right: 140px; /* место под кнопку «Подробнее», чтобы «без НДС» не прилипало */
 }
 
 .card__price {
@@ -1724,6 +1725,7 @@ input[type='number'] {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+    padding-right: 130px;
   }
   
   .card__price {
@@ -1834,6 +1836,7 @@ input[type='number'] {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+    padding-right: 115px;
   }
   
   .card__price {
