@@ -219,7 +219,7 @@ function generateEquipmentPageHTML(service) {
     </script>
     <!-- calltouch -->
 </head>
-<body>
+<body class="equipment-page">
     <!-- Progress Bar -->
     <div class="scroll-progress-wrapper">
         <div class="scroll-progress" id="scrollProgress"></div>
