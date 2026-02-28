@@ -503,6 +503,39 @@ function generateEquipmentPageHTML(service) {
         </div>
     </section>
 
+    <!-- Payment Methods -->
+    <section class="payment-methods-equip">
+        <div class="container">
+            <h2 class="payment-methods-title">Форма оплаты</h2>
+            <div class="payment-methods-grid">
+                <div class="payment-method-item">
+                    <div class="payment-method-icon pm-icon--vat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    </div>
+                    <span>Оплата с НДС</span>
+                </div>
+                <div class="payment-method-item">
+                    <div class="payment-method-icon pm-icon--no-vat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    </div>
+                    <span>Оплата без НДС</span>
+                </div>
+                <div class="payment-method-item">
+                    <div class="payment-method-icon pm-icon--cash">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+                    </div>
+                    <span>Наличными или по карте в офисе</span>
+                </div>
+                <div class="payment-method-item">
+                    <div class="payment-method-icon pm-icon--transfer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <span>Перевод на карту банка (Сбер, Тинькофф)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">

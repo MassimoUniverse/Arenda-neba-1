@@ -2085,3 +2085,114 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* =============================================
+   PAYMENT METHODS (equipment pages)
+   ============================================= */
+.payment-methods-equip {
+  padding: 48px 0;
+  background: #f8f9fc;
+}
+
+.payment-methods-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  margin: 0 0 32px;
+  color: #1a1f36;
+}
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.payment-method-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.payment-method-item:hover {
+  border-color: #ff6b35;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.12);
+}
+
+.payment-method-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-method-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+.pm-icon--vat {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.pm-icon--no-vat {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.pm-icon--cash {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.pm-icon--transfer {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.payment-method-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1f36;
+  line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+  .payment-methods-equip {
+    padding: 32px 0;
+  }
+
+  .payment-methods-title {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .payment-method-item {
+    padding: 18px 12px;
+    gap: 10px;
+  }
+
+  .payment-method-item span {
+    font-size: 13px;
+  }
+}
