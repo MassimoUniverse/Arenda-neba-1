@@ -496,7 +496,7 @@ function generateEquipmentPageHTML(service) {
                                 <span class="pricing-value">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</span>
                             </div>
                         </div>
-                        <p class="pricing-note">* В стоимость входят ГСМ и работа водителя-машиниста</p>
+                        <p class="pricing-note">* Полсмены (3+1) согласовывается отдельно по началу времени работы</p>
                     </div>
                 </div>
             </div>
