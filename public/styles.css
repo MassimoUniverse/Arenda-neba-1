@@ -4201,6 +4201,17 @@ input[type='number'] {
   font-weight: 600;
 }
 
+.cookie-consent-policy-body {
+  margin-top: 10px;
+}
+
+.cookie-consent-policy-body p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .cookie-consent-actions {
   display: flex;
   gap: 10px;

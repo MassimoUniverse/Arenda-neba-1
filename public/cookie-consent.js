@@ -40,7 +40,13 @@
           <div class="cookie-consent-text">
             <strong>Cookies</strong>
             <span>Мы используем файлы cookie для работы сайта и улучшения сервиса. Вы можете принять все или выбрать необходимые.</span>
-            <a class="cookie-consent-policy" href="#cookie-policy" aria-label="Политика cookies">Политика cookies</a>
+            <a class="cookie-consent-policy" href="#" data-cookie-policy aria-label="Политика cookies">Политика cookies</a>
+            <div class="cookie-consent-policy-body" hidden>
+              <p>
+                Здесь должна быть ваша Политика cookies. Сейчас отображается краткое пояснение: сайт может использовать
+                файлы cookie для функционирования, аналитики и персонализации в зависимости от вашего выбора.
+              </p>
+            </div>
           </div>
           <div class="cookie-consent-actions">
             <button type="button" class="cookie-consent-btn cookie-consent-btn-secondary" data-consent="necessary">
@@ -72,6 +78,14 @@
     document.body.appendChild(banner);
 
     banner.addEventListener('click', (e) => {
+      const policyLink = e.target && e.target.closest && e.target.closest('[data-cookie-policy]');
+      if (policyLink) {
+        e.preventDefault();
+        const body = banner.querySelector('.cookie-consent-policy-body');
+        if (body) body.hidden = !body.hidden;
+        return;
+      }
+
       const btn = e.target && e.target.closest && e.target.closest('[data-consent]');
       if (!btn) return;
       e.preventDefault();
