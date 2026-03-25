@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('/opt/arenda-neba/database.sqlite');
+const path = require('path');
+const db = new sqlite3.Database(path.join(__dirname, 'database.db'));
 
 const updates = [
   [17, 'Компактная автовышка-платформа для работ на небольшой высоте. Идеально подходит для фасадных работ, монтажа кондиционеров, ремонта освещения и обслуживания рекламных конструкций.'],
