@@ -1091,10 +1091,15 @@ function fixImageUrlsArray(jsonStr) {
 // Function to fix encoding issues
 function fixEncoding(text) {
   if (!text || typeof text !== 'string') return text;
-  
+
+  // Quick check: if text is clean UTF-8 (normal Russian/Latin chars + standard punctuation), skip all transformations
+  if (/^[А-Яа-яЁёA-Za-z0-9\s.,;:!?()\/"'\-—–×«»₽%°+\n\r]*$/.test(text)) {
+    return text;
+  }
+
   try {
     let fixed = text;
-    
+
     // Универсальная функция для удаления искаженных последовательностей
     // Находит и удаляет все последовательности, которые содержат смесь кириллицы и латиницы в неправильном контексте
     const removeCorruptedSequences = (str) => {
