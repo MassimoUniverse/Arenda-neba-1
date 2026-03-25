@@ -1339,7 +1339,36 @@ function initCalculator() {
     const previewContainer = document.getElementById('calculator-preview');
     const gsapLib = window.gsap || gsap;
     
-    // Анимация исчезновения
+    function fillPreviewContent() {
+      previewImage.src = config.image;
+      previewImage.alt = config.name;
+      previewTitle.textContent = config.name;
+
+      const priceEl = document.getElementById('calculator-preview-price');
+      if (priceEl && config.baseShift) {
+        priceEl.innerHTML = `от <strong>${config.baseShift.toLocaleString('ru-RU')} ₽</strong> / смена`;
+      }
+
+      if (specsList) {
+        specsList.innerHTML = '';
+        const items = [];
+        if (config.height) items.push({ icon: '📏', text: `Рабочая высота: ${config.height} м` });
+        if (config.capacity) items.push({ icon: '⚖️', text: `Грузоподъёмность: ${config.capacity} кг` });
+        if (config.boom) items.push({ icon: '🏗️', text: `Вылет стрелы: до ${config.boom} м` });
+        if (config.includedKm) items.push({ icon: '🚚', text: `Подача: ${config.includedKm} км включено` });
+        items.forEach(({ icon, text }) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="spec-icon">${icon}</span> ${text}`;
+          specsList.appendChild(li);
+        });
+      }
+
+      if (previewImage) {
+        previewImage.style.opacity = '1';
+        previewImage.style.filter = 'none';
+      }
+    }
+
     if (previewContainer && gsapLib) {
       gsapLib.to(previewContainer, {
         opacity: 0,
@@ -1347,54 +1376,15 @@ function initCalculator() {
         duration: 0.3,
         ease: 'power2.in',
         onComplete: () => {
-          // Обновляем контент
-          previewImage.src = config.image;
-          previewImage.alt = config.name;
-          previewTitle.textContent = config.name;
-
-          if (specsList) {
-            specsList.innerHTML = '';
-            const items = [];
-            if (config.height) items.push(`Рабочая высота: ${config.height} м`);
-            if (config.capacity) items.push(`Грузоподъёмность люльки: ${config.capacity} кг`);
-            if (config.boom) items.push(`Вылет стрелы: до ${config.boom} м`);
-            items.forEach((text) => {
-              const li = document.createElement('li');
-              li.textContent = text;
-              specsList.appendChild(li);
-            });
-          }
-          
-          // Анимация появления
-          gsapLib.fromTo(previewContainer, 
+          fillPreviewContent();
+          gsapLib.fromTo(previewContainer,
             { opacity: 0, y: 20 },
             { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
           );
-          // Убеждаемся, что изображение не затемнено
-          if (previewImage) {
-            previewImage.style.opacity = '1';
-            previewImage.style.filter = 'none';
-          }
         }
       });
     } else {
-      // Fallback без анимации, если контейнер не найден или GSAP недоступен
-      previewImage.src = config.image;
-      previewImage.alt = config.name;
-      previewTitle.textContent = config.name;
-
-      if (specsList) {
-        specsList.innerHTML = '';
-        const items = [];
-        if (config.height) items.push(`Рабочая высота: ${config.height} м`);
-        if (config.capacity) items.push(`Грузоподъёмность люльки: ${config.capacity} кг`);
-        if (config.boom) items.push(`Вылет стрелы: до ${config.boom} м`);
-        items.forEach((text) => {
-          const li = document.createElement('li');
-          li.textContent = text;
-          specsList.appendChild(li);
-        });
-      }
+      fillPreviewContent();
     }
   }
 

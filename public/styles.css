@@ -1012,17 +1012,18 @@ input[type='number'] {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 .calculator-preview-image {
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   background: var(--bg-light);
   width: 100%;
   aspect-ratio: 16 / 10;
@@ -1036,29 +1037,64 @@ input[type='number'] {
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 10px;
+  border-radius: 0;
   opacity: 1 !important;
   filter: none !important;
 }
 
-.calculator-preview-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-dark);
-  text-align: left;
-}
-
-.calculator-specs {
-  margin: 12px 0 0;
-  padding-left: 18px;
-  font-size: 14px;
-  color: var(--text-muted);
+.calculator-preview-info {
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
 }
 
-.calculator-specs li + li {
-  margin-top: 4px;
+.calculator-preview-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.calculator-preview-price {
+  font-size: 15px;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 2px 0 6px;
+}
+
+.calculator-preview-price strong {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.calculator-specs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.calculator-specs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.calculator-specs .spec-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
 }
 
 .calculator-sum-inline {
@@ -3299,31 +3335,41 @@ input[type='number'] {
   .calculator-preview {
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 0;
+    border-radius: 14px;
     margin-bottom: 4px;
+    overflow: hidden;
   }
-  
+
   .calculator-preview-image {
     aspect-ratio: 16 / 10;
-    margin-bottom: 12px;
-    border-radius: 10px;
+    margin-bottom: 0;
+    border-radius: 0;
   }
-  
+
+  .calculator-preview-info {
+    padding: 16px;
+    gap: 4px;
+  }
+
   .calculator-preview-title {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     line-height: 1.3;
   }
-  
+
+  .calculator-preview-price {
+    font-size: 14px;
+    margin: 2px 0 4px;
+  }
+
+  .calculator-preview-price strong {
+    font-size: 17px;
+  }
+
   .calculator-specs {
     font-size: 13px;
-    margin-top: 8px;
-    padding-left: 16px;
-  }
-  
-  .calculator-specs li + li {
-    margin-top: 2px;
+    gap: 4px;
   }
   
   .field {
@@ -3688,30 +3734,44 @@ input[type='number'] {
     font-size: 16px;
   }
   
-  /* Превью на очень узком экране — компактная горизонтальная полоска с фото */
   .calculator-preview {
-    flex-direction: row;
-    gap: 12px;
-    padding: 12px;
-    align-items: center;
+    flex-direction: column;
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
   }
-  
+
   .calculator-preview-image {
-    flex: 0 0 120px;
-    width: 120px;
-    min-width: 120px;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     margin-bottom: 0;
+    border-radius: 0;
   }
-  
+
+  .calculator-preview-info {
+    padding: 14px;
+    gap: 3px;
+  }
+
   .calculator-preview-title {
-    font-size: 14px;
-    flex: 1;
-    min-width: 0;
+    font-size: 15px;
   }
-  
+
+  .calculator-preview-price {
+    font-size: 13px;
+  }
+
+  .calculator-preview-price strong {
+    font-size: 16px;
+  }
+
   .calculator-specs {
-    display: none;
+    font-size: 12px;
+    gap: 3px;
+  }
+
+  .calculator-specs .spec-icon {
+    font-size: 14px;
+    width: 18px;
   }
   
   /* Уменьшаем кнопки и gap для маленьких экранов */
