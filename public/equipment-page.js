@@ -279,8 +279,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Обновляем характеристики из новых полей
       const specsGrid = document.querySelector('.specs-grid');
       if (specsGrid) {
-        specsGrid.innerHTML = '';
-        
         const specs = [
           { icon: '📏', label: 'Высота подъема', value: fixedService.height_lift },
           { icon: '📐', label: 'Вылет стрелы', value: fixedService.max_reach },
@@ -296,6 +294,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           { icon: '🔄', label: 'Угол поворота стрелы', value: fixedService.boom_rotation_angle },
           { icon: '🔄', label: 'Угол поворота корзины', value: fixedService.basket_rotation_angle }
         ];
+
+        // Если API вернул пустые/не заполненные поля характеристик,
+        // не затираем статический HTML (иначе получится пустой блок).
+        const hasAnySpec = specs.some(spec => spec.value && String(spec.value).trim().length > 0);
+        if (!hasAnySpec) return;
+
+        specsGrid.innerHTML = '';
         
         specs.forEach(spec => {
           if (spec.value) {

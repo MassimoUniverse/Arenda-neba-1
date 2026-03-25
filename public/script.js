@@ -320,13 +320,13 @@ let CALC_EQUIPMENT = {
   },
   18: {
     name: 'Автовышка 18 м',
-    description: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
+    description: 'Популярная модель для работ на фасадах и рекламных конструкциях. Большая корзина СУПЕРДЕК для удобной работы.',
     baseHalfShift: 16000,
     baseShift: 20000,
     includedKm: 30,
     extraPerKm: 85,
-    height: 18,
-    capacity: 230,
+    height: 16,
+    capacity: 1000,
     boom: 11,
     image: '/images/avtovyshka-18m.webp',
   },
@@ -557,6 +557,7 @@ async function loadCalculatorEquipmentFromAPI() {
     
     // Преобразуем услуги в формат CALC_EQUIPMENT
     const dynamicEquipment = {};
+    const fallbackCalc = CALC_EQUIPMENT;
     
     services.forEach(service => {
       if (!service.active) return; // Пропускаем неактивные услуги
@@ -647,6 +648,21 @@ async function loadCalculatorEquipmentFromAPI() {
         boom = Math.round(height * 0.6);
       } else if (!boom) {
         boom = 6; // Для самоходной по умолчанию
+      }
+
+      // Если API не отдал нормальные значения в новых полях (часто пустые строки),
+      // не перезаписываем численные характеристики из статического fallback.
+      const hasStructuredSpecs =
+        (service.height_lift && String(service.height_lift).trim()) ||
+        (service.max_reach && String(service.max_reach).trim()) ||
+        (service.max_capacity && String(service.max_capacity).trim());
+      if (!hasStructuredSpecs) {
+        const fb = fallbackCalc && fallbackCalc[key];
+        if (fb) {
+          height = fb.height;
+          capacity = fb.capacity;
+          boom = fb.boom;
+        }
       }
       
       // Получаем delivery_per_km из базы или используем значение по умолчанию
@@ -1692,7 +1708,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     title: 'Автовышка 18 метров',
     text: 'Популярная модель для работ на фасадах и рекламных конструкциях.',
     bullets: [
-      'Грузоподъёмность корзины: 200 кг',
+      'Грузоподъёмность корзины: 1000 кг',
       'Размеры корзины (платформы): 2х4 м'
     ],
     image: '/images/avtovyshka-18m.webp',
