@@ -295,27 +295,25 @@ document.addEventListener('DOMContentLoaded', async () => {
           { icon: '🔄', label: 'Угол поворота корзины', value: fixedService.basket_rotation_angle }
         ];
 
-        // Если API вернул пустые/не заполненные поля характеристик,
-        // не затираем статический HTML (иначе получится пустой блок).
         const hasAnySpec = specs.some(spec => spec.value && String(spec.value).trim().length > 0);
-        if (!hasAnySpec) return;
 
-        specsGrid.innerHTML = '';
-        
-        specs.forEach(spec => {
-          if (spec.value) {
-            const specItem = document.createElement('div');
-            specItem.className = 'spec-item';
-            specItem.innerHTML = `
-              <div class="spec-icon">${spec.icon}</div>
-              <div class="spec-info">
-                <div class="spec-label">${spec.label}</div>
-                <div class="spec-value">${spec.value}</div>
-              </div>
-            `;
-            specsGrid.appendChild(specItem);
-          }
-        });
+        if (hasAnySpec) {
+          specsGrid.innerHTML = '';
+          specs.forEach(spec => {
+            if (spec.value) {
+              const specItem = document.createElement('div');
+              specItem.className = 'spec-item';
+              specItem.innerHTML = `
+                <div class="spec-icon">${spec.icon}</div>
+                <div class="spec-info">
+                  <div class="spec-label">${spec.label}</div>
+                  <div class="spec-value">${spec.value}</div>
+                </div>
+              `;
+              specsGrid.appendChild(specItem);
+            }
+          });
+        }
       }
       
       // Обновляем цены в таблице стоимости
