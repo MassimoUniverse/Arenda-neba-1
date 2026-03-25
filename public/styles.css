@@ -573,6 +573,23 @@ a.logo:hover {
   max-width: 520px;
 }
 
+.hero-points {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 40px;
+}
+
+.hero-point {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.55),
+    0 0 10px rgba(0, 0, 0, 0.35);
+}
+
 .hero-stats {
   display: flex;
   gap: 48px;
@@ -3197,6 +3214,16 @@ input[type='number'] {
     font-size: 16px;
   }
   
+  .hero-points {
+    gap: 8px;
+    margin: 0 0 24px;
+  }
+
+  .hero-point {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
   .hero-stats {
     flex-direction: column;
     gap: 16px;
@@ -3531,6 +3558,16 @@ input[type='number'] {
     margin-bottom: 24px;
   }
   
+  .hero-points {
+    gap: 7px;
+    margin: 0 0 20px;
+  }
+
+  .hero-point {
+    font-size: 15px;
+    line-height: 1.25;
+  }
+
   .hero-badge {
     font-size: 11px;
     padding: 8px 16px;

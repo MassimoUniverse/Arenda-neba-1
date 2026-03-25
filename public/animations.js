@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================================
   // HERO ANIMATIONS (последовательное появление)
   // ============================================= 
-  gsap.set(['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-stats', '.hero-actions'], {
+  gsap.set(['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-points', '.hero-actions'], {
     opacity: 0,
     y: 30,
   });
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .to('.hero-badge', { opacity: 1, y: 0 }, 0.3)
     .to('.hero-title', { opacity: 1, y: 0 }, 0.5)
     .to('.hero-subtitle', { opacity: 1, y: 0 }, 0.7)
-    .to('.hero-stats', { opacity: 1, y: 0 }, 0.9)
+    .to('.hero-points', { opacity: 1, y: 0 }, 0.9)
     .to('.hero-actions', { opacity: 1, y: 0 }, 1.1);
 
   // =============================================
