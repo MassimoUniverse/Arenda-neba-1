@@ -2049,20 +2049,22 @@ function initStackCardsEffect(element) {
   function animateStackCards() {
     const top = element.getBoundingClientRect().top;
     
+    // Hysteresis: on mobile scroll up value can jitter around 0.
+    // We delay scaling start by a small pixel threshold to avoid flicker.
+    const startScalingAfterPx = 8;
+
     for (let i = 0; i < items.length; i++) {
-      const scrolling = cardTop - top - i * (cardHeight + cardMarginBottom);
-      
-      if (scrolling > 0) {
-        // Card is fixed - scale it down
-        const scale = Math.max(0.85, (cardHeight - scrolling * 0.05) / cardHeight);
-        const translateY = cardMarginBottom * i;
-        // Добавляем translateZ(0) для аппаратного ускорения
-        items[i].style.transform = `translateY(${translateY}px) scale(${scale}) translateZ(0)`;
-      } else {
-        // Card is not fixed yet - reset transform
-        const translateY = cardMarginBottom * i;
-        items[i].style.transform = `translateY(${translateY}px) scale(1) translateZ(0)`;
-      }
+      const raw = cardTop - top - i * (cardHeight + cardMarginBottom);
+
+      // Start scaling only when raw becomes meaningfully positive.
+      const scrolling = Math.max(0, raw - startScalingAfterPx);
+
+      // Card is fixed - scale it down (smoothly).
+      const scale = Math.max(0.85, (cardHeight - scrolling * 0.05) / cardHeight);
+      const translateY = cardMarginBottom * i;
+
+      // translateZ(0) for GPU acceleration.
+      items[i].style.transform = `translateY(${translateY}px) scale(${scale}) translateZ(0)`;
     }
     
     scrolling = false;
