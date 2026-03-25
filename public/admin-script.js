@@ -577,8 +577,8 @@ function showServiceModal(id = null) {
                         <input type="text" id="serviceTransportHeight" name="transport_height" placeholder="2.5 метров">
                     </div>
                     <div class="form-group">
-                        <label for="serviceWidth">Ширина</label>
-                        <input type="text" id="serviceWidth" name="width" placeholder="2.2 метров">
+                        <label for="serviceWidth">Размер корзины (платформы)</label>
+                        <input type="text" id="serviceWidth" name="width" placeholder="2х4 м">
                     </div>
                     <div class="form-group">
                         <label for="serviceBoomRotationAngle">Угол поворота стрелы</label>
