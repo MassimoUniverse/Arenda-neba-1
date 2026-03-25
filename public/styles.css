@@ -575,7 +575,7 @@ a.logo:hover {
 
 .hero-stats {
   display: flex;
-  gap: 18px;
+  gap: 48px;
   margin-bottom: 40px;
   padding: 0;
   background: transparent;
@@ -587,19 +587,19 @@ a.logo:hover {
 .hero-stat {
   flex: 1 1 0;
   text-align: left;
-  padding: 18px 22px;
-  border-radius: 16px;
-  color: #fff;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .stat-number {
   font-size: 42px;
   font-weight: 800;
-  color: #fff !important;
+  color: #ff6b35 !important;
   line-height: 1;
   margin-bottom: 6px;
-  text-shadow: none;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
 }
 
 .stat-label {
@@ -608,12 +608,9 @@ a.logo:hover {
   font-weight: 500;
 }
 
-.hero-stat--accent {
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
-}
-
+.hero-stat--accent,
 .hero-stat--accent2 {
-  background: linear-gradient(135deg, #ff8c5a 0%, #ff6b35 100%);
+  background: transparent;
 }
 
 .hero-actions {
@@ -3211,8 +3208,10 @@ input[type='number'] {
   .hero-stat {
     flex: none;
     width: 100%;
-    padding: 16px 18px;
-    border-radius: 14px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .stat-number {
@@ -3543,8 +3542,10 @@ input[type='number'] {
   }
 
   .hero-stat {
-    padding: 14px 16px;
-    border-radius: 12px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
   
   .stat-number {
