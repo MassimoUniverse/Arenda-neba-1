@@ -1680,9 +1680,7 @@ const POPULAR_EQUIPMENT_SLIDES = [
     text: 'Компактная автовышка-платформа для работ на небольшой высоте.',
     bullets: [
       'Грузоподъёмность корзины: 400 кг',
-      'Размеры корзины (платформы): 2х4 м',
-      'Высота подъема: 13 м',
-      'Вылет максимальный: 8 м'
+      'Размеры корзины (платформы): 2х4 м'
     ],
     image: '/images/avtovyshka-13m.webp',
     url: '/equipment/avtovyshka-13m.html',
@@ -1694,10 +1692,8 @@ const POPULAR_EQUIPMENT_SLIDES = [
     title: 'Автовышка 18 метров',
     text: 'Популярная модель для работ на фасадах и рекламных конструкциях.',
     bullets: [
-      'Высота подъёма: 18 м',
-      'Вылет стрелы: до 11 м',
-      'Грузоподъёмность: 200 кг',
-      'Проезд в арку: 3000 мм'
+      'Грузоподъёмность корзины: 200 кг',
+      'Размеры корзины (платформы): 2х4 м'
     ],
     image: '/images/avtovyshka-18m.webp',
     url: '/equipment/avtovyshka-18m.html',
@@ -1709,10 +1705,8 @@ const POPULAR_EQUIPMENT_SLIDES = [
     title: 'Автовышка 21 метр',
     text: 'Универсальная техника с большой платформой и хорошим запасом высоты.',
     bullets: [
-      'Высота подъёма: 21 м',
-      'Вылет стрелы: до 11 м',
-      'Грузоподъёмность: 1000 кг',
-      'Размер корзины: 2 x 4 м'
+      'Грузоподъёмность корзины: 1000 кг',
+      'Размеры корзины (платформы): 2х4 м'
     ],
     image: '/images/avtovyshka-21m.webp',
     url: '/equipment/avtovyshka-21m.html',
@@ -1724,10 +1718,8 @@ const POPULAR_EQUIPMENT_SLIDES = [
     title: 'Автовышка 29 метров',
     text: 'Мощная техника для высотных работ. Работа на высоте до 89 этажа.',
     bullets: [
-      'Высота подъёма: 29 м',
-      'Вылет стрелы: до 14 м',
-      'Грузоподъёмность: 200 кг',
-      'Проезд в арку: 3300 мм'
+      'Грузоподъёмность корзины: 200 кг',
+      'Размеры корзины (платформы): 2х4 м'
     ],
     image: '/images/avtovyshka-29m.webp',
     url: '/equipment/avtovyshka-29m.html',
@@ -1779,7 +1771,7 @@ async function initOurCapabilitiesSlider() {
           
           // Используем card_bullets из базы или fallback
           let bullets = service.card_bullets || [];
-          if (bullets.length < 4 && fallbackSlide && fallbackSlide.bullets) {
+          if (bullets.length < 2 && fallbackSlide && fallbackSlide.bullets) {
             bullets = fallbackSlide.bullets;
           }
           
@@ -1889,7 +1881,7 @@ async function initOurCapabilitiesSlider() {
             .slice(0, 6);
           
           // Если bullets меньше 4, используем fallback
-          if (bullets.length < 4 && fallbackSlide && fallbackSlide.bullets) {
+          if (bullets.length < 2 && fallbackSlide && fallbackSlide.bullets) {
             bullets = fallbackSlide.bullets;
           }
 
@@ -1933,7 +1925,7 @@ async function initOurCapabilitiesSlider() {
             index: String(index + 1).padStart(2, '0'),
             title,
             text,
-            bullets: bullets.length >= 4 ? bullets : (fallbackSlide?.bullets || []),
+            bullets: bullets.length >= 2 ? bullets : (fallbackSlide?.bullets || []),
             image: slideImage,
             url: service.url || popularUrls[index],
             price: cleanedPrice || price
@@ -1956,8 +1948,9 @@ async function initOurCapabilitiesSlider() {
     li.className = 'stack-cards__item js-stack-cards__item';
 
     const bullets = Array.isArray(slide.bullets) ? slide.bullets : [];
-    const bulletsHtml = bullets.length
-      ? `<ul class="card__bullets">${bullets.map(b => `<li>${b}</li>`).join('')}</ul>`
+    const limitedBullets = bullets.slice(0, 2);
+    const bulletsHtml = limitedBullets.length
+      ? `<ul class="card__bullets">${limitedBullets.map(b => `<li>${b}</li>`).join('')}</ul>`
       : '';
 
     const priceHtml = slide.price

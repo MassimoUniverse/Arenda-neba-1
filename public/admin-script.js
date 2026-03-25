@@ -606,11 +606,9 @@ function showServiceModal(id = null) {
                 </div>
                 <div class="form-group" id="cardBulletsGroup" style="display: none;">
                     <label for="serviceCardBullets">Пункты для карточки (по одному на строку)</label>
-                    <textarea id="serviceCardBullets" name="card_bullets" rows="5" placeholder="Высота подъёма: 29 м
-Вылет стрелы: до 14 м
-Грузоподъёмность: 200 кг
-Проезд в арку: 3300 мм"></textarea>
-                    <small class="form-hint">Пункты автоматически генерируются из характеристик выше. Вы можете отредактировать их вручную при необходимости.</small>
+                    <textarea id="serviceCardBullets" name="card_bullets" rows="5" placeholder="Грузоподъёмность корзины: 200 кг
+Размеры корзины (платформы): 2х4 м"></textarea>
+                    <small class="form-hint">Для карточек на сайте используются только 2 пункта: грузоподъёмность и размер корзины. Остальные характеристики не влияют.</small>
                 </div>
             </div>
 
@@ -693,50 +691,22 @@ function showServiceModal(id = null) {
     setTimeout(() => {
         // Функция для автоматической генерации пунктов карточки из характеристик
         function generateCardBulletsFromSpecs() {
-            const heightLift = document.getElementById('serviceHeightLift')?.value.trim() || '';
-            const maxReach = document.getElementById('serviceMaxReach')?.value.trim() || '';
             const maxCapacity = document.getElementById('serviceMaxCapacity')?.value.trim() || '';
             const width = document.getElementById('serviceWidth')?.value.trim() || '';
-            const transportHeight = document.getElementById('serviceTransportHeight')?.value.trim() || '';
-            const transportLength = document.getElementById('serviceTransportLength')?.value.trim() || '';
             
             const bullets = [];
-            
-            // 1. Высота подъема люльки
-            if (heightLift) {
-                bullets.push(`Высота подъёма: ${heightLift}`);
-            }
-            
-            // 2. Максимальный вылет
-            if (maxReach) {
-                bullets.push(`Вылет стрелы: до ${maxReach}`);
-            }
-            
-            // 3. Максимальная грузоподъемность
+
+            // 1) грузоподъёмность корзины
             if (maxCapacity) {
-                bullets.push(`Грузоподъёмность: ${maxCapacity}`);
+                bullets.push(`Грузоподъёмность корзины: ${maxCapacity}`);
             }
-            
-            // 4. Ширина или Высота в транспортном положении (приоритет ширине)
+
+            // 2) размер корзины (платформы)
             if (width) {
-                bullets.push(`Ширина: ${width}`);
-            } else if (transportHeight) {
-                bullets.push(`Высота в транспортном положении: ${transportHeight}`);
-            } else if (transportLength) {
-                bullets.push(`Длина в транспортном положении: ${transportLength}`);
+                bullets.push(`Размеры корзины (платформы): ${width}`);
             }
-            
-            // Если не хватает до 4 пунктов, добавляем дополнительные характеристики
-            if (bullets.length < 4) {
-                if (transportLength && !bullets.some(b => b.includes('Длина'))) {
-                    bullets.push(`Длина в транспортном положении: ${transportLength}`);
-                }
-                if (transportHeight && !bullets.some(b => b.includes('Высота в транспортном'))) {
-                    bullets.push(`Высота в транспортном положении: ${transportHeight}`);
-                }
-            }
-            
-            return bullets.slice(0, 4); // Возвращаем максимум 4 пункта
+
+            return bullets.slice(0, 2);
         }
         
         // Функция для обновления поля card_bullets из характеристик
@@ -777,12 +747,8 @@ function showServiceModal(id = null) {
         
         // Добавляем обработчики событий на все поля характеристик
         const specFields = [
-            'serviceHeightLift',
-            'serviceMaxReach',
             'serviceMaxCapacity',
             'serviceWidth',
-            'serviceTransportHeight',
-            'serviceTransportLength'
         ];
         
         specFields.forEach(fieldId => {
@@ -1116,40 +1082,21 @@ async function loadServiceData(id) {
                 
                 // Если card_bullets пустые или не заполнены, автоматически генерируем из характеристик
                 if (!bullets || bullets.length === 0 || bullets.every(b => !b || !b.trim())) {
-                    // Генерируем пункты из характеристик
+                    // Генерируем пункты из характеристик (только то, что показываем в карточках)
                     const generatedBullets = [];
-                    
-                    if (service.height_lift) {
-                        generatedBullets.push(`Высота подъёма: ${service.height_lift}`);
-                    }
-                    if (service.max_reach) {
-                        generatedBullets.push(`Вылет стрелы: до ${service.max_reach}`);
-                    }
+
                     if (service.max_capacity) {
-                        generatedBullets.push(`Грузоподъёмность: ${service.max_capacity}`);
+                        generatedBullets.push(`Грузоподъёмность корзины: ${service.max_capacity}`);
                     }
+
                     if (service.width) {
-                        generatedBullets.push(`Ширина: ${service.width}`);
-                    } else if (service.transport_height) {
-                        generatedBullets.push(`Высота в транспортном положении: ${service.transport_height}`);
-                    } else if (service.transport_length) {
-                        generatedBullets.push(`Длина в транспортном положении: ${service.transport_length}`);
+                        generatedBullets.push(`Размеры корзины (платформы): ${service.width}`);
                     }
-                    
-                    // Если не хватает до 4 пунктов, добавляем дополнительные
-                    if (generatedBullets.length < 4) {
-                        if (service.transport_length && !generatedBullets.some(b => b.includes('Длина'))) {
-                            generatedBullets.push(`Длина в транспортном положении: ${service.transport_length}`);
-                        }
-                        if (service.transport_height && !generatedBullets.some(b => b.includes('Высота в транспортном'))) {
-                            generatedBullets.push(`Высота в транспортном положении: ${service.transport_height}`);
-                        }
-                    }
-                    
-                    bullets = generatedBullets.slice(0, 4);
+
+                    bullets = generatedBullets.slice(0, 2);
                 }
                 
-                cardBulletsTextarea.value = Array.isArray(bullets) ? bullets.join('\n') : '';
+                cardBulletsTextarea.value = Array.isArray(bullets) ? bullets.slice(0, 2).join('\n') : '';
                 
                 // После загрузки всех данных, если популярная техника включена, 
                 // автоматически обновляем пункты из характеристик (если они были изменены)
@@ -1169,29 +1116,12 @@ async function loadServiceData(id) {
                                 const transportLength = document.getElementById('serviceTransportLength')?.value.trim() || '';
                                 
                                 const generatedBullets = [];
-                                if (heightLift) generatedBullets.push(`Высота подъёма: ${heightLift}`);
-                                if (maxReach) generatedBullets.push(`Вылет стрелы: до ${maxReach}`);
-                                if (maxCapacity) generatedBullets.push(`Грузоподъёмность: ${maxCapacity}`);
-                                if (width) {
-                                    generatedBullets.push(`Ширина: ${width}`);
-                                } else if (transportHeight) {
-                                    generatedBullets.push(`Высота в транспортном положении: ${transportHeight}`);
-                                } else if (transportLength) {
-                                    generatedBullets.push(`Длина в транспортном положении: ${transportLength}`);
-                                }
-                                
-                                if (generatedBullets.length < 4) {
-                                    if (transportLength && !generatedBullets.some(b => b.includes('Длина'))) {
-                                        generatedBullets.push(`Длина в транспортном положении: ${transportLength}`);
-                                    }
-                                    if (transportHeight && !generatedBullets.some(b => b.includes('Высота в транспортном'))) {
-                                        generatedBullets.push(`Высота в транспортном положении: ${transportHeight}`);
-                                    }
-                                }
+                                if (maxCapacity) generatedBullets.push(`Грузоподъёмность корзины: ${maxCapacity}`);
+                                if (width) generatedBullets.push(`Размеры корзины (платформы): ${width}`);
                                 
                                 // Обновляем только если есть хотя бы один пункт
                                 if (generatedBullets.length > 0) {
-                                    cardBulletsTextareaForUpdate.value = generatedBullets.slice(0, 4).join('\n');
+                                    cardBulletsTextareaForUpdate.value = generatedBullets.slice(0, 2).join('\n');
                                 }
                             }
                         }
