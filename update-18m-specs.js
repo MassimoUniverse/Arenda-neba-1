@@ -13,13 +13,12 @@ db.run(
     max_reach = ?,
     max_capacity = ?,
     lift_type = ?,
-    basket_size = ?,
     width = ?,
     basket_rotation_angle = ?,
     specifications = ?,
     card_bullets = ?
   WHERE id = 20`,
-  ['16 м', '11 м', '1000 кг', 'Большая корзина СУПЕРДЕК', '2х4 м', '2х4 м', '360\u00b0', specs, cardBullets],
+  ['16 м', '11 м', '1000 кг', 'Большая корзина СУПЕРДЕК', '2х4 м', '360\u00b0', specs, cardBullets],
   function (err) {
     if (err) {
       console.error('ERROR:', err.message);
