@@ -199,9 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================================
   // HERO ANIMATIONS (последовательное появление)
   // ============================================= 
-  gsap.set(['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-points', '.hero-actions'], {
+  gsap.set(['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-actions'], {
     opacity: 0,
     y: 30,
+  });
+
+  gsap.set('.hero-point', {
+    opacity: 0,
+    x: -20,
   });
 
   const heroTl = gsap.timeline({
@@ -212,8 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
     .to('.hero-badge', { opacity: 1, y: 0 }, 0.3)
     .to('.hero-title', { opacity: 1, y: 0 }, 0.5)
     .to('.hero-subtitle', { opacity: 1, y: 0 }, 0.7)
-    .to('.hero-points', { opacity: 1, y: 0 }, 0.9)
-    .to('.hero-actions', { opacity: 1, y: 0 }, 1.1);
+    .to('.hero-point', {
+      opacity: 1,
+      x: 0,
+      duration: 0.6,
+      stagger: 0.15,
+      ease: 'power3.out',
+    }, 0.9)
+    .to('.hero-actions', { opacity: 1, y: 0 }, 1.4);
 
   // =============================================
   // COUNTER ANIMATION (анимация цифр)
