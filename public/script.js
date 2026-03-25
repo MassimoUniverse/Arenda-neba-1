@@ -243,6 +243,7 @@ const FALLBACK_REVIEWS = [
 const STATIC_CALC_EQUIPMENT = {
   '30offroad': {
     name: 'Автовышка‑вездеход 30 м',
+    description: 'Работа там, где обычная техника не проедет. Полноприводное шасси для бездорожья, стройплощадок и грунтовых дорог.',
     baseShift: 30000,
     includedKm: 50,
     extraPerKm: 85,
@@ -253,6 +254,7 @@ const STATIC_CALC_EQUIPMENT = {
   },
   self: {
     name: 'Самоходная автовышка',
+    description: 'Манёвренная техника для внутренних работ в помещениях, складах и торговых центрах. Компактные габариты позволяют проезжать через стандартные дверные проёмы.',
     baseShift: 18000,
     includedKm: 20,
     extraPerKm: 85,
@@ -270,6 +272,7 @@ let CALC_EQUIPMENT = {
   // Временные данные для совместимости (будут заменены при загрузке из API)
   13: {
     name: 'Автовышка-платформа 13 м',
+    description: 'Компактная автовышка-платформа для работ на небольшой высоте. Удобная для дворов и стеснённых условий города.',
     baseHalfShift: 15000,
     baseShift: 18000,
     includedKm: 30,
@@ -281,6 +284,7 @@ let CALC_EQUIPMENT = {
   },
   15: {
     name: 'Автовышка 15 м',
+    description: 'Компактная автовышка для работ во дворах и стеснённых условиях. Подходит для обслуживания фасадов, рекламы и освещения.',
     baseHalfShift: 15000,
     baseShift: 18000,
     includedKm: 30,
@@ -292,6 +296,7 @@ let CALC_EQUIPMENT = {
   },
   16: {
     name: 'Автовышка 16 м',
+    description: 'Оптимальна для сервисных и монтажных работ. Платформа 2×4 м, грузоподъёмность 1000 кг — удобна для бригады с инструментом.',
     baseHalfShift: 15000,
     baseShift: 18000,
     includedKm: 30,
@@ -303,6 +308,7 @@ let CALC_EQUIPMENT = {
   },
   17: {
     name: 'Автовышка 17 м',
+    description: 'Универсальная автовышка для высотных работ до 5–6 этажа. Подходит для монтажа, обслуживания фасадов и рекламных конструкций.',
     baseHalfShift: 15000,
     baseShift: 18000,
     includedKm: 30,
@@ -314,6 +320,7 @@ let CALC_EQUIPMENT = {
   },
   18: {
     name: 'Автовышка 18 м',
+    description: 'Популярная модель для работ на фасадах и рекламных конструкциях. Хороший баланс высоты и манёвренности.',
     baseHalfShift: 16000,
     baseShift: 20000,
     includedKm: 30,
@@ -325,6 +332,7 @@ let CALC_EQUIPMENT = {
   },
   21: {
     name: 'Автовышка 21 м',
+    description: 'Универсальная техника с большой платформой и хорошим запасом высоты. Подходит для работ до 7 этажа.',
     baseHalfShift: 16000,
     baseShift: 21000,
     includedKm: 30,
@@ -336,6 +344,7 @@ let CALC_EQUIPMENT = {
   },
   25: {
     name: 'Автовышка 25 м',
+    description: 'Работы на высоте до 8–9 этажа. Подходит для промышленных объектов, высотного монтажа и обслуживания зданий.',
     baseShift: 21000,
     includedKm: 40,
     extraPerKm: 85,
@@ -346,6 +355,7 @@ let CALC_EQUIPMENT = {
   },
   29: {
     name: 'Автовышка 29 м',
+    description: 'Мощная техника для высотных работ повышенной сложности. Монтаж, обслуживание высотных зданий и промышленных объектов.',
     baseShift: 26000,
     includedKm: 40,
     extraPerKm: 85,
@@ -356,32 +366,13 @@ let CALC_EQUIPMENT = {
   },
   45: {
     name: 'Автовышка 45 м',
+    description: 'Для крупных объектов и промышленных площадок. Максимальная высота подъёма для сложных строительных и монтажных задач.',
     baseShift: 22000,
     includedKm: 50,
     extraPerKm: 85,
     height: 45,
     capacity: 320,
     boom: 20,
-    image: '/images/avtovyshka-13m.webp',
-  },
-  '30offroad': {
-    name: 'Автовышка‑вездеход 30 м',
-    baseShift: 30000,
-    includedKm: 50,
-    extraPerKm: 85,
-    height: 30,
-    capacity: 300,
-    boom: 18,
-    image: '/images/avtovyshka-13m.webp',
-  },
-  self: {
-    name: 'Самоходная автовышка',
-    baseShift: 18000,
-    includedKm: 20,
-    extraPerKm: 85,
-    height: 12,
-    capacity: 230,
-    boom: 6,
     image: '/images/avtovyshka-13m.webp',
   },
 };
@@ -663,9 +654,10 @@ async function loadCalculatorEquipmentFromAPI() {
       
       dynamicEquipment[key] = {
         name: service.title,
+        description: service.description || '',
         baseShift: prices.baseShift,
         baseHalfShift: prices.baseHalfShift,
-        includedKm: 30, // По умолчанию
+        includedKm: 30,
         extraPerKm: extraPerKm,
         height: height || (key === 'self' ? 12 : key === '30offroad' ? 30 : null),
         capacity: capacity,
@@ -1361,6 +1353,12 @@ function initCalculator() {
           li.innerHTML = `<span class="spec-icon">${icon}</span> ${text}`;
           specsList.appendChild(li);
         });
+      }
+
+      const descEl = document.getElementById('calculator-preview-desc');
+      if (descEl) {
+        descEl.textContent = config.description || '';
+        descEl.style.display = config.description ? '' : 'none';
       }
 
       if (previewImage) {

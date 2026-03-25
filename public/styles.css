@@ -1097,6 +1097,15 @@ input[type='number'] {
   text-align: center;
 }
 
+.calculator-preview-desc {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 .calculator-sum-inline {
   grid-column: 1 / -1;
   margin: 8px 0 0;
@@ -3371,7 +3380,13 @@ input[type='number'] {
     font-size: 13px;
     gap: 4px;
   }
-  
+
+  .calculator-preview-desc {
+    font-size: 13px;
+    margin-top: 6px;
+    padding-top: 8px;
+  }
+
   .field {
     margin-bottom: 0;
   }
@@ -3773,7 +3788,14 @@ input[type='number'] {
     font-size: 14px;
     width: 18px;
   }
-  
+
+  .calculator-preview-desc {
+    font-size: 12px;
+    margin-top: 5px;
+    padding-top: 7px;
+    line-height: 1.5;
+  }
+
   /* Уменьшаем кнопки и gap для маленьких экранов */
   .field-distance .number-input {
     gap: 6px;
