@@ -576,6 +576,7 @@ function generateEquipmentPageHTML(service) {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
     <script src="../equipment-page.js"></script>
+    <script src="../cookie-consent.js" defer></script>
     
     <!-- calltouch -->
     <script>
