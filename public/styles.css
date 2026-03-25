@@ -575,36 +575,45 @@ a.logo:hover {
 
 .hero-stats {
   display: flex;
-  gap: 48px;
+  gap: 18px;
   margin-bottom: 40px;
-  padding: 28px 32px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius);
+  padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border: 0;
+  border-radius: 0;
 }
 
 .hero-stat {
+  flex: 1 1 0;
   text-align: left;
+  padding: 18px 22px;
+  border-radius: 16px;
+  color: #fff;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22);
 }
 
 .stat-number {
   font-size: 42px;
   font-weight: 800;
-  color: #ff6b35 !important;
+  color: #fff !important;
   line-height: 1;
   margin-bottom: 6px;
-  /* Обводка для лучшей читаемости на видео-фоне */
-  text-shadow:
-    0 0 4px rgba(0, 0, 0, 0.7),
-    0 0 8px rgba(0, 0, 0, 0.6),
-    0 0 12px rgba(0, 0, 0, 0.5);
+  text-shadow: none;
 }
 
 .stat-label {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
+}
+
+.hero-stat--accent {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+}
+
+.hero-stat--accent2 {
+  background: linear-gradient(135deg, #ff8c5a 0%, #ff6b35 100%);
 }
 
 .hero-actions {
@@ -3193,10 +3202,19 @@ input[type='number'] {
   
   .hero-stats {
     flex-direction: column;
-    gap: 20px;
-    padding: 20px;
+    gap: 16px;
+    padding: 0;
+    background: transparent;
+    border: 0;
   }
   
+  .hero-stat {
+    flex: none;
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: 14px;
+  }
+
   .stat-number {
     font-size: 32px;
   }
@@ -3520,8 +3538,13 @@ input[type='number'] {
   }
   
   .hero-stats {
-    padding: 16px;
-    gap: 16px;
+    padding: 0;
+    gap: 14px;
+  }
+
+  .hero-stat {
+    padding: 14px 16px;
+    border-radius: 12px;
   }
   
   .stat-number {
