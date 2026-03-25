@@ -841,6 +841,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+  appearance: textfield; /* compatibility */
 }
 
 .calculator-form select:focus,
@@ -2472,6 +2473,77 @@ input[type='number'] {
   }
 }
 
+/* Payment map under cards */
+.payment-location {
+  max-width: 960px;
+  margin: 26px auto 0;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.payment-location-address {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 14px;
+}
+
+.payment-map-wrap {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.payment-map-embed {
+  display: block;
+  width: 100%;
+  height: 360px;
+  border: 0;
+}
+
+.payment-location-link {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.payment-location-link a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.payment-location-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .payment-location {
+    padding: 0 14px;
+  }
+
+  .payment-map-embed {
+    height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-location {
+    padding: 0 10px;
+  }
+
+  .payment-location-address {
+    font-size: 15px;
+  }
+
+  .payment-map-embed {
+    height: 280px;
+  }
+}
+
 /* =============================================
    CONTACTS
    ============================================= */
@@ -3765,10 +3837,6 @@ input[type='number'] {
    ============================================= */
 [data-fade-in] {
   will-change: transform, opacity;
-}
-
-.fade-in-complete {
-  /* Элемент уже анимирован, можно использовать для дополнительных стилей */
 }
 
 .calc-select-option {
