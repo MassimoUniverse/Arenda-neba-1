@@ -2008,75 +2008,81 @@ function initStackCardsEffect(element) {
   const items = element.querySelectorAll('.js-stack-cards__item');
   if (items.length === 0) return;
 
-  // Check for Intersection Observer support
   const intersectionObserverSupported = ('IntersectionObserver' in window && 
     'IntersectionObserverEntry' in window && 
     'intersectionRatio' in window.IntersectionObserverEntry.prototype);
   
   if (!intersectionObserverSupported) return;
 
-  // Get card properties
   const cardStyle = window.getComputedStyle(items[0]);
-  const cardTop = parseFloat(cardStyle.top) || 90; // Default to 90px if not set
+  const cardTop = parseFloat(cardStyle.top) || 90;
   const cardHeight = items[0].offsetHeight;
   const cardMarginBottom = parseFloat(cardStyle.marginBottom) || 24;
 
-  let scrollingListener = null;
-  let scrolling = false;
+  const currentScale = new Float32Array(items.length).fill(1);
+  const targetScale = new Float32Array(items.length).fill(1);
+  const LERP = 0.18;
+  const SNAP_THRESHOLD = 0.0005;
 
-  // Intersection Observer callback
+  let scrollListener = null;
+  let rafId = null;
+  let ticking = false;
+
   function stackCardsCallback(entries) {
     if (entries[0].isIntersecting) {
-      // Cards inside viewport - add scroll listener
-      if (scrollingListener) return;
+      if (scrollListener) return;
       
-      scrollingListener = function() {
-        if (scrolling) return;
-        scrolling = true;
-        window.requestAnimationFrame(animateStackCards);
+      scrollListener = function() {
+        if (ticking) return;
+        ticking = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(animateStackCards);
       };
       
-      window.addEventListener('scroll', scrollingListener, { passive: true });
+      window.addEventListener('scroll', scrollListener, { passive: true });
     } else {
-      // Cards not inside viewport - remove scroll listener
-      if (!scrollingListener) return;
-      window.removeEventListener('scroll', scrollingListener);
-      scrollingListener = null;
+      if (!scrollListener) return;
+      window.removeEventListener('scroll', scrollListener);
+      scrollListener = null;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     }
   }
 
-  // Animate cards on scroll with performance optimization
   function animateStackCards() {
-    const top = element.getBoundingClientRect().top;
-    
-    // Hysteresis: on mobile scroll up value can jitter around 0.
-    // We delay scaling start by a small pixel threshold to avoid flicker.
-    const startScalingAfterPx = 8;
+    const elTop = element.getBoundingClientRect().top;
+    let needsNextFrame = false;
 
     for (let i = 0; i < items.length; i++) {
-      const raw = cardTop - top - i * (cardHeight + cardMarginBottom);
+      const raw = cardTop - elTop - i * (cardHeight + cardMarginBottom);
+      const scrollVal = Math.max(0, raw);
+      const desired = Math.max(0.85, (cardHeight - scrollVal * 0.05) / cardHeight);
 
-      // Start scaling only when raw becomes meaningfully positive.
-      const scrolling = Math.max(0, raw - startScalingAfterPx);
+      targetScale[i] = desired;
+      const diff = targetScale[i] - currentScale[i];
 
-      // Card is fixed - scale it down (smoothly).
-      const scale = Math.max(0.85, (cardHeight - scrolling * 0.05) / cardHeight);
+      if (Math.abs(diff) < SNAP_THRESHOLD) {
+        currentScale[i] = targetScale[i];
+      } else {
+        currentScale[i] += diff * LERP;
+        needsNextFrame = true;
+      }
+
       const translateY = cardMarginBottom * i;
-
-      // translateZ(0) for GPU acceleration.
-      items[i].style.transform = `translateY(${translateY}px) scale(${scale}) translateZ(0)`;
+      items[i].style.transform = 'translateY(' + translateY + 'px) scale(' + currentScale[i] + ')';
     }
-    
-    scrolling = false;
+
+    ticking = false;
+
+    if (needsNextFrame) {
+      rafId = requestAnimationFrame(animateStackCards);
+    }
   }
 
-  // Create Intersection Observer
   const observer = new IntersectionObserver(stackCardsCallback, {
     threshold: [0, 0.1]
   });
   observer.observe(element);
   
-  // Initial animation
   animateStackCards();
 }
 

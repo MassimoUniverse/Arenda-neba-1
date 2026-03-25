@@ -1541,15 +1541,12 @@ input[type='number'] {
 /* Individual Card Item */
 .stack-cards__item {
   position: sticky;
-  top: 90px; /* offset from top when fixed - below header */
+  top: 90px;
   margin-bottom: 24px;
   transform-origin: center top;
   will-change: transform;
-  /* Оптимизация рендеринга для плавного скролла */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
 }
 
 .stack-cards__item:last-child {
@@ -1587,12 +1584,6 @@ input[type='number'] {
   height: 100%;
   object-fit: cover;
   display: block;
-  /* Оптимизация загрузки и рендеринга изображений */
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 .card__gradient {
@@ -1808,8 +1799,9 @@ input[type='number'] {
     z-index: 2;
     border-radius: 999px;
     padding: 8px 14px;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     color: #fff;
     font-size: 13px;
   }
@@ -2013,6 +2005,8 @@ input[type='number'] {
     font-size: 11px;
     padding: 6px 10px;
     border-radius: 999px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   
   .our-capabilities-description {
