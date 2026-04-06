@@ -1915,14 +1915,28 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
           
-          // Сначала все пути из админки (image_url + галерея), затем только статический fallback
-          const adminPaths = collectAdminImagePaths(service);
+          // Основное изображение — всегда image_url из админки, галерея как запасные варианты
           let slideImage;
           let imageCandidates;
-          if (adminPaths.length > 0) {
-            imageCandidates = adminPaths.map(p => addCacheBuster(p, service.updated_at));
-            slideImage = imageCandidates[0];
-            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): админ-пути (${adminPaths.length}):`, adminPaths[0]);
+          const fixedMainUrl = service.image_url
+            ? service.image_url.replace(/^https?:\/\/[^/]+/, '').replace('http://localhost:3000', '') || null
+            : null;
+          let galleryImgs = service.images;
+          if (galleryImgs && typeof galleryImgs === 'string') {
+            try { galleryImgs = JSON.parse(galleryImgs); } catch(e) { galleryImgs = []; }
+          }
+          const uploadGallery = (Array.isArray(galleryImgs) ? galleryImgs : [])
+            .map(p => typeof p === 'string' ? p : (p && (p.url || p.src || '')))
+            .filter(p => p && p.startsWith('/uploads/'));
+
+          if (fixedMainUrl && fixedMainUrl.startsWith('/uploads/')) {
+            slideImage = addCacheBuster(fixedMainUrl, service.updated_at);
+            imageCandidates = [slideImage, ...uploadGallery.map(p => addCacheBuster(p, service.updated_at))];
+            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): основное фото из adminки:`, fixedMainUrl);
+          } else if (uploadGallery.length > 0) {
+            slideImage = addCacheBuster(uploadGallery[0], service.updated_at);
+            imageCandidates = uploadGallery.map(p => addCacheBuster(p, service.updated_at));
+            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): fallback на галерею:`, uploadGallery[0]);
           } else {
             slideImage = getImageForService(service, true);
             imageCandidates = [slideImage];
@@ -1978,24 +1992,28 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
 
-          const adminPathsFb = collectAdminImagePaths(service);
+          // Основное изображение — всегда image_url из админки
+          const fixedMainUrlFb = service.image_url
+            ? service.image_url.replace(/^https?:\/\/[^/]+/, '').replace('http://localhost:3000', '') || null
+            : null;
+          let galleryImgsFb = service.images;
+          if (galleryImgsFb && typeof galleryImgsFb === 'string') {
+            try { galleryImgsFb = JSON.parse(galleryImgsFb); } catch(e) { galleryImgsFb = []; }
+          }
+          const uploadGalleryFb = (Array.isArray(galleryImgsFb) ? galleryImgsFb : [])
+            .map(p => typeof p === 'string' ? p : (p && (p.url || p.src || '')))
+            .filter(p => p && p.startsWith('/uploads/'));
+
           let slideImage;
           let imageCandidates;
-          if (adminPathsFb.length > 0) {
-            imageCandidates = adminPathsFb.map(p => addCacheBuster(p, service.updated_at));
-            slideImage = imageCandidates[0];
+          if (fixedMainUrlFb && fixedMainUrlFb.startsWith('/uploads/')) {
+            slideImage = addCacheBuster(fixedMainUrlFb, service.updated_at);
+            imageCandidates = [slideImage, ...uploadGalleryFb.map(p => addCacheBuster(p, service.updated_at))];
+          } else if (uploadGalleryFb.length > 0) {
+            slideImage = addCacheBuster(uploadGalleryFb[0], service.updated_at);
+            imageCandidates = uploadGalleryFb.map(p => addCacheBuster(p, service.updated_at));
           } else {
             slideImage = getImageForService(service, true);
-            const serviceUrl = (service.url || '').toLowerCase();
-            const baseNoQuery = (slideImage || '').split('?')[0];
-            if (baseNoQuery === '/images/avtovyshka-13m.webp' && !service.image_url && !(service.images && service.images.length > 0)) {
-              let base = '/images/avtovyshka-13m.webp';
-              if (serviceUrl.includes('13m')) base = '/images/avtovyshka-13m.webp';
-              else if (serviceUrl.includes('18m')) base = '/images/avtovyshka-18m.webp';
-              else if (serviceUrl.includes('21m')) base = '/images/avtovyshka-21m.webp';
-              else if (serviceUrl.includes('29m')) base = '/images/avtovyshka-29m.webp';
-              slideImage = addCacheBuster(base, service.updated_at);
-            }
             imageCandidates = [slideImage];
           }
 
