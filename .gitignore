@@ -26,6 +26,7 @@ uploads_temp_*/
 .env
 .env.local
 .ssh-deploy.local
+scripts/.rename-upload-cache.json
 
 # Node modules
 node_modules/

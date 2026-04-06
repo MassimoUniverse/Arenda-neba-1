@@ -1,8 +1,9 @@
 /**
- * Одноразовый скрипт: переименовать файлы в uploads/ (и video в public/) с кириллицей в имени,
- * обновить пути в БД. Сделайте копию database.db перед запуском.
+ * Переименование файлов в uploads/ (кириллица → латиница) и обновление путей в БД.
+ * Сделайте копию database.db перед первым запуском.
  *
- * Запуск из корня проекта: node scripts/rename-uploads-to-ascii.js
+ * node scripts/rename-uploads-to-ascii.js           — переименовать + обновить БД
+ * node scripts/rename-uploads-to-ascii.js --retry-db — только БД из .rename-upload-cache.json
  */
 'use strict';
 
@@ -16,6 +17,7 @@ const root = path.join(__dirname, '..');
 const uploadsDir = path.join(root, 'uploads');
 const publicDir = path.join(root, 'public');
 const dbPath = path.join(root, 'database.db');
+const cachePath = path.join(root, 'scripts', '.rename-upload-cache.json');
 
 function uniqueName(dir, base, ext) {
   let name = base + ext;
@@ -62,7 +64,23 @@ function dedupePairs(pairs) {
   return [...m.entries()].sort((x, y) => y[0].length - x[0].length);
 }
 
-async function runUpdates(db, table, cols, sorted) {
+function tableColumns(db, table) {
+  return new Promise((resolve, reject) => {
+    db.all(`PRAGMA table_info(${table})`, [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows.map((r) => r.name));
+    });
+  });
+}
+
+async function runUpdates(db, table, desiredCols, sorted) {
+  const existing = await tableColumns(db, table);
+  const cols = desiredCols.filter((c) => existing.includes(c));
+  if (cols.length === 0) {
+    console.warn(`Table ${table}: no matching columns, skip`);
+    return;
+  }
+
   const run = (sql, params) =>
     new Promise((resolve, reject) => {
       db.run(sql, params, function (err) {
@@ -83,22 +101,48 @@ async function runUpdates(db, table, cols, sorted) {
 }
 
 async function main() {
-  const replacePairs = [];
-  replacePairs.push(...collectRenames(uploadsDir, '/uploads/', null));
-  replacePairs.push(
-    ...collectRenames(publicDir, '/', (f) => /\.(mp4|webm|ogg)$/i.test(f))
-  );
+  const retryDb = process.argv.includes('--retry-db');
 
-  const sorted = dedupePairs(replacePairs);
+  let sorted;
+  if (retryDb) {
+    if (!fs.existsSync(cachePath)) {
+      console.error('No cache file. Run once without --retry-db or copy cache to', cachePath);
+      process.exit(1);
+    }
+    const raw = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    sorted = dedupePairs(raw.map(([a, b]) => [a, b]));
+    console.log('Loaded pairs from', cachePath, 'count:', sorted.length);
+  } else {
+    const replacePairs = [];
+    replacePairs.push(...collectRenames(uploadsDir, '/uploads/', null));
+    replacePairs.push(
+      ...collectRenames(publicDir, '/', (f) => /\.(mp4|webm|ogg)$/i.test(f))
+    );
+    sorted = dedupePairs(replacePairs);
+    if (sorted.length > 0) {
+      try {
+        fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+        fs.writeFileSync(cachePath, JSON.stringify(sorted), 'utf8');
+        console.log('Saved pair cache:', cachePath);
+      } catch (e) {
+        console.warn('Could not write cache:', e.message);
+      }
+    }
+  }
 
   if (sorted.length === 0) {
-    console.log('No Cyrillic filenames to rename.');
+    console.log('No URL replacement pairs.');
     return;
   }
 
   const db = new sqlite3.Database(dbPath);
   try {
-    await runUpdates(db, 'services', ['image_url', 'images', 'reach_diagram_url', 'reach_diagrams', 'description', 'specifications'], sorted);
+    await runUpdates(
+      db,
+      'services',
+      ['image_url', 'images', 'reach_diagram_url', 'reach_diagrams', 'description', 'specifications'],
+      sorted
+    );
     await runUpdates(db, 'reviews', ['image_url', 'text', 'review_text'], sorted);
     await runUpdates(db, 'content', ['description', 'image_url', 'title', 'subtitle'], sorted);
     await runUpdates(db, 'homepage', ['video_url'], sorted);
