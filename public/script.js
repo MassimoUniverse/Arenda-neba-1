@@ -479,6 +479,48 @@ function collectAdminImagePaths(service) {
   return paths.sort((a, b) => priority(a) - priority(b));
 }
 
+/** Как в админке: сначала главное image_url, затем галерея по порядку (без перестановки uploads вперёд). */
+function collectAdminImagePathsOrdered(service) {
+  const paths = [];
+  const seen = new Set();
+  function push(raw) {
+    if (!raw || typeof raw !== 'string') return;
+    let p = raw.trim();
+    if (!p) return;
+    if (p.startsWith('http://localhost:3000/')) {
+      p = p.replace('http://localhost:3000', '');
+    }
+    if (p.startsWith('http://') || p.startsWith('https://')) {
+      try {
+        p = new URL(p).pathname;
+      } catch (e) {
+        return;
+      }
+    }
+    if (!p.startsWith('/')) p = '/' + p;
+    if (!seen.has(p)) {
+      seen.add(p);
+      paths.push(p);
+    }
+  }
+  if (service.image_url) push(service.image_url);
+  let imgs = service.images;
+  if (imgs && typeof imgs === 'string') {
+    try {
+      imgs = JSON.parse(imgs);
+    } catch (e) {
+      imgs = String(imgs).split(/[\n\r,]+/).map((u) => u.trim()).filter(Boolean);
+    }
+  }
+  if (imgs && Array.isArray(imgs)) {
+    for (const im of imgs) {
+      const s = typeof im === 'string' ? im : (im && (im.url || im.src || im));
+      push(s);
+    }
+  }
+  return paths;
+}
+
 // Функция для определения изображения по URL или названию
 function getImageForService(service, useCacheBuster = true) {
   const updatedAt = service.updated_at || service.updatedAt;
@@ -1915,40 +1957,20 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
           
-          // Основное изображение — всегда image_url из админки, галерея как запасные варианты
+          const adminPaths = collectAdminImagePathsOrdered(service);
           let slideImage;
           let imageCandidates;
-          const fixedMainUrl = service.image_url
-            ? service.image_url.replace(/^https?:\/\/[^/]+/, '').replace('http://localhost:3000', '') || null
-            : null;
-          let galleryImgs = service.images;
-          if (galleryImgs && typeof galleryImgs === 'string') {
-            try { galleryImgs = JSON.parse(galleryImgs); } catch(e) { galleryImgs = []; }
-          }
-          const uploadGallery = (Array.isArray(galleryImgs) ? galleryImgs : [])
-            .map(p => typeof p === 'string' ? p : (p && (p.url || p.src || '')))
-            .filter(p => p && p.startsWith('/uploads/'));
-
-          if (fixedMainUrl && fixedMainUrl.startsWith('/uploads/')) {
-            slideImage = addCacheBuster(fixedMainUrl, service.updated_at);
-            imageCandidates = [slideImage, ...uploadGallery.map(p => addCacheBuster(p, service.updated_at))];
-            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): основное фото из adminки:`, fixedMainUrl);
-          } else if (uploadGallery.length > 0) {
-            slideImage = addCacheBuster(uploadGallery[0], service.updated_at);
-            imageCandidates = uploadGallery.map(p => addCacheBuster(p, service.updated_at));
-            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): fallback на галерею:`, uploadGallery[0]);
+          if (adminPaths.length > 0) {
+            imageCandidates = adminPaths.map((p) => addCacheBuster(p, service.updated_at));
+            slideImage = imageCandidates[0];
           } else {
             slideImage = getImageForService(service, true);
             imageCandidates = [slideImage];
-            console.log(`📸 Популярная карточка ${index + 1}: fallback (нет image_url/images): ${slideImage}`);
+            console.warn('[Popular slider] Нет фото из админки для', service.title || service.url, '— показан fallback');
           }
-          
+
           const cleanedPrice = extractShiftPrice(service.price || '');
-          
-          if (adminPaths.length === 0) {
-            console.warn(`⚠️ Популярная карточка "${service.title}" без image_url и images — показан запасной снимок из /images/.`);
-          }
-          
+
           return {
             id: String(service.id),
             index: String(index + 1).padStart(2, '0'),
@@ -1992,26 +2014,12 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
 
-          // Основное изображение — всегда image_url из админки
-          const fixedMainUrlFb = service.image_url
-            ? service.image_url.replace(/^https?:\/\/[^/]+/, '').replace('http://localhost:3000', '') || null
-            : null;
-          let galleryImgsFb = service.images;
-          if (galleryImgsFb && typeof galleryImgsFb === 'string') {
-            try { galleryImgsFb = JSON.parse(galleryImgsFb); } catch(e) { galleryImgsFb = []; }
-          }
-          const uploadGalleryFb = (Array.isArray(galleryImgsFb) ? galleryImgsFb : [])
-            .map(p => typeof p === 'string' ? p : (p && (p.url || p.src || '')))
-            .filter(p => p && p.startsWith('/uploads/'));
-
+          const adminPathsFb = collectAdminImagePathsOrdered(service);
           let slideImage;
           let imageCandidates;
-          if (fixedMainUrlFb && fixedMainUrlFb.startsWith('/uploads/')) {
-            slideImage = addCacheBuster(fixedMainUrlFb, service.updated_at);
-            imageCandidates = [slideImage, ...uploadGalleryFb.map(p => addCacheBuster(p, service.updated_at))];
-          } else if (uploadGalleryFb.length > 0) {
-            slideImage = addCacheBuster(uploadGalleryFb[0], service.updated_at);
-            imageCandidates = uploadGalleryFb.map(p => addCacheBuster(p, service.updated_at));
+          if (adminPathsFb.length > 0) {
+            imageCandidates = adminPathsFb.map((p) => addCacheBuster(p, service.updated_at));
+            slideImage = imageCandidates[0];
           } else {
             slideImage = getImageForService(service, true);
             imageCandidates = [slideImage];
