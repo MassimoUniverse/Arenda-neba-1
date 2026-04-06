@@ -10,14 +10,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Recent context (what we fixed / how things work now)
+## Key behavior notes
 
 ### «Популярная техника» on the homepage (`index.html` → `public/script.js`)
 
 - Data comes from **`GET /api/popular-cards`**: services with `active = 1`, `is_popular = 1`, ordered by **`popular_order`**.
 - Admin toggles **`is_popular`**, **`popular_order`**, main photo **`image_url`**, gallery **`images`**, **`short_description`**, **`card_bullets`** via **`/admin.html`** → API **`PUT /api/admin/services/:id`**.
-- **Important (2026-04)**: The slider used to show **wrong/stock** images if `image_url` was under **`/images/...`** instead of **`/uploads/...`**, because the client only trusted uploads. **Fix**: `collectAdminImagePathsOrdered()` in **`public/script.js`** builds the slide image list in **admin order**: first **`image_url`**, then **`images[]`** (any normal path: `/uploads/`, `/images/`, full URL normalized to pathname). **`getImageForService()`** is only used when there are **no** admin paths.
-- Related helpers in **`script.js`**: `collectAdminImagePaths()` (sorted: uploads first — used elsewhere), `collectAdminImagePathsOrdered()` (homepage popular), `getImageForService()`, `addCacheBuster()`.
+- **Image priority (2026-04 fix)**: Slider always uses `image_url` from DB as the primary slide image. Falls back to `/uploads/` gallery images, then `getImageForService()`. `collectAdminImagePaths()` / `collectAdminImagePathsOrdered()` are helper functions used elsewhere.
+- **Cyrillic filenames in uploads**: When setting `img.src` via `innerHTML`, Cyrillic characters in the path must be percent-encoded (use `encodeURIComponent` on non-ASCII chars). Direct `img.src = path` assignment handles it automatically. Script uses `imageSrcEncoded` variable for the innerHTML template.
+- Cache busting: `addCacheBuster(url, updated_at)` appends `?v=<unix_ms>` derived from the `updated_at` SQLite datetime string.
+- Related helpers in **`script.js`**: `collectAdminImagePaths()`, `collectAdminImagePathsOrdered()`, `getImageForService()`, `addCacheBuster()`.
 
 ### Database fields worth knowing
 
@@ -36,11 +38,12 @@ npm run generate-pages # Regenerate /public/equipment/*.html from DB (see genera
 npm run fix-encoding   # fix-encoding.js — repair mixed UTF-8 / Win-1251 in DB
 npm run update         # update.sh (git pull + restart — environment-dependent)
 
-node init-database-safe.js   # Safe init; does not wipe existing DB
-node optimize-uploads.js     # Compress uploads to WebP (if present)
-node reset-admin.js          # Reset admin user
+node init-database-safe.js                    # Safe init; does not wipe existing DB
+node optimize-uploads.js                      # Compress uploads to WebP (if present)
+node reset-admin.js                           # Reset admin user
 node scripts/update-prices-2026.js
 node scripts/apply-equipment-specs-preset.js
+node scripts/rename-uploads-to-ascii.js       # Rename Cyrillic upload filenames to ASCII (+ updates DB)
 ```
 
 Local URL: **http://localhost:3000** · Admin: **`/admin.html`**
@@ -66,17 +69,22 @@ ADMIN_PASSWORD=admin123   # change in production
 
 ```
 server.js                    # Monolithic Express (~2800+ lines): routes, DB, uploads, HTML generation
+ecosystem.config.js          # PM2 config (app name: arenda-neba, cwd: /opt/arenda-neba, port: 3000)
 lib/slugify-filename.js      # ASCII-safe upload filenames
 
 public/
   index.html, script.js, styles.css           # Landing + «Популярная техника» slider
   admin.html, admin-script.js, admin-styles.css
-  equipment-page.js, equipment-page.css     # Equipment detail pages
+  equipment-page.js, equipment-page.css        # Equipment detail pages
+  animations.js, cookie-consent.js            # Standalone helpers loaded in index.html
   equipment/*.html                            # Often generated; do not hand-edit if generated
 
 uploads/                     # User/admin uploads (not in git; large on server)
 database.db                  # SQLite (gitignored locally; server has its own copy)
+scripts/server-setup-git.sh  # Runs on VPS during deploy: git pull → npm install → pm2 restart
 ```
+
+> **Root directory clutter**: The repo root contains many one-off `*.js` diagnostic/fix scripts and `FIX_*.md` / `SETUP_*.md` docs generated during previous incidents. Treat them as historical artifacts — they are not part of the normal workflow and can be ignored unless troubleshooting a specific past issue.
 
 ### Conventions
 
@@ -116,7 +124,9 @@ database.db                  # SQLite (gitignored locally; server has its own co
 
 **Credentials for SSH/plink** (host, user, password): store in **`.ssh-deploy.local`** (copy from **`.ssh-deploy.local.example`**). That file is **gitignored** — **never commit it**. Do not paste real passwords into `CLAUDE.md` or chat logs in production workflows.
 
-**What the deploy script does**: uploads **`scripts/server-setup-git.sh`**, runs **`git fetch` + checkout `main`** on the server, **`npm install`**, **`npm rebuild sqlite3`**, **`pm2 restart arenda-neba`**.
+**What the deploy script does**: uploads **`scripts/server-setup-git.sh`** via pscp, runs it via plink → `git fetch + checkout main`, `npm install`, `npm rebuild sqlite3` (must rebuild on Linux after every install), `pm2 restart arenda-neba`.
+
+**Server PM2 logs**: `pm2 logs arenda-neba` · error log at `/opt/arenda-neba/logs/pm2-error.log`.
 
 Optional: **`webhook-handler.js`** on port **3001** can auto-deploy on GitHub push (if configured on the server).
 
