@@ -2101,11 +2101,13 @@ async function initOurCapabilitiesSlider() {
         : src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
     });
     const imageSrc = normalizedCandidates[0] || '';
-    
+    // encodeURI нужен чтобы кирилличные имена файлов корректно работали через innerHTML
+    const imageSrcEncoded = imageSrc ? imageSrc.replace(/[^\x00-\x7F]/g, c => encodeURIComponent(c)) : '';
+
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" />
+          <img src="${imageSrcEncoded}" alt="${slide.title}" loading="eager" fetchpriority="high" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>
