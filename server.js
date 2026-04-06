@@ -10,6 +10,7 @@ const cors = require('cors');
 const iconv = require('iconv-lite');
 const axios = require('axios');
 require('dotenv').config();
+const { slugifyAsciiFilename } = require('./lib/slugify-filename.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -921,38 +922,18 @@ const storage = multer.diskStorage({
     // Получаем serviceId, serviceTitle и fileType из query параметров
     const serviceId = req.query.serviceId || 'unknown';
     const serviceTitle = req.query.serviceTitle || '';
-    const fileType = req.query.fileType || 'image';
+    const fileType = slugifyAsciiFilename(String(req.query.fileType || 'image'), 20) || 'image';
     
-    // Создаем slug из названия услуги (безопасное имя файла)
-    const slug = serviceTitle
-      ? serviceTitle
-          .toLowerCase()
-          .replace(/[^а-яёa-z0-9]/gi, '-') // Заменяем все кроме букв и цифр на дефис
-          .replace(/-+/g, '-') // Убираем множественные дефисы
-          .replace(/^-|-$/g, '') // Убираем дефисы в начале и конце
-          .substring(0, 50) // Ограничиваем длину
-      : '';
-    
-    // Получаем оригинальное имя файла без расширения (первые 30 символов)
-    const originalName = path.parse(file.originalname).name
-      .replace(/[^а-яёa-z0-9]/gi, '-')
-      .replace(/-+/g, '-')
-      .substring(0, 30);
+    // Только латиница в пути (транслитерация с русского)
+    const slug = serviceTitle ? slugifyAsciiFilename(serviceTitle, 50) : '';
     
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
     
-    // Упрощенный формат: {slug}-{type}-{timestamp}.ext
-    // Примеры: 
-    // avtovyshka-18-metrov-main-1704123456789.jpg
-    // avtovyshka-18-metrov-gallery-1704123456790.jpg
-    // avtovyshka-18-metrov-reach-1704123456791.jpg
     let filename;
     if (slug) {
-      // Используем только название услуги и тип файла
       filename = `${slug}-${fileType}-${timestamp}${ext}`;
     } else {
-      // Fallback если нет названия услуги
       filename = `service-${serviceId}-${fileType}-${timestamp}${ext}`;
     }
     
@@ -2614,15 +2595,7 @@ const videoUpload = multer({
       const serviceId = req.query.serviceId || 'homepage';
       const serviceTitle = req.query.serviceTitle || '';
       
-      // Создаем slug из названия
-      const slug = serviceTitle
-        ? serviceTitle
-            .toLowerCase()
-            .replace(/[^а-яёa-z0-9]/gi, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '')
-            .substring(0, 50)
-        : '';
+      const slug = serviceTitle ? slugifyAsciiFilename(serviceTitle, 50) : '';
       
       const timestamp = Date.now();
       const ext = path.extname(file.originalname);
