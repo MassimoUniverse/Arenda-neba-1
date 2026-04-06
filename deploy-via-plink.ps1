@@ -55,6 +55,8 @@ chmod +x /opt/arenda-neba/scripts/server-setup-git.sh
 /opt/arenda-neba/scripts/server-setup-git.sh
 cd /opt/arenda-neba
 npm install --production --no-audit --no-fund 2>/dev/null || true
+# sqlite3: после npm install на Linux часто нужна пересборка нативного модуля (иначе invalid ELF header → 502)
+npm rebuild sqlite3 --build-from-source 2>/dev/null || npm install sqlite3 --build-from-source --no-audit --no-fund
 pm2 restart arenda-neba
 pm2 save
 pm2 status arenda-neba
