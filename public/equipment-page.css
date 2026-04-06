@@ -265,16 +265,29 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   border-radius: 2px;
 }
 
+.mobile-menu-btn.active {
+  gap: 0;
+}
+
 .mobile-menu-btn.active span:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .mobile-menu-btn.active span:nth-child(2) {
   opacity: 0;
+  transform: scaleX(0);
 }
 
 .mobile-menu-btn.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 /* Хлебные крошки */
@@ -345,10 +358,20 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  grid-column: 1;
+}
+
+.equipment-content > .equipment-calculator {
+  grid-column: 1;
+}
+
+.equipment-content > .equipment-info {
+  grid-column: 2;
+  grid-row: 1 / 3;
 }
 
 .equipment-left .equipment-order-form {
-  margin-top: 0; /* Remove top margin since it's inside equipment-left */
+  margin-top: 0;
 }
 
 .equipment-gallery {
@@ -1501,10 +1524,19 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   
   .equipment-left {
     order: 1;
+    grid-column: 1;
   }
   
-  .equipment-info {
+  .equipment-info,
+  .equipment-content > .equipment-info {
     order: 2;
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .equipment-content > .equipment-calculator {
+    order: 3;
+    grid-column: 1;
   }
 
   .specs-grid,
@@ -2087,61 +2119,84 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 }
 
 /* =============================================
-   PAYMENT METHODS (equipment pages)
+   PAYMENT METHODS (equipment pages) — как на главной: сетка по центру
    ============================================= */
 .payment-methods-equip {
-  padding: 48px 0;
+  padding: 56px 0 52px;
   background: #f8f9fc;
+}
+
+.payment-methods-equip .container {
+  max-width: 1100px;
+}
+
+.payment-methods-header {
+  text-align: center;
+  margin-bottom: 28px;
+  padding: 0 12px;
 }
 
 .payment-methods-title {
   font-size: 28px;
   font-weight: 800;
-  text-align: center;
-  margin: 0 0 32px;
+  margin: 0 0 10px;
   color: #1a1f36;
+  letter-spacing: -0.02em;
+}
+
+.payment-methods-subtitle {
+  margin: 0 auto;
+  max-width: 520px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #64748b;
 }
 
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
+  justify-content: center;
+  justify-items: stretch;
   gap: 20px;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
+  padding: 0 8px;
 }
 
 .payment-method-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
+  gap: 14px;
+  padding: 28px 20px;
+  min-height: 0;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   text-align: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .payment-method-item:hover {
   border-color: #ff6b35;
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.12);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.14);
 }
 
 .payment-method-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .payment-method-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   stroke: #fff;
 }
 
@@ -2166,7 +2221,7 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 }
 
 .payment-method-item span {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #1a1f36;
   line-height: 1.35;
@@ -2174,25 +2229,59 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 
 @media (max-width: 768px) {
   .payment-methods-equip {
-    padding: 32px 0;
+    padding: 40px 0 36px;
+  }
+
+  .payment-methods-header {
+    margin-bottom: 22px;
   }
 
   .payment-methods-title {
     font-size: 22px;
-    margin-bottom: 24px;
+  }
+
+  .payment-methods-subtitle {
+    font-size: 15px;
   }
 
   .payment-methods-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 520px;
+    gap: 14px;
+    padding: 0 12px;
+  }
+
+  .payment-method-item {
+    padding: 20px 14px;
+    gap: 12px;
+  }
+
+  .payment-method-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .payment-method-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .payment-method-item span {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-methods-grid {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
     gap: 12px;
   }
 
   .payment-method-item {
-    padding: 18px 12px;
-    gap: 10px;
-  }
-
-  .payment-method-item span {
-    font-size: 13px;
+    padding: 18px 14px;
   }
 }

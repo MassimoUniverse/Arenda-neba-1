@@ -91,6 +91,8 @@ db.serialize(() => {
     maneuverability TEXT,
     setup_time TEXT,
     delivery_per_km INTEGER DEFAULT 85,
+    custom_specs TEXT DEFAULT '[]',
+    short_description TEXT DEFAULT '',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`, (err) => {
     if (err) {

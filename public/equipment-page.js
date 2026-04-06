@@ -243,11 +243,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         reach_diagram_url: service.reach_diagram_url
       });
       
-      // Применяем fixEncoding ко всем текстовым полям
+      // Применяем fixEncoding ко всем текстовым полям (description — HTML, не трогаем)
       const fixedService = {
         ...service,
         title: service.title ? fixEncoding(service.title) : service.title,
-        description: service.description ? fixEncoding(service.description) : service.description,
+        description: service.description || service.description,
         price: service.price ? fixEncoding(service.price) : service.price,
         height_lift: service.height_lift ? fixEncoding(service.height_lift) : service.height_lift,
         max_reach: service.max_reach ? fixEncoding(service.max_reach) : service.max_reach,
@@ -270,48 +270,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         titleEl.textContent = fixedService.title;
       }
       
-      // Обновляем описание
-      const descriptionEl = document.querySelector('.equipment-description, .equipment-intro p');
+      // Обновляем описание (innerHTML — description хранится как HTML)
+      const descriptionEl = document.querySelector('.equipment-description');
       if (descriptionEl && fixedService.description) {
-        descriptionEl.textContent = fixedService.description;
+        descriptionEl.innerHTML = fixedService.description;
       }
       
-      // Обновляем характеристики из новых полей
+      // Обновляем характеристики — приоритет: custom_specs из API, затем fallback на старые поля
       const specsGrid = document.querySelector('.specs-grid');
       if (specsGrid) {
-        const specs = [
-          { icon: '📏', label: 'Высота подъема', value: fixedService.height_lift },
-          { icon: '📐', label: 'Вылет стрелы', value: fixedService.max_reach },
-          { icon: '⚖️', label: 'Грузоподъемность корзины', value: fixedService.max_capacity },
-          { icon: '📦', label: 'Размер корзины (платформы)', value: fixedService.basket_size },
-          { icon: '🚗', label: 'Тип', value: fixedService.lift_type },
-          { icon: '🔋', label: 'Напряжение', value: fixedService.voltage },
-          { icon: '🎯', label: 'Маневренность', value: fixedService.maneuverability },
-          { icon: '⏱️', label: 'Время установки', value: fixedService.setup_time },
-          { icon: '📏', label: 'Длина в транспортном положении', value: fixedService.transport_length },
-          { icon: '📏', label: 'Высота в транспортном положении', value: fixedService.transport_height },
-          { icon: '📏', label: 'Ширина', value: fixedService.width },
-          { icon: '🔄', label: 'Угол поворота стрелы', value: fixedService.boom_rotation_angle },
-          { icon: '🔄', label: 'Угол поворота корзины', value: fixedService.basket_rotation_angle }
-        ];
+        let specs = [];
+        if (fixedService.custom_specs && Array.isArray(fixedService.custom_specs) && fixedService.custom_specs.length > 0) {
+          specs = fixedService.custom_specs.filter(s => s && s.label && s.value);
+        } else {
+          specs = [
+            { icon: '📏', label: 'Высота подъема', value: fixedService.height_lift },
+            { icon: '📐', label: 'Вылет стрелы', value: fixedService.max_reach },
+            { icon: '⚖️', label: 'Грузоподъемность корзины', value: fixedService.max_capacity },
+            { icon: '📦', label: 'Размер корзины (платформы)', value: fixedService.basket_size },
+            { icon: '🚗', label: 'Тип', value: fixedService.lift_type },
+            { icon: '🔋', label: 'Напряжение', value: fixedService.voltage },
+            { icon: '🎯', label: 'Маневренность', value: fixedService.maneuverability },
+            { icon: '⏱️', label: 'Время установки', value: fixedService.setup_time },
+            { icon: '📏', label: 'Длина в транспортном положении', value: fixedService.transport_length },
+            { icon: '📏', label: 'Высота в транспортном положении', value: fixedService.transport_height },
+            { icon: '📏', label: 'Ширина', value: fixedService.width },
+            { icon: '🔄', label: 'Угол поворота стрелы', value: fixedService.boom_rotation_angle },
+            { icon: '🔄', label: 'Угол поворота корзины', value: fixedService.basket_rotation_angle }
+          ].filter(s => s.value && String(s.value).trim().length > 0);
+        }
 
-        const hasAnySpec = specs.some(spec => spec.value && String(spec.value).trim().length > 0);
-
-        if (hasAnySpec) {
+        if (specs.length > 0) {
           specsGrid.innerHTML = '';
           specs.forEach(spec => {
-            if (spec.value) {
-              const specItem = document.createElement('div');
-              specItem.className = 'spec-item';
-              specItem.innerHTML = `
-                <div class="spec-icon">${spec.icon}</div>
-                <div class="spec-info">
-                  <div class="spec-label">${spec.label}</div>
-                  <div class="spec-value">${spec.value}</div>
-                </div>
-              `;
-              specsGrid.appendChild(specItem);
-            }
+            const specItem = document.createElement('div');
+            specItem.className = 'spec-item';
+            specItem.innerHTML = `
+              <div class="spec-icon">${spec.icon || '📏'}</div>
+              <div class="spec-info">
+                <div class="spec-label">${spec.label}</div>
+                <div class="spec-value">${spec.value}</div>
+              </div>
+            `;
+            specsGrid.appendChild(specItem);
           });
         }
       }
@@ -342,16 +343,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
         
-        // ВАЖНО: Если цена за полсмену не найдена, но есть цена за смену, вычисляем как 83% от смены
-        if (!priceHalfShift && priceShift) {
-          const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
-          if (shiftNum && shiftNum > 0) {
-            priceHalfShift = Math.round(shiftNum * 0.83).toString();
-            console.log('💡 Цена за полсмену вычислена как 83% от смены:', priceHalfShift);
-          }
-        }
-        
-        // Если цена за смену не найдена, но есть цена за полсмену, вычисляем смену
         if (!priceShift && priceHalfShift) {
           const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''), 10);
           if (halfShiftNum && halfShiftNum > 0) {
@@ -360,17 +351,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
         
-        // Если обе цены не найдены, используем значения по умолчанию
         if (!priceShift) {
           priceShift = '18000';
-          priceHalfShift = Math.round(18000 * 0.83).toString();
-          console.warn('⚠️ Цены не найдены, используются значения по умолчанию');
-        } else if (!priceHalfShift) {
-          // Если есть только смена, вычисляем полсмену
-          const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
-          if (shiftNum && shiftNum > 0) {
-            priceHalfShift = Math.round(shiftNum * 0.83).toString();
-          }
+          console.warn('⚠️ Цена за смену не найдена, используется значение по умолчанию');
         }
         
         pricingTable.innerHTML = '';
@@ -1539,12 +1522,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
     
-    // Если цена за полсмену все еще не найдена, но есть цена за смену, вычисляем как 83% от смены
-    if (!baseHalfShift && basePrice && basePrice > 0) {
-      baseHalfShift = Math.round(basePrice * 0.83);
-      console.log('💡 Цена за полсмену вычислена как 83% от смены:', baseHalfShift);
-    }
-    
     // Если цена за смену не найдена, пробуем извлечь из таблицы цен на странице
     if (!basePrice || basePrice === 0) {
       const pricingTable = document.querySelector('.pricing-table');
@@ -1569,18 +1546,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('⚠️ Цена за смену не найдена, используется значение по умолчанию:', basePrice);
     }
     
-    // Если цена за полсмену все еще не найдена после всех попыток, вычисляем как 83% от смены
-    if (!baseHalfShift && basePrice && basePrice > 0) {
-      baseHalfShift = Math.round(basePrice * 0.83);
-      console.log('💡 Цена за полсмену вычислена как 83% от смены (fallback):', baseHalfShift);
-    }
-    
     console.log('💰 Итоговые цены для калькулятора:', { baseHalfShift, basePrice });
     
     console.log('Initializing calculator.');
     
     // Создаём кастомный выпадающий список для количества смен
     const shiftsSelect = document.getElementById('equip-calc-shifts');
+    if (shiftsSelect && !baseHalfShift) {
+      const halfOpt = shiftsSelect.querySelector('option[value="0.5"]');
+      if (halfOpt) halfOpt.remove();
+      if (shiftsSelect.value === '0.5') shiftsSelect.value = '1';
+    }
     const customShiftsInput = document.getElementById('equip-calc-shifts-custom');
     const shiftsField = shiftsSelect ? shiftsSelect.closest('.calc-field') : null;
     const shiftsFieldParent = shiftsField ? shiftsField.parentNode : null;
@@ -1808,13 +1784,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
         
-        if (baseHalfShift) {
-          total = baseHalfShift;
-        } else {
-          // Если полсмены нет, используем 83% от полной смены (округление)
-          total = Math.round(basePrice * 0.83);
-          console.log('💡 Цена за полсмену вычислена как 83% от смены (в расчете):', total);
-        }
+        total = baseHalfShift || basePrice;
       } else {
         total = basePrice * shifts;
       }

@@ -450,6 +450,22 @@ a.logo:hover {
   background: linear-gradient(135deg, #25d366 0%, #059142 100%);
 }
 
+/* MAX (мессенджер VK) — в хедере; логотип из images/max-logo.svg */
+.header-messenger.max {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-messenger.max .header-max-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
 .header-messenger.tg {
   background: linear-gradient(135deg, #1da1ff 0%, #0088cc 100%);
 }
@@ -2470,7 +2486,8 @@ input[type='number'] {
 
 .payment-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
+  justify-content: center;
   gap: 20px;
   max-width: 960px;
   margin: 0 auto;
@@ -2881,6 +2898,12 @@ input[type='number'] {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.messenger-btn.max {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 45%, #5b21b6 100%);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35), 0 2px 4px rgba(91, 33, 182, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .messenger-btn.email {
   background: linear-gradient(135deg, #ea4335 0%, #c5221f 100%);
   box-shadow: 0 4px 16px rgba(234, 67, 53, 0.35), 0 2px 4px rgba(234, 67, 53, 0.2);
@@ -3118,18 +3141,20 @@ input[type='number'] {
 }
 
 .footer-social-row a {
-  width: 44px;
+  min-width: 44px;
   height: 44px;
+  padding: 0 10px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .footer-social-row a:hover {
