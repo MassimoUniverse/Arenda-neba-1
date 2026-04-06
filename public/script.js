@@ -1,3 +1,11 @@
+// Вспомогательная функция: берёт первый абзац из HTML-описания (без тегов), обрезает до maxLen
+function getShortDescription(html, maxLen) {
+  if (!html) return '';
+  maxLen = maxLen || 160;
+  const plain = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return plain.length > maxLen ? plain.substring(0, maxLen).replace(/\s+\S*$/, '') + '…' : plain;
+}
+
 // Мобильное меню
 document.addEventListener('DOMContentLoaded', () => {
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -108,7 +116,7 @@ function initContactCards() {
       addressCard.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        window.open('https://yandex.ru/maps/?text=Санкт-Петербург,+улица+Беринга+27+корпус+5', '_blank', 'noopener');
+        window.open('https://yandex.ru/maps/?text=Санкт-Петербург,+улица+Беринга+27+корпус+6', '_blank', 'noopener');
       });
     }
     // Also make icon clickable
@@ -245,6 +253,7 @@ const STATIC_CALC_EQUIPMENT = {
     name: 'Автовышка‑вездеход 30 м',
     description: 'Работа там, где обычная техника не проедет. Полноприводное шасси для бездорожья, стройплощадок и грунтовых дорог.',
     baseShift: 30000,
+    baseHalfShift: null,
     includedKm: 50,
     extraPerKm: 85,
     height: 30,
@@ -256,6 +265,7 @@ const STATIC_CALC_EQUIPMENT = {
     name: 'Самоходная автовышка',
     description: 'Манёвренная техника для внутренних работ в помещениях, складах и торговых центрах. Компактные габариты позволяют проезжать через стандартные дверные проёмы.',
     baseShift: 18000,
+    baseHalfShift: null,
     includedKm: 20,
     extraPerKm: 85,
     height: 12,
@@ -285,8 +295,7 @@ let CALC_EQUIPMENT = {
   15: {
     name: 'Автовышка 15 м',
     description: 'Компактная автовышка для работ во дворах и стеснённых условиях. Подходит для обслуживания фасадов, рекламы и освещения.',
-    baseHalfShift: 15000,
-    baseShift: 18000,
+    baseShift: 20000,
     includedKm: 30,
     extraPerKm: 85,
     height: 15,
@@ -298,7 +307,7 @@ let CALC_EQUIPMENT = {
     name: 'Автовышка 16 м',
     description: 'Оптимальна для сервисных и монтажных работ. Платформа 2×4 м, грузоподъёмность 1000 кг — удобна для бригады с инструментом.',
     baseHalfShift: 15000,
-    baseShift: 18000,
+    baseShift: 20000,
     includedKm: 30,
     extraPerKm: 85,
     height: 16,
@@ -309,8 +318,7 @@ let CALC_EQUIPMENT = {
   17: {
     name: 'Автовышка 17 м',
     description: 'Универсальная автовышка для высотных работ до 5–6 этажа. Подходит для монтажа, обслуживания фасадов и рекламных конструкций.',
-    baseHalfShift: 15000,
-    baseShift: 18000,
+    baseShift: 20000,
     includedKm: 30,
     extraPerKm: 85,
     height: 17,
@@ -321,11 +329,11 @@ let CALC_EQUIPMENT = {
   18: {
     name: 'Автовышка 18 м',
     description: 'Популярная модель для работ на фасадах и рекламных конструкциях. Большая корзина СУПЕРДЕК для удобной работы.',
-    baseHalfShift: 16000,
-    baseShift: 20000,
+    baseHalfShift: 18000,
+    baseShift: 22000,
     includedKm: 30,
     extraPerKm: 85,
-    height: 16,
+    height: 18,
     capacity: 1000,
     boom: 11,
     image: '/images/avtovyshka-18m.webp',
@@ -333,8 +341,8 @@ let CALC_EQUIPMENT = {
   21: {
     name: 'Автовышка 21 м',
     description: 'Универсальная техника с большой платформой и хорошим запасом высоты. Подходит для работ до 7 этажа.',
-    baseHalfShift: 16000,
-    baseShift: 21000,
+    baseHalfShift: 20000,
+    baseShift: 24000,
     includedKm: 30,
     extraPerKm: 85,
     height: 21,
@@ -345,7 +353,8 @@ let CALC_EQUIPMENT = {
   25: {
     name: 'Автовышка 25 м',
     description: 'Работы на высоте до 8–9 этажа. Подходит для промышленных объектов, высотного монтажа и обслуживания зданий.',
-    baseShift: 21000,
+    baseHalfShift: 20000,
+    baseShift: 23000,
     includedKm: 40,
     extraPerKm: 85,
     height: 25,
@@ -367,7 +376,7 @@ let CALC_EQUIPMENT = {
   45: {
     name: 'Автовышка 45 м',
     description: 'Для крупных объектов и промышленных площадок. Максимальная высота подъёма для сложных строительных и монтажных задач.',
-    baseShift: 22000,
+    baseShift: 36000,
     includedKm: 50,
     extraPerKm: 85,
     height: 45,
@@ -421,6 +430,58 @@ function addCacheBuster(url, updatedAt) {
   }
   return url + separator + 'v=' + timestamp;
 }
+
+/** Пути из админки: image_url + галерея images[], без дубликатов. */
+function collectAdminImagePaths(service) {
+  const paths = [];
+  const seen = new Set();
+  function push(raw) {
+    if (!raw || typeof raw !== 'string') return;
+    let p = raw.trim();
+    if (!p) return;
+    if (p.startsWith('http://localhost:3000/')) {
+      p = p.replace('http://localhost:3000', '');
+    }
+    if (p.startsWith('http://') || p.startsWith('https://')) {
+      try {
+        p = new URL(p).pathname;
+      } catch (e) {
+        return;
+      }
+    }
+    if (!p.startsWith('/')) p = '/' + p;
+    if (!seen.has(p)) {
+      seen.add(p);
+      paths.push(p);
+    }
+  }
+  if (service.image_url) push(service.image_url);
+  if (service.images && Array.isArray(service.images)) {
+    for (const im of service.images) {
+      const s = typeof im === 'string' ? im : (im && (im.url || im.src || im));
+      push(s);
+    }
+  }
+  return paths;
+}
+
+function stackCardImgOnError(img) {
+  try {
+    const encoded = img.getAttribute('data-candidates');
+    if (!encoded) return;
+    const candidates = JSON.parse(decodeURIComponent(encoded));
+    let idx = parseInt(img.getAttribute('data-candidate-idx') || '0', 10) + 1;
+    if (idx < candidates.length) {
+      img.setAttribute('data-candidate-idx', String(idx));
+      img.src = candidates[idx];
+      return;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  img.onerror = null;
+}
+window.stackCardImgOnError = stackCardImgOnError;
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service, useCacheBuster = true) {
@@ -542,6 +603,68 @@ function parsePrice(priceStr) {
   }
   
   return { baseShift, baseHalfShift };
+}
+
+/** Обновить нативный select «смен» и кастомный dropdown: полусмена только если в конфиге есть baseHalfShift */
+function syncMainCalcHalfShiftOption() {
+  const shiftsSelectEl = document.getElementById('calc-shifts');
+  const equipSel = document.getElementById('calc-equipment');
+  if (!shiftsSelectEl || !equipSel) return;
+  const config = CALC_EQUIPMENT[equipSel.value];
+  if (!config) return;
+  const allowHalf = config.baseHalfShift != null && config.baseHalfShift !== '' && config.baseHalfShift !== undefined;
+  let halfOpt = shiftsSelectEl.querySelector('option[value="0.5"]');
+  if (allowHalf) {
+    if (!halfOpt) {
+      halfOpt = document.createElement('option');
+      halfOpt.value = '0.5';
+      halfOpt.textContent = 'Полсмены';
+      shiftsSelectEl.insertBefore(halfOpt, shiftsSelectEl.firstChild);
+    }
+  } else {
+    if (halfOpt) halfOpt.remove();
+    if (shiftsSelectEl.value === '0.5') shiftsSelectEl.value = '1';
+  }
+  const custom = shiftsSelectEl.previousElementSibling;
+  if (!custom || !custom.classList.contains('calc-select')) return;
+  const list = custom.querySelector('.calc-select-options-list');
+  const btn = custom.querySelector('.calc-select-current');
+  if (!list || !btn) return;
+  list.innerHTML = '';
+  Array.from(shiftsSelectEl.options).forEach((opt) => {
+    const li = document.createElement('li');
+    li.className = 'calc-select-option';
+    li.dataset.value = opt.value;
+    li.textContent = opt.textContent;
+    if (opt.selected) li.classList.add('is-active');
+    li.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      shiftsSelectEl.value = opt.value;
+      btn.textContent = opt.textContent;
+      list.querySelectorAll('.calc-select-option').forEach((el) => el.classList.remove('is-active'));
+      li.classList.add('is-active');
+      custom.classList.remove('open');
+      const shiftsField = shiftsSelectEl.closest('.field');
+      if (shiftsField) shiftsField.classList.remove('is-open');
+      const customInput = document.getElementById('calc-shifts-custom');
+      if (customInput) {
+        if (opt.value === 'more') {
+          customInput.style.display = 'block';
+          customInput.required = true;
+        } else {
+          customInput.style.display = 'none';
+          customInput.required = false;
+        }
+      }
+      if (typeof window.updateCalculatorSum === 'function') window.updateCalculatorSum();
+    });
+    list.appendChild(li);
+  });
+  btn.textContent = shiftsSelectEl.options[shiftsSelectEl.selectedIndex]?.textContent || '';
+  list.querySelectorAll('.calc-select-option').forEach((el) => {
+    el.classList.toggle('is-active', el.dataset.value === shiftsSelectEl.value);
+  });
 }
 
 // Загрузка данных для калькулятора из API
@@ -670,7 +793,7 @@ async function loadCalculatorEquipmentFromAPI() {
       
       dynamicEquipment[key] = {
         name: service.title,
-        description: service.description || '',
+        description: service.short_description || getShortDescription(service.description),
         baseShift: prices.baseShift,
         baseHalfShift: prices.baseHalfShift,
         includedKm: 30,
@@ -691,6 +814,8 @@ async function loadCalculatorEquipmentFromAPI() {
     
     // Заполняем select опциями
     populateCalculatorSelect();
+    if (typeof syncMainCalcHalfShiftOption === 'function') syncMainCalcHalfShiftOption();
+    if (typeof window.updateCalculatorSum === 'function') window.updateCalculatorSum();
     
     console.log('✅ Calculator equipment loaded from API:', Object.keys(CALC_EQUIPMENT).length, 'items');
   } catch (error) {
@@ -961,7 +1086,7 @@ async function displayServices() {
         return {
           title: service.title,
           price: service.price || '',
-          short: service.description || '',
+          short: service.short_description || getShortDescription(service.description),
           image: image,
           url: service.url || `/equipment/${service.title.toLowerCase().replace(/\s+/g, '-')}.html`
         };
@@ -1286,10 +1411,10 @@ function initCalculator() {
     const config = equipmentKey ? CALC_EQUIPMENT[equipmentKey] : null;
     if (!config) return null;
     let total;
-    if (shifts === 0.5 && config.baseHalfShift) {
-      total = config.baseHalfShift;
-    } else if (shifts === 0.5 && !config.baseHalfShift) {
-      total = Math.round((config.baseShift || 0) * 0.83);
+    if (shifts === 0.5) {
+      total = (config.baseHalfShift != null && config.baseHalfShift !== '')
+        ? config.baseHalfShift
+        : (config.baseShift || 0);
     } else {
       total = (config.baseShift || 0) * Math.max(shifts, 1);
     }
@@ -1486,6 +1611,7 @@ function initCalculator() {
     // Обработчик изменения select (для обновления при динамической загрузке)
     selectEl.addEventListener('change', () => {
       updatePreview();
+      syncMainCalcHalfShiftOption();
       updateCalculatorSum();
       // Обновляем кастомный select
       const customSelect = selectEl.parentNode.querySelector('.calc-select');
@@ -1682,6 +1808,8 @@ function initCalculator() {
     }
   });
 
+  window.updateCalculatorSum = updateCalculatorSum;
+  syncMainCalcHalfShiftOption();
   updateCalculatorSum();
 }
 
@@ -1692,14 +1820,14 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '1',
     index: '01',
-    title: 'Автовышка 13 метров',
-    text: 'Компактная автовышка-платформа для работ на небольшой высоте.',
+    title: 'Автовышка 16 метров',
+    text: 'Компактная автовышка для работ на средних высотах.',
     bullets: [
-      'Грузоподъёмность корзины: 400 кг',
+      'Грузоподъёмность корзины: 200 кг',
       'Размеры корзины (платформы): 2х4 м'
     ],
-    image: '/images/avtovyshka-13m.webp',
-    url: '/equipment/avtovyshka-13m.html',
+    image: '/images/avtovyshka-16m.webp',
+    url: '/equipment/avtovyshka-16m.html',
     price: 'от 18 000 ₽/смена'
   },
   {
@@ -1731,14 +1859,14 @@ const POPULAR_EQUIPMENT_SLIDES = [
   {
     id: '4',
     index: '04',
-    title: 'Автовышка 29 метров',
-    text: 'Мощная техника для высотных работ. Работа на высоте до 89 этажа.',
+    title: 'Автовышка 25 метров',
+    text: 'Мощная техника для высотных работ на зданиях и конструкциях.',
     bullets: [
       'Грузоподъёмность корзины: 200 кг',
-      'Размеры корзины (платформы): 2х4 м'
+      'Размер корзины: 1,4 x 0,8 м'
     ],
-    image: '/images/avtovyshka-29m.webp',
-    url: '/equipment/avtovyshka-29m.html',
+    image: '/images/avtovyshka-25m.webp',
+    url: '/equipment/avtovyshka-25m.html',
     price: 'от 26 000 ₽/смена'
   }
 ];
@@ -1754,10 +1882,10 @@ async function initOurCapabilitiesSlider() {
   
   // Определяем URL популярных машин
   const popularUrls = [
-    '/equipment/avtovyshka-13m.html',
+    '/equipment/avtovyshka-16m.html',
     '/equipment/avtovyshka-18m.html',
     '/equipment/avtovyshka-21m.html',
-    '/equipment/avtovyshka-29m.html'
+    '/equipment/avtovyshka-25m.html'
   ];
   
   let slidesData = POPULAR_EQUIPMENT_SLIDES;
@@ -1791,82 +1919,35 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
           
-          // Используем getImageForService с cache busting для популярных карточек
-          // ВАЖНО: Принудительно используем image_url из базы, если он есть
-          let slideImage = null;
-          
-          // Приоритет 1: image_url из базы (если есть) - ОБЯЗАТЕЛЬНО для популярных карточек
-          if (service.image_url) {
-            let imgUrl = service.image_url;
-            // Убираем localhost если есть
-            if (imgUrl.startsWith('http://localhost:3000/')) {
-              imgUrl = imgUrl.replace('http://localhost:3000', '');
-            }
-            // Убираем домен если есть
-            if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
-              try {
-                const urlObj = new URL(imgUrl);
-                imgUrl = urlObj.pathname;
-              } catch (e) {
-                // Если не удалось распарсить URL, оставляем как есть
-                console.warn('⚠️ Не удалось распарсить URL:', imgUrl);
-              }
-            }
-            // Убеждаемся, что путь начинается с /
-            if (!imgUrl.startsWith('/')) {
-              imgUrl = '/' + imgUrl;
-            }
-            // Добавляем cache busting с timestamp из updated_at или текущим временем
-            const cacheBuster = service.updated_at 
-              ? new Date(service.updated_at).getTime() 
-              : Date.now();
-            slideImage = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 't=' + cacheBuster;
-            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): используем image_url из базы: ${slideImage}`);
-          }
-          // Приоритет 2: первое изображение из массива images
-          else if (service.images && Array.isArray(service.images) && service.images.length > 0) {
-            let imgUrl = typeof service.images[0] === 'string' ? service.images[0] : (service.images[0].url || service.images[0]);
-            if (imgUrl.startsWith('http://localhost:3000/')) {
-              imgUrl = imgUrl.replace('http://localhost:3000', '');
-            }
-            if (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) {
-              const urlObj = new URL(imgUrl);
-              imgUrl = urlObj.pathname;
-            }
-            slideImage = addCacheBuster(imgUrl, service.updated_at);
-            console.log(`📸 Популярная карточка ${index + 1}: используем первое изображение из images: ${slideImage}`);
-          }
-          // Приоритет 3: fallback через getImageForService
-          else {
+          // Сначала все пути из админки (image_url + галерея), затем только статический fallback
+          const adminPaths = collectAdminImagePaths(service);
+          let slideImage;
+          let imageCandidates;
+          if (adminPaths.length > 0) {
+            imageCandidates = adminPaths.map(p => addCacheBuster(p, service.updated_at));
+            slideImage = imageCandidates[0];
+            console.log(`📸 Популярная карточка ${index + 1} (${service.title}): админ-пути (${adminPaths.length}):`, adminPaths[0]);
+          } else {
             slideImage = getImageForService(service, true);
-            console.log(`📸 Популярная карточка ${index + 1}: используем fallback: ${slideImage}`);
+            imageCandidates = [slideImage];
+            console.log(`📸 Популярная карточка ${index + 1}: fallback (нет image_url/images): ${slideImage}`);
           }
           
           const cleanedPrice = extractShiftPrice(service.price || '');
           
-          // Детальное логирование для диагностики
-          console.log(`📸 Популярная карточка ${index + 1}:`, {
-            id: service.id,
-            title: service.title,
-            image_url: service.image_url || '(НЕТ)',
-            images: service.images || '(НЕТ)',
-            slideImage: slideImage,
-            updated_at: service.updated_at || '(НЕТ)',
-            url: service.url || '(НЕТ)'
-          });
-          
-          // Если image_url пустой, выводим предупреждение
-          if (!service.image_url && (!service.images || service.images.length === 0)) {
-            console.warn(`⚠️ Популярная карточка "${service.title}" не имеет image_url и images! Используется fallback.`);
+          if (adminPaths.length === 0) {
+            console.warn(`⚠️ Популярная карточка "${service.title}" без image_url и images — показан запасной снимок из /images/.`);
           }
           
           return {
             id: String(service.id),
             index: String(index + 1).padStart(2, '0'),
             title: service.title,
-            text: service.description,
+            text: service.short_description || (fallbackSlide && fallbackSlide.text) || '',
             bullets: bullets,
             image: slideImage,
+            imageCandidates: imageCandidates,
+            updated_at: service.updated_at,
             url: service.url,
             price: cleanedPrice || service.price
           };
@@ -1901,19 +1982,30 @@ async function initOurCapabilitiesSlider() {
             bullets = fallbackSlide.bullets;
           }
 
-          // Определяем изображение (с нормализацией localhost URLs)
-          let slideImage = getImageForService(service);
-          const serviceUrl = (service.url || '').toLowerCase();
-          if (slideImage === '/images/avtovyshka-13m.webp' && !service.image_url && !(service.images && service.images.length > 0)) {
-            if (serviceUrl.includes('13m')) slideImage = '/images/avtovyshka-13m.webp';
-            else if (serviceUrl.includes('18m')) slideImage = '/images/avtovyshka-18m.webp';
-            else if (serviceUrl.includes('21m')) slideImage = '/images/avtovyshka-21m.webp';
-            else if (serviceUrl.includes('29m')) slideImage = '/images/avtovyshka-29m.webp';
+          const adminPathsFb = collectAdminImagePaths(service);
+          let slideImage;
+          let imageCandidates;
+          if (adminPathsFb.length > 0) {
+            imageCandidates = adminPathsFb.map(p => addCacheBuster(p, service.updated_at));
+            slideImage = imageCandidates[0];
+          } else {
+            slideImage = getImageForService(service, true);
+            const serviceUrl = (service.url || '').toLowerCase();
+            const baseNoQuery = (slideImage || '').split('?')[0];
+            if (baseNoQuery === '/images/avtovyshka-13m.webp' && !service.image_url && !(service.images && service.images.length > 0)) {
+              let base = '/images/avtovyshka-13m.webp';
+              if (serviceUrl.includes('13m')) base = '/images/avtovyshka-13m.webp';
+              else if (serviceUrl.includes('18m')) base = '/images/avtovyshka-18m.webp';
+              else if (serviceUrl.includes('21m')) base = '/images/avtovyshka-21m.webp';
+              else if (serviceUrl.includes('29m')) base = '/images/avtovyshka-29m.webp';
+              slideImage = addCacheBuster(base, service.updated_at);
+            }
+            imageCandidates = [slideImage];
           }
 
           // Если сервер всё же вернул битую кодировку — берём fallback текст, но оставляем картинку/URL из базы
           const title = String(service.title || '');
-          const text = String(service.description || '');
+          const text = service.short_description || getShortDescription(service.description);
           const price = String(service.price || '');
 
           const hasBadEncoding =
@@ -1930,6 +2022,8 @@ async function initOurCapabilitiesSlider() {
               text: fallbackSlide.text,
               bullets: fallbackSlide.bullets || [],
               image: slideImage,
+              imageCandidates: imageCandidates,
+              updated_at: service.updated_at,
               url: service.url || popularUrls[index],
               price: cleanedFallbackPrice || fallbackSlide.price
             };
@@ -1943,6 +2037,8 @@ async function initOurCapabilitiesSlider() {
             text,
             bullets: bullets.length >= 2 ? bullets : (fallbackSlide?.bullets || []),
             image: slideImage,
+            imageCandidates: imageCandidates,
+            updated_at: service.updated_at,
             url: service.url || popularUrls[index],
             price: cleanedPrice || price
           };
@@ -1979,24 +2075,24 @@ async function initOurCapabilitiesSlider() {
 
     const counter = `${String(index0 + 1).padStart(2, '0')}/${totalCardsStr}`;
 
-    // ВАЖНО: Используем image из slide (который уже содержит правильный image_url из базы)
-    let imageSrc = slide.image;
-    
-    // Убеждаемся, что imageSrc содержит cache buster
-    if (imageSrc && !imageSrc.includes('?t=') && !imageSrc.includes('&t=')) {
-      // Если в slide есть updated_at, используем его для cache busting
-      const updatedAt = slide.updated_at || slide.updatedAt;
-      if (updatedAt) {
-        imageSrc = addCacheBuster(imageSrc, updatedAt);
-      } else {
-        imageSrc = imageSrc + '?t=' + Date.now();
-      }
-    }
+    const candidatesRaw = (slide.imageCandidates && slide.imageCandidates.length)
+      ? slide.imageCandidates
+      : (slide.image ? [slide.image] : []);
+    const updatedAtSlide = slide.updated_at || slide.updatedAt;
+    const normalizedCandidates = candidatesRaw.map((src) => {
+      if (!src) return src;
+      if (/[?&](?:t|v)=/.test(src)) return src;
+      return updatedAtSlide
+        ? addCacheBuster(src, updatedAtSlide)
+        : src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
+    });
+    const imageSrc = normalizedCandidates[0] || '';
+    const dataCandidatesAttr = encodeURIComponent(JSON.stringify(normalizedCandidates));
     
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" crossorigin="anonymous" onerror="this.onerror=null; this.src='${imageSrc.split('?')[0]}?t=' + Date.now();" />
+          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" data-candidates="${dataCandidatesAttr}" data-candidate-idx="0" onerror="window.stackCardImgOnError(this)" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>

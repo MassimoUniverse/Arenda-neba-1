@@ -84,7 +84,7 @@ function generateUrlFromTitle(title) {
 function generateEquipmentPageHTML(service) {
   // title — без fixEncoding, чтобы сохранялся дефис (Автовышка-платформа)
   const title = (service.title != null && String(service.title).trim()) ? String(service.title).trim() : 'Автовышка';
-  const description = service.description ? fixEncoding(service.description) : '';
+  const description = service.description || '';
   const price = service.price ? fixEncoding(service.price) : '';
   const imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
   const url = service.url || '';
@@ -127,7 +127,6 @@ function generateEquipmentPageHTML(service) {
     if (shiftMatch) {
       priceShift = shiftMatch[1].replace(/\s/g, '');
     } else {
-      // Если нет цены за смену в строке, пробуем найти любое число
       const anyPriceMatch = price.match(/(\d+[\s\d]*)/);
       if (anyPriceMatch) {
         priceShift = anyPriceMatch[1].replace(/\s/g, '');
@@ -135,16 +134,6 @@ function generateEquipmentPageHTML(service) {
     }
   }
   
-  // ВАЖНО: Если цена за полсмену не найдена, но есть цена за смену, ВСЕГДА вычисляем как 83% от смены
-  if (!priceHalfShift && priceShift) {
-    const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
-    if (shiftNum && shiftNum > 0) {
-      priceHalfShift = Math.round(shiftNum * 0.83).toString();
-      console.log(`💡 Цена за полсмену вычислена как 83% от смены: ${priceHalfShift} (смена: ${priceShift})`);
-    }
-  }
-  
-  // Если цена за смену не найдена, но есть цена за полсмену, вычисляем смену
   if (!priceShift && priceHalfShift) {
     const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''), 10);
     if (halfShiftNum && halfShiftNum > 0) {
@@ -153,17 +142,9 @@ function generateEquipmentPageHTML(service) {
     }
   }
   
-  // Если обе цены не найдены, используем значения по умолчанию
   if (!priceShift) {
-    priceShift = '18000'; // Значение по умолчанию
-    priceHalfShift = Math.round(18000 * 0.83).toString();
-    console.warn(`⚠️ Цены не найдены, используются значения по умолчанию: смена=${priceShift}, полсмена=${priceHalfShift}`);
-  } else if (!priceHalfShift) {
-    // Если есть только смена, вычисляем полсмену
-    const shiftNum = parseInt(priceShift.replace(/\s/g, ''), 10);
-    if (shiftNum && shiftNum > 0) {
-      priceHalfShift = Math.round(shiftNum * 0.83).toString();
-    }
+    priceShift = '18000';
+    console.warn(`⚠️ Цена за смену не найдена, используется значение по умолчанию: ${priceShift}`);
   }
   
   // Характеристики из новых полей (применяем fixEncoding)
@@ -176,6 +157,15 @@ function generateEquipmentPageHTML(service) {
   const width = service.width ? fixEncoding(service.width) : '';
   const boomRotationAngle = service.boom_rotation_angle ? fixEncoding(service.boom_rotation_angle) : '';
   const basketRotationAngle = service.basket_rotation_angle ? fixEncoding(service.basket_rotation_angle) : '';
+
+  // Парсим custom_specs (динамические характеристики из админки)
+  let customSpecs = [];
+  if (service.custom_specs) {
+    try {
+      const parsed = typeof service.custom_specs === 'string' ? JSON.parse(service.custom_specs) : service.custom_specs;
+      if (Array.isArray(parsed)) customSpecs = parsed;
+    } catch(e) { /* ignore */ }
+  }
   
   // Формируем breadcrumb
   const breadcrumbTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
@@ -249,10 +239,8 @@ function generateEquipmentPageHTML(service) {
                                 <path d="M20.5 4.4 4.3 10.8c-.8.3-.8 1.1-.1 1.3l3.5 1.1 1.4 4.5c.1.4.5.6.9.3l2-1.6 3.3 2.4c.6.4 1.1.2 1.3-.6l2.2-12c.2-.8-.2-1.2-.8-1zM9.3 13.2l7.2-4.7c.2-.1.4 0 .2.2l-5.9 5.4-.2 2.6-1.3-3.5z" />
                             </svg>
                         </a>
-                        <a href="https://wa.me/79910009111" class="header-messenger wa" target="_blank" rel="noopener" aria-label="WhatsApp">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 4a8 8 0 0 0-6.8 12.1L4 20l4-1.1A8 8 0 1 0 12 4zm0 2a6 6 0 1 1-3.1 11.1l-.2-.1-2 .6.6-2-.1-.2A6 6 0 0 1 12 6zm-2.2 2.8c-.2 0-.4 0-.5.2-.3.3-.6.8-.6 1.4 0 .8.5 1.5.6 1.6.1.2 1.1 1.8 2.8 2.6 1.4.6 1.8.6 2.1.5.4-.1.9-.4 1-.8.1-.3.1-.6.1-.7 0-.1-.1-.2-.3-.3l-1-.5c-.2-.1-.3-.1-.4.1l-.4.5c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.4-.9-.5-.4-.8-1-1-1.2-.1-.2 0-.3.1-.4l.3-.3c.2-.2.2-.3.3-.5l-.3-1c-.1-.4-.2-.5-.5-.6h-.6z" />
-                            </svg>
+                        <a href="https://web.max.ru/u/+79910009111" class="header-messenger max" target="_blank" rel="noopener" aria-label="MAX">
+                            <img src="../images/max-logo.svg" alt="" class="header-max-logo-img" width="40" height="40" decoding="async" />
                         </a>
                     </div>
                 </div>
@@ -264,6 +252,7 @@ function generateEquipmentPageHTML(service) {
             </div>
         </div>
         <nav class="mobile-nav" id="mobile-nav">
+            <a href="../index.html">Главная</a>
             <a href="../index.html#calculator">Калькулятор</a>
             <a href="../index.html#autopark">Наш автопарк</a>
             <a href="../index.html#reviews">Отзывы</a>
@@ -304,52 +293,6 @@ function generateEquipmentPageHTML(service) {
                             <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="Вид 1" class="active">
                         </div>
                     </div>
-
-                    <!-- Мини-калькулятор для конкретной техники с формой заказа -->
-                    <div class="equipment-calculator" id="equipmentCalculator">
-                        <div class="equipment-calculator-header">
-                            <h3>Рассчитать стоимость аренды</h3>
-                            <p>Укажите параметры для расчета стоимости</p>
-                        </div>
-                        <form class="equipment-calculator-form" id="equipmentCalculatorForm">
-                            <input type="hidden" name="equipment" value="${title}">
-                            <label class="calc-field">
-                                <span class="calc-field-label">Количество смен</span>
-                                <select id="equip-calc-shifts" name="duration" required>
-                                    <option value="0.5">Полсмены</option>
-                                    <option value="1" selected>1 смена</option>
-                                    <option value="2">2 смены</option>
-                                    <option value="3">3 смены</option>
-                                    <option value="more">Более 3 смен</option>
-                                </select>
-                            </label>
-                            <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; width: 100%; box-sizing: border-box;">
-                            <div class="calc-result" id="equipmentCalcResult">
-                                <p class="calc-result-text">Загрузка...</p>
-                            </div>
-                            <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
-                            
-                            <!-- Форма заказа -->
-                            <div class="calc-order-form" id="calcOrderForm" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
-                                <h4 style="margin-bottom: 15px; font-size: 18px; font-weight: 600;">Оформить заказ</h4>
-                                <div class="form-group" style="margin-bottom: 15px;">
-                                    <input type="text" name="name" placeholder="Ваше имя *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 15px;">
-                                    <input type="tel" name="phone" placeholder="Телефон *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 15px;">
-                                    <input type="date" name="date" placeholder="Дата аренды" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <textarea name="message" placeholder="Комментарий к заказу" rows="3" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; resize: vertical;"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                                    <span>Отправить заявку</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
 
                 <div class="equipment-info">
@@ -368,97 +311,37 @@ function generateEquipmentPageHTML(service) {
                         <div class="equipment-tab-content active" id="tab-specs">
                             <div class="info-section" style="padding: 0; margin: 0;">
                                 <div class="specs-grid">
-                                    ${heightLift ? `<div class="spec-item">
-                                        <div class="spec-icon">📏</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Высота подъема</div>
-                                            <div class="spec-value">${heightLift}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${maxReach ? `<div class="spec-item">
-                                        <div class="spec-icon">📐</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Вылет стрелы</div>
-                                            <div class="spec-value">${maxReach}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${maxCapacity ? `<div class="spec-item">
-                                        <div class="spec-icon">⚖️</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Грузоподъемность корзины</div>
-                                            <div class="spec-value">${maxCapacity}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${service.basket_size ? `<div class="spec-item">
-                                        <div class="spec-icon">📦</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Размер корзины (платформы)</div>
-                                            <div class="spec-value">${fixEncoding(service.basket_size)}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${liftType ? `<div class="spec-item">
-                                        <div class="spec-icon">🚗</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Тип</div>
-                                            <div class="spec-value">${liftType}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${service.voltage ? `<div class="spec-item">
-                                        <div class="spec-icon">🔋</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Напряжение</div>
-                                            <div class="spec-value">${fixEncoding(service.voltage)}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${service.maneuverability ? `<div class="spec-item">
-                                        <div class="spec-icon">🎯</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Маневренность</div>
-                                            <div class="spec-value">${fixEncoding(service.maneuverability)}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${service.setup_time ? `<div class="spec-item">
-                                        <div class="spec-icon">⏱️</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Время установки</div>
-                                            <div class="spec-value">${fixEncoding(service.setup_time)}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${transportLength ? `<div class="spec-item">
-                                        <div class="spec-icon">📏</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Длина в транспортном положении</div>
-                                            <div class="spec-value">${transportLength}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${transportHeight ? `<div class="spec-item">
-                                        <div class="spec-icon">📏</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Высота в транспортном положении</div>
-                                            <div class="spec-value">${transportHeight}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${width ? `<div class="spec-item">
-                                        <div class="spec-icon">📏</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Ширина</div>
-                                            <div class="spec-value">${width}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${boomRotationAngle ? `<div class="spec-item">
-                                        <div class="spec-icon">🔄</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Угол поворота стрелы</div>
-                                            <div class="spec-value">${boomRotationAngle}</div>
-                                        </div>
-                                    </div>` : ''}
-                                    ${basketRotationAngle ? `<div class="spec-item">
-                                        <div class="spec-icon">🔄</div>
-                                        <div class="spec-info">
-                                            <div class="spec-label">Угол поворота корзины</div>
-                                            <div class="spec-value">${basketRotationAngle}</div>
-                                        </div>
-                                    </div>` : ''}
+                                    ${(() => {
+                                      if (customSpecs.length > 0) {
+                                        return customSpecs.filter(s => s && s.label && s.value).map(s => `<div class="spec-item">
+                                            <div class="spec-icon">${s.icon || '📏'}</div>
+                                            <div class="spec-info">
+                                                <div class="spec-label">${s.label}</div>
+                                                <div class="spec-value">${s.value}</div>
+                                            </div>
+                                        </div>`).join('\n                                    ');
+                                      }
+                                      let html = '';
+                                      const legacySpecs = [
+                                        { icon: '📏', label: 'Высота подъема', value: heightLift },
+                                        { icon: '📐', label: 'Вылет стрелы', value: maxReach },
+                                        { icon: '⚖️', label: 'Грузоподъемность корзины', value: maxCapacity },
+                                        { icon: '📦', label: 'Размер корзины (платформы)', value: service.basket_size ? fixEncoding(service.basket_size) : '' },
+                                        { icon: '🚗', label: 'Тип', value: liftType },
+                                        { icon: '🔋', label: 'Напряжение', value: service.voltage ? fixEncoding(service.voltage) : '' },
+                                        { icon: '🎯', label: 'Маневренность', value: service.maneuverability ? fixEncoding(service.maneuverability) : '' },
+                                        { icon: '⏱️', label: 'Время установки', value: service.setup_time ? fixEncoding(service.setup_time) : '' },
+                                        { icon: '📏', label: 'Длина в транспортном положении', value: transportLength },
+                                        { icon: '📏', label: 'Высота в транспортном положении', value: transportHeight },
+                                        { icon: '📏', label: 'Ширина', value: width },
+                                        { icon: '🔄', label: 'Угол поворота стрелы', value: boomRotationAngle },
+                                        { icon: '🔄', label: 'Угол поворота корзины', value: basketRotationAngle }
+                                      ];
+                                      legacySpecs.forEach(s => {
+                                        if (s.value) html += `<div class="spec-item"><div class="spec-icon">${s.icon}</div><div class="spec-info"><div class="spec-label">${s.label}</div><div class="spec-value">${s.value}</div></div></div>\n`;
+                                      });
+                                      return html;
+                                    })()}
                                 </div>
                                 <div class="reach-diagrams-container" id="reachDiagramsContainer" style="display: ${reachDiagrams.length > 0 ? 'block' : 'none'};">
                                     <h3 class="reach-diagrams-title">Схемы вылета стрелы</h3>
@@ -475,7 +358,7 @@ function generateEquipmentPageHTML(service) {
                         <div class="equipment-tab-content" id="tab-description">
                             <div class="info-section" style="padding: 0; margin: 0;">
                                 <h2 style="margin-top: 0; margin-bottom: 16px;">Описание</h2>
-                                <p>${description || 'Описание техники'}</p>
+                                <div class="equipment-description">${description || '<p>Описание техники</p>'}</div>
                             </div>
                         </div>
                     </div>
@@ -496,8 +379,54 @@ function generateEquipmentPageHTML(service) {
                                 <span class="pricing-value">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</span>
                             </div>
                         </div>
-                        <p class="pricing-note">* Полсмены (3+1) согласовывается отдельно по началу времени работы</p>
+                        ${priceHalfShift ? `<p class="pricing-note">* Полсмены (3+1) согласовывается отдельно по началу времени работы</p>` : ''}
                     </div>
+                </div>
+
+                <!-- Мини-калькулятор для конкретной техники с формой заказа -->
+                <div class="equipment-calculator" id="equipmentCalculator">
+                    <div class="equipment-calculator-header">
+                        <h3>Рассчитать стоимость аренды</h3>
+                        <p>Укажите параметры для расчета стоимости</p>
+                    </div>
+                    <form class="equipment-calculator-form" id="equipmentCalculatorForm">
+                        <input type="hidden" name="equipment" value="${title}">
+                        <label class="calc-field">
+                            <span class="calc-field-label">Количество смен</span>
+                            <select id="equip-calc-shifts" name="duration" required>
+                                ${priceHalfShift ? `<option value="0.5">Полсмены</option>` : ''}
+                                <option value="1" selected>1 смена</option>
+                                <option value="2">2 смены</option>
+                                <option value="3">3 смены</option>
+                                <option value="more">Более 3 смен</option>
+                            </select>
+                        </label>
+                        <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; width: 100%; box-sizing: border-box;">
+                        <div class="calc-result" id="equipmentCalcResult">
+                            <p class="calc-result-text">Загрузка...</p>
+                        </div>
+                        <p class="calc-note">Цена примерная и не является публичной офертой. Позвоните нам для точного расчета.</p>
+                        
+                        <!-- Форма заказа -->
+                        <div class="calc-order-form" id="calcOrderForm" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: 15px; font-size: 18px; font-weight: 600;">Оформить заказ</h4>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <input type="text" name="name" placeholder="Ваше имя *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <input type="tel" name="phone" placeholder="Телефон *" required style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <input type="date" name="date" placeholder="Дата аренды" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <textarea name="message" placeholder="Комментарий к заказу" rows="3" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; resize: vertical;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <span>Отправить заявку</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -505,8 +434,11 @@ function generateEquipmentPageHTML(service) {
 
     <!-- Payment Methods -->
     <section class="payment-methods-equip">
-        <div class="container">
+        <div class="container payment-methods-header">
             <h2 class="payment-methods-title">Форма оплаты</h2>
+            <p class="payment-methods-subtitle">Выберите удобный способ расчёта.</p>
+        </div>
+        <div class="container">
             <div class="payment-methods-grid">
                 <div class="payment-method-item">
                     <div class="payment-method-icon pm-icon--vat">
@@ -521,16 +453,10 @@ function generateEquipmentPageHTML(service) {
                     <span>Оплата без НДС</span>
                 </div>
                 <div class="payment-method-item">
-                    <div class="payment-method-icon pm-icon--cash">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-                    </div>
-                    <span>Наличными или по карте в офисе</span>
-                </div>
-                <div class="payment-method-item">
                     <div class="payment-method-icon pm-icon--transfer">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                     </div>
-                    <span>Перевод на карту банка (Сбер, Тинькофф)</span>
+                    <span>Перевод на карту банка</span>
                 </div>
             </div>
         </div>
@@ -550,14 +476,15 @@ function generateEquipmentPageHTML(service) {
                     <h3>Контакты</h3>
                     <p>Телефон: <a href="tel:+79910009111" data-ct="phone">+7 (991) 000-91-11</a></p>
                     <p>Email: info@arendaneba.ru</p>
-                    <p>Адрес: Санкт-Петербург, улица Беринга 27 корпус 5</p>
+                    <p>Адрес: Санкт-Петербург, улица Беринга 27 корпус 6</p>
                 </div>
                 <div class="footer-section">
                     <h3>Режим работы</h3>
                     <p>Круглосуточно, без выходных</p>
                     <div style="margin-top: 15px;">
-                        <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 10px; padding: 8px 16px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
-                        <a href="https://t.me/+79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 16px; background: #0088cc; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="Telegram">Telegram</a>
+                        <a href="https://web.max.ru/u/+79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 8px; padding: 8px 14px; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="MAX">MAX</a>
+                        <a href="https://t.me/+79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 8px; padding: 8px 14px; background: #0088cc; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="Telegram">Telegram</a>
+                        <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 14px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
                     </div>
                 </div>
             </div>
@@ -833,6 +760,17 @@ const db = new sqlite3.Database('./database.db', (err) => {
           console.error('Error adding delivery_per_km column:', err);
         }
       });
+
+      db.run(`ALTER TABLE services ADD COLUMN custom_specs TEXT DEFAULT '[]'`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding custom_specs column:', err);
+        }
+      });
+      db.run(`ALTER TABLE services ADD COLUMN short_description TEXT DEFAULT ''`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding short_description column:', err);
+        }
+      });
     });
     
     // Create homepage table if it doesn't exist
@@ -1053,8 +991,9 @@ function fixImageUrl(url) {
   // Remove any domain (keep only path)
   fixed = fixed.replace(/https?:\/\/[^\/]+/g, '');
   
-  // Convert .png to .webp for /images/ and /uploads/ paths
-  if ((fixed.startsWith('/images/') || fixed.startsWith('/uploads/')) && fixed.endsWith('.png')) {
+  // Только статика в /images/: легаси-имена .png → .webp. Файлы в /uploads/ не трогаем —
+  // в админке часто лежит реальный .png, подмена на .webp даёт 404 и «битую» картинку.
+  if (fixed.startsWith('/images/') && fixed.endsWith('.png')) {
     fixed = fixed.replace('.png', '.webp');
   }
   
@@ -1093,8 +1032,8 @@ function fixImageUrlsArray(jsonStr) {
 function fixEncoding(text) {
   if (!text || typeof text !== 'string') return text;
 
-  // Quick check: if text is clean UTF-8 (normal Russian/Latin chars + standard punctuation), skip all transformations
-  if (/^[А-Яа-яЁёA-Za-z0-9\s.,;:!?()\/"'\-—–×«»₽%°+\n\r]*$/.test(text)) {
+  // Quick check: if text is clean UTF-8 (normal Russian/Latin chars + standard punctuation + HTML), skip all transformations
+  if (/^[А-Яа-яЁёA-Za-z0-9\s.,;:!?()\/"'\-—–×«»₽%°+\n\r<>&;=#\t\u00a0✅]*$/.test(text)) {
     return text;
   }
 
@@ -1663,7 +1602,8 @@ app.get('/api/services', (req, res) => {
         width: row.width ? fixEncoding(row.width) : '',
         boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
         basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
-        delivery_per_km: row.delivery_per_km || 85
+        delivery_per_km: row.delivery_per_km || 85,
+        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })()
       };
     });
     res.json(fixedRows);
@@ -1867,7 +1807,8 @@ function processServiceRow(row, res) {
         width: row.width ? fixEncoding(row.width) : '',
         boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
         basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
-        delivery_per_km: row.delivery_per_km || 85
+        delivery_per_km: row.delivery_per_km || 85,
+        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })()
   };
   res.json(fixedRow);
 }
@@ -2152,7 +2093,8 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
         width: row.width ? fixEncoding(row.width) : '',
         boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
         basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
-        delivery_per_km: row.delivery_per_km || 85
+        delivery_per_km: row.delivery_per_km || 85,
+        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })()
       };
     });
     res.json(fixedRows);
@@ -2162,10 +2104,10 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
 // Service CRUD (Protected)
 app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('📥 POST /api/admin/services - Creating new service');
-  const { title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, 
+  const { title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, 
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets } = req.body;
-  
+          is_popular, popular_order, card_bullets, custom_specs } = req.body;
+
   console.log('📋 Service data received:', {
     title,
     hasDescription: !!description,
@@ -2175,9 +2117,9 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   });
 
   // Validate required fields
-  if (!title || !description || !price) {
+  if (!title || !price) {
     console.error('❌ Validation failed: missing required fields');
-    return res.status(400).json({ error: 'Название, описание и цена обязательны' });
+    return res.status(400).json({ error: 'Название и цена обязательны' });
   }
   
   // Если price пустая строка, но есть данные о ценах, формируем цену
@@ -2257,7 +2199,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
     width: width || '',
     boom_rotation_angle: boom_rotation_angle || '',
     basket_rotation_angle: basket_rotation_angle || '',
-    delivery_per_km: delivery_per_km || 85
+    delivery_per_km: delivery_per_km || 85,
+    custom_specs: custom_specs || []
   };
   
   // ВСЕГДА создаем страницу техники с новым шаблоном
@@ -2280,8 +2223,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
-    'INSERT INTO services (title, description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson],
+    'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || [])],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -2295,9 +2238,9 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
 });
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
-  const { title, description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
+  const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets } = req.body;
+          is_popular, popular_order, card_bullets, custom_specs } = req.body;
   
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -2382,7 +2325,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     width: width || '',
     boom_rotation_angle: boom_rotation_angle || '',
     basket_rotation_angle: basket_rotation_angle || '',
-    delivery_per_km: delivery_per_km || 85
+    delivery_per_km: delivery_per_km || 85,
+    custom_specs: custom_specs || []
   };
   
   // ВСЕГДА перегенерируем страницу техники с новым шаблоном при любом изменении
@@ -2419,8 +2363,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   }
   
   db.run(
-    'UPDATE services SET title = ?, description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [title, description, price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, req.params.id],
+    'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), req.params.id],
     function(err) {
       if (err) {
         console.error('❌ Ошибка при обновлении услуги:', err);
