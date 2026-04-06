@@ -11,6 +11,13 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function stripHtmlTrunc(html, maxLen) {
+    if (!html) return '';
+    const plain = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!maxLen || plain.length <= maxLen) return plain;
+    return plain.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
+}
+
 // Upload image function
 async function uploadImage(file, imageUrlInputId, previewId, fileType = 'image') {
     if (!file) return;
@@ -460,7 +467,7 @@ async function loadServices() {
             <div class="item-card">
                 <div class="item-info">
                     <div class="item-title">${escapeHtml(service.title)}</div>
-                    <div class="item-description">${escapeHtml(service.description)}</div>
+                    <div class="item-description">${escapeHtml(stripHtmlTrunc(service.short_description || service.description || '', 160))}</div>
                     <div class="item-meta">
                         <span>${escapeHtml(service.price)}</span>
                         <span class="badge ${service.active ? 'badge-success' : 'badge-danger'}">
@@ -505,9 +512,26 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Название будет отображаться в каталоге и на странице услуги</small>
             </div>
             <div class="form-group">
-                    <label for="serviceDescription">Описание *</label>
-                    <textarea id="serviceDescription" name="description" rows="4" required placeholder="Опишите услугу, её особенности и применение"></textarea>
-                    <small class="form-hint">Описание будет отображаться на странице услуги</small>
+                    <label for="serviceShortDescription">Краткое описание (для карточек на главной) *</label>
+                    <textarea id="serviceShortDescription" name="short_description" rows="2" required placeholder="1–2 предложения. Отображается в карточках автопарка и слайдере на главной"></textarea>
+                    <small class="form-hint">Краткий текст без HTML. Показывается в карточках на главной и в калькуляторе</small>
+            </div>
+            <div class="form-group">
+                    <label>Подробное описание (для страницы техники)</label>
+                    <div class="wysiwyg-toolbar" id="descToolbar">
+                        <button type="button" class="wysiwyg-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
+                        <button type="button" class="wysiwyg-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="h3" title="Заголовок">H3</button>
+                        <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="p" title="Абзац">¶</button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn" data-cmd="insertUnorderedList" title="Список">☰</button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn wysiwyg-btn-src" data-action="toggleSource" title="HTML-код">&lt;/&gt;</button>
+                    </div>
+                    <div class="wysiwyg-editor" id="serviceDescriptionEditor" contenteditable="true" data-placeholder="Введите подробное описание техники…"></div>
+                    <textarea id="serviceDescription" name="description" style="display:none;"></textarea>
+                    <small class="form-hint">Визуальный редактор описания для страницы техники</small>
             </div>
             <div class="form-group">
                     <label for="serviceUrl">URL страницы</label>
@@ -529,7 +553,7 @@ function showServiceModal(id = null) {
                         <input type="number" id="servicePriceHalfShift" name="price_half_shift" placeholder="15000" min="0" step="100">
                         <span class="input-suffix">₽</span>
                     </div>
-                    <small class="form-hint">Необязательно. Введите только число</small>
+                    <small class="form-hint">Оставьте пустым, если полусмены нет — на сайте не будет строки «Полсмены» и в калькуляторе только полные смены. Только число.</small>
                 </div>
                 <div class="form-group">
                     <label for="servicePriceShift">Цена за смену *</label>
@@ -551,44 +575,9 @@ function showServiceModal(id = null) {
 
             <div class="form-section">
                 <h3 class="form-section-title">Технические характеристики</h3>
-                <div class="specs-grid-form">
-                    <div class="form-group">
-                        <label for="serviceHeightLift">Высота подъема люльки</label>
-                        <input type="text" id="serviceHeightLift" name="height_lift" placeholder="13 метров">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceMaxReach">Максимальный вылет</label>
-                        <input type="text" id="serviceMaxReach" name="max_reach" placeholder="8 метров">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceMaxCapacity">Максимальная грузоподъемность</label>
-                        <input type="text" id="serviceMaxCapacity" name="max_capacity" placeholder="400 кг">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceLiftType">Тип подъемника</label>
-                        <input type="text" id="serviceLiftType" name="lift_type" placeholder="Автовышка">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceTransportLength">Длина в транспортном положении</label>
-                        <input type="text" id="serviceTransportLength" name="transport_length" placeholder="6.5 метров">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceTransportHeight">Высота в транспортном положении</label>
-                        <input type="text" id="serviceTransportHeight" name="transport_height" placeholder="2.5 метров">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceWidth">Размер корзины (платформы)</label>
-                        <input type="text" id="serviceWidth" name="width" placeholder="2х4 м">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceBoomRotationAngle">Угол поворота стрелы</label>
-                        <input type="text" id="serviceBoomRotationAngle" name="boom_rotation_angle" placeholder="360°">
-                    </div>
-                    <div class="form-group">
-                        <label for="serviceBasketRotationAngle">Угол поворота корзины</label>
-                        <input type="text" id="serviceBasketRotationAngle" name="basket_rotation_angle" placeholder="360°">
-                    </div>
-                </div>
+                <p style="font-size: 13px; color: #666; margin-bottom: 12px;">Добавляйте, удаляйте и переставляйте характеристики. Используйте только эти значки: 📏 ⚖️ 🔄 📐 📦 🚗 🔋 🎯 ⏱️.</p>
+                <div id="customSpecsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <button type="button" id="addSpecBtn" style="margin-top: 10px; padding: 8px 16px; background: #ff6b35; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">+ Добавить характеристику</button>
             </div>
 
             <div class="form-section">
@@ -680,19 +669,64 @@ function showServiceModal(id = null) {
 
     document.getElementById('modal').classList.add('show');
     
-    // Загружаем данные после того, как форма добавлена в DOM
+    // === Инициализация WYSIWYG-редактора ===
+    initWysiwyg('descToolbar', 'serviceDescriptionEditor', 'serviceDescription');
+    
+    // === Динамические характеристики (регистрируем ДО загрузки данных) ===
+    function addSpecRow(icon, label, value) {
+        const list = document.getElementById('customSpecsList');
+        if (!list) return;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:6px;align-items:center;';
+        row.innerHTML = `
+            <input type="text" class="spec-icon-input" value="${(icon||'📏').replace(/"/g,'&quot;')}" style="width:42px;text-align:center;font-size:18px;padding:6px;border:1px solid #ddd;border-radius:6px;" placeholder="📏">
+            <input type="text" class="spec-label-input" value="${(label||'').replace(/"/g,'&quot;')}" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;" placeholder="Название (напр. Высота подъема)">
+            <input type="text" class="spec-value-input" value="${(value||'').replace(/"/g,'&quot;')}" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;" placeholder="Значение (напр. 29 м)">
+            <button type="button" style="width:32px;height:32px;background:#ff4444;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:16px;flex-shrink:0;" onclick="this.parentElement.remove()">×</button>
+        `;
+        list.appendChild(row);
+    }
+
+    function getCustomSpecsFromForm() {
+        const rows = document.querySelectorAll('#customSpecsList > div');
+        const specs = [];
+        rows.forEach(row => {
+            const icon = row.querySelector('.spec-icon-input')?.value.trim() || '📏';
+            const label = row.querySelector('.spec-label-input')?.value.trim() || '';
+            const value = row.querySelector('.spec-value-input')?.value.trim() || '';
+            if (label && value) specs.push({ icon, label, value });
+        });
+        return specs;
+    }
+
+    window._addSpecRow = addSpecRow;
+    window._getCustomSpecsFromForm = getCustomSpecsFromForm;
+
+    const addSpecBtn = document.getElementById('addSpecBtn');
+    if (addSpecBtn) {
+        addSpecBtn.addEventListener('click', () => addSpecRow('📏', '', ''));
+    }
+
+    // Загружаем данные после регистрации функций
     if (id) {
         setTimeout(() => {
-        loadServiceData(id);
+            loadServiceData(id);
         }, 50);
     }
     
     // Устанавливаем обработчики после того, как форма добавлена в DOM
     setTimeout(() => {
+
         // Функция для автоматической генерации пунктов карточки из характеристик
         function generateCardBulletsFromSpecs() {
-            const maxCapacity = document.getElementById('serviceMaxCapacity')?.value.trim() || '';
-            const width = document.getElementById('serviceWidth')?.value.trim() || '';
+            const specs = getCustomSpecsFromForm();
+            let maxCapacity = '';
+            let width = '';
+            specs.forEach(s => {
+                const lbl = s.label.toLowerCase();
+                if (lbl.includes('грузоподъемность') || lbl.includes('грузоподъёмность')) maxCapacity = s.value;
+                if (lbl.includes('корзин') && (lbl.includes('размер') || lbl.includes('платформ'))) width = s.value;
+            });
             
             const bullets = [];
 
@@ -745,31 +779,15 @@ function showServiceModal(id = null) {
             });
         }
         
-        // Добавляем обработчики событий на все поля характеристик
-        const specFields = [
-            'serviceMaxCapacity',
-            'serviceWidth',
-        ];
-        
-        specFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                // Обновляем при изменении поля
-                field.addEventListener('input', function() {
-                    // Обновляем только если популярная техника включена
-                    if (isPopularCheckbox && isPopularCheckbox.checked) {
-                        updateCardBulletsFromSpecs();
-                    }
-                });
-                
-                field.addEventListener('change', function() {
-                    // Обновляем только если популярная техника включена
-                    if (isPopularCheckbox && isPopularCheckbox.checked) {
-                        updateCardBulletsFromSpecs();
-                    }
-                });
-            }
-        });
+        // Обновляем card_bullets при изменении динамических характеристик
+        const specsList = document.getElementById('customSpecsList');
+        if (specsList) {
+            specsList.addEventListener('input', function() {
+                if (isPopularCheckbox && isPopularCheckbox.checked) {
+                    updateCardBulletsFromSpecs();
+                }
+            });
+        }
         
         const form = document.getElementById('serviceForm');
         const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
@@ -981,7 +999,10 @@ async function loadServiceData(id) {
 
         if (service) {
             document.getElementById('serviceTitle').value = service.title;
-            document.getElementById('serviceDescription').value = service.description;
+            document.getElementById('serviceShortDescription').value = service.short_description || '';
+            document.getElementById('serviceDescription').value = service.description || '';
+            const descEditor = document.getElementById('serviceDescriptionEditor');
+            if (descEditor) descEditor.innerHTML = service.description || '';
             // Парсим цену из формата "от X ₽/полсмена, от Y ₽/смена" или "от Y ₽/смена"
             const priceStr = service.price || '';
             
@@ -1030,26 +1051,29 @@ async function loadServiceData(id) {
                 deliveryInput.value = service.delivery_per_km || 85;
             }
             
-            // Загружаем характеристики
-            const heightLiftInput = document.getElementById('serviceHeightLift');
-            const maxReachInput = document.getElementById('serviceMaxReach');
-            const maxCapacityInput = document.getElementById('serviceMaxCapacity');
-            const liftTypeInput = document.getElementById('serviceLiftType');
-            const transportLengthInput = document.getElementById('serviceTransportLength');
-            const transportHeightInput = document.getElementById('serviceTransportHeight');
-            const widthInput = document.getElementById('serviceWidth');
-            const boomRotationAngleInput = document.getElementById('serviceBoomRotationAngle');
-            const basketRotationAngleInput = document.getElementById('serviceBasketRotationAngle');
-            
-            if (heightLiftInput) heightLiftInput.value = service.height_lift || '';
-            if (maxReachInput) maxReachInput.value = service.max_reach || '';
-            if (maxCapacityInput) maxCapacityInput.value = service.max_capacity || '';
-            if (liftTypeInput) liftTypeInput.value = service.lift_type || '';
-            if (transportLengthInput) transportLengthInput.value = service.transport_length || '';
-            if (transportHeightInput) transportHeightInput.value = service.transport_height || '';
-            if (widthInput) widthInput.value = service.width || '';
-            if (boomRotationAngleInput) boomRotationAngleInput.value = service.boom_rotation_angle || '';
-            if (basketRotationAngleInput) basketRotationAngleInput.value = service.basket_rotation_angle || '';
+            // Загружаем динамические характеристики
+            let specsToLoad = [];
+            if (service.custom_specs && Array.isArray(service.custom_specs) && service.custom_specs.length > 0) {
+                specsToLoad = service.custom_specs;
+            } else {
+                const legacyMap = [
+                    { icon: '📏', label: 'Высота подъема', field: 'height_lift' },
+                    { icon: '📐', label: 'Максимальный вылет', field: 'max_reach' },
+                    { icon: '⚖️', label: 'Грузоподъемность корзины', field: 'max_capacity' },
+                    { icon: '🚗', label: 'Тип подъемника', field: 'lift_type' },
+                    { icon: '📏', label: 'Длина в транспортном положении', field: 'transport_length' },
+                    { icon: '📏', label: 'Высота в транспортном положении', field: 'transport_height' },
+                    { icon: '📦', label: 'Размер корзины (платформы)', field: 'width' },
+                    { icon: '🔄', label: 'Угол поворота стрелы', field: 'boom_rotation_angle' },
+                    { icon: '🔄', label: 'Угол поворота корзины', field: 'basket_rotation_angle' }
+                ];
+                legacyMap.forEach(m => {
+                    if (service[m.field]) specsToLoad.push({ icon: m.icon, label: m.label, value: service[m.field] });
+                });
+            }
+            specsToLoad.forEach(s => {
+                if (window._addSpecRow) window._addSpecRow(s.icon, s.label, s.value);
+            });
             
             // Загружаем данные популярных карточек
             const isPopularCheckbox = document.getElementById('serviceIsPopular');
@@ -1102,29 +1126,7 @@ async function loadServiceData(id) {
                 // автоматически обновляем пункты из характеристик (если они были изменены)
                 if (isPopularCheckbox && isPopularCheckbox.checked) {
                     setTimeout(() => {
-                        // Вызываем обновление через событие на одном из полей характеристик
-                        const heightLiftField = document.getElementById('serviceHeightLift');
-                        if (heightLiftField) {
-                            // Создаем и вызываем функцию обновления напрямую
-                            const cardBulletsTextareaForUpdate = document.getElementById('serviceCardBullets');
-                            if (cardBulletsTextareaForUpdate) {
-                                const heightLift = document.getElementById('serviceHeightLift')?.value.trim() || '';
-                                const maxReach = document.getElementById('serviceMaxReach')?.value.trim() || '';
-                                const maxCapacity = document.getElementById('serviceMaxCapacity')?.value.trim() || '';
-                                const width = document.getElementById('serviceWidth')?.value.trim() || '';
-                                const transportHeight = document.getElementById('serviceTransportHeight')?.value.trim() || '';
-                                const transportLength = document.getElementById('serviceTransportLength')?.value.trim() || '';
-                                
-                                const generatedBullets = [];
-                                if (maxCapacity) generatedBullets.push(`Грузоподъёмность корзины: ${maxCapacity}`);
-                                if (width) generatedBullets.push(`Размеры корзины (платформы): ${width}`);
-                                
-                                // Обновляем только если есть хотя бы один пункт
-                                if (generatedBullets.length > 0) {
-                                    cardBulletsTextareaForUpdate.value = generatedBullets.slice(0, 2).join('\n');
-                                }
-                            }
-                        }
+                        updateCardBulletsFromSpecs();
                     }, 200);
                 }
             }
@@ -1325,8 +1327,16 @@ window.saveService = async function(event, id) {
     
     console.log('Form found, proceeding with save...');
     
+    // Синхронизируем WYSIWYG в hidden textarea перед сохранением
+    const descEditor = document.getElementById('serviceDescriptionEditor');
+    const descHidden = document.getElementById('serviceDescription');
+    if (descEditor && descHidden && descEditor.style.display !== 'none') {
+        descHidden.value = descEditor.innerHTML;
+    }
+    
     // Валидация обязательных полей
     const title = document.getElementById('serviceTitle')?.value?.trim();
+    const shortDescription = document.getElementById('serviceShortDescription')?.value?.trim();
     const description = document.getElementById('serviceDescription')?.value?.trim();
     const priceShift = document.getElementById('servicePriceShift')?.value?.trim();
     
@@ -1336,9 +1346,9 @@ window.saveService = async function(event, id) {
         return;
     }
     
-    if (!description) {
-        showError('Пожалуйста, укажите описание услуги');
-        document.getElementById('serviceDescription')?.focus();
+    if (!shortDescription) {
+        showError('Пожалуйста, укажите краткое описание');
+        document.getElementById('serviceShortDescription')?.focus();
         return;
     }
     
@@ -1398,16 +1408,26 @@ window.saveService = async function(event, id) {
         imagesCount: Array.isArray(data.images) ? data.images.length : 0
     });
     
-    // Добавляем новые поля характеристик
-    data.height_lift = document.getElementById('serviceHeightLift')?.value || '';
-    data.max_reach = document.getElementById('serviceMaxReach')?.value || '';
-    data.max_capacity = document.getElementById('serviceMaxCapacity')?.value || '';
-    data.lift_type = document.getElementById('serviceLiftType')?.value || '';
-    data.transport_length = document.getElementById('serviceTransportLength')?.value || '';
-    data.transport_height = document.getElementById('serviceTransportHeight')?.value || '';
-    data.width = document.getElementById('serviceWidth')?.value || '';
-    data.boom_rotation_angle = document.getElementById('serviceBoomRotationAngle')?.value || '';
-    data.basket_rotation_angle = document.getElementById('serviceBasketRotationAngle')?.value || '';
+    // Собираем динамические характеристики
+    const customSpecs = window._getCustomSpecsFromForm ? window._getCustomSpecsFromForm() : [];
+    data.custom_specs = customSpecs;
+    
+    // Для совместимости заполняем старые поля из custom_specs
+    data.height_lift = ''; data.max_reach = ''; data.max_capacity = '';
+    data.lift_type = ''; data.transport_length = ''; data.transport_height = '';
+    data.width = ''; data.boom_rotation_angle = ''; data.basket_rotation_angle = '';
+    customSpecs.forEach(s => {
+        const lbl = (s.label || '').toLowerCase();
+        if (lbl.includes('высота подъема')) data.height_lift = s.value;
+        else if (lbl.includes('вылет')) data.max_reach = s.value;
+        else if (lbl.includes('грузоподъемность') || lbl.includes('грузоподъёмность')) data.max_capacity = s.value;
+        else if (lbl.includes('тип')) data.lift_type = s.value;
+        else if (lbl.includes('длина') && lbl.includes('транспорт')) data.transport_length = s.value;
+        else if (lbl.includes('высота') && lbl.includes('транспорт')) data.transport_height = s.value;
+        else if (lbl.includes('корзин') || lbl.includes('ширин')) data.width = s.value;
+        else if (lbl.includes('поворот') && lbl.includes('стрел')) data.boom_rotation_angle = s.value;
+        else if (lbl.includes('поворот') && lbl.includes('корзин')) data.basket_rotation_angle = s.value;
+    });
     data.delivery_per_km = parseInt(document.getElementById('serviceDeliveryPerKm')?.value || '85');
     
     // Добавляем поля популярных карточек
@@ -2662,4 +2682,69 @@ window.deleteReview = deleteReview;
 window.updateRequestStatus = updateRequestStatus;
 window.handleVideoUpload = handleVideoUpload;
 
+// === WYSIWYG Rich Text Editor ===
+function initWysiwyg(toolbarId, editorId, hiddenId) {
+    const toolbar = document.getElementById(toolbarId);
+    const editor = document.getElementById(editorId);
+    const hidden = document.getElementById(hiddenId);
+    if (!toolbar || !editor || !hidden) return;
+
+    let sourceMode = false;
+    let sourceTextarea = null;
+
+    function syncToHidden() {
+        if (sourceMode && sourceTextarea) {
+            hidden.value = sourceTextarea.value;
+        } else {
+            hidden.value = editor.innerHTML;
+        }
+    }
+
+    editor.addEventListener('input', syncToHidden);
+    editor.addEventListener('blur', syncToHidden);
+
+    toolbar.querySelectorAll('.wysiwyg-btn').forEach(btn => {
+        btn.addEventListener('mousedown', e => e.preventDefault());
+        btn.addEventListener('click', () => {
+            const action = btn.getAttribute('data-action');
+            if (action === 'toggleSource') {
+                sourceMode = !sourceMode;
+                btn.classList.toggle('active', sourceMode);
+
+                if (sourceMode) {
+                    sourceTextarea = document.createElement('textarea');
+                    sourceTextarea.className = 'wysiwyg-source';
+                    sourceTextarea.value = editor.innerHTML;
+                    editor.style.display = 'none';
+                    editor.parentNode.insertBefore(sourceTextarea, editor.nextSibling);
+                    sourceTextarea.addEventListener('input', syncToHidden);
+                } else {
+                    editor.innerHTML = sourceTextarea.value;
+                    sourceTextarea.remove();
+                    sourceTextarea = null;
+                    editor.style.display = '';
+                    syncToHidden();
+                }
+                return;
+            }
+
+            if (sourceMode) return;
+
+            const cmd = btn.getAttribute('data-cmd');
+            const val = btn.getAttribute('data-val') || null;
+            editor.focus();
+            if (cmd === 'formatBlock') {
+                document.execCommand(cmd, false, '<' + val + '>');
+            } else {
+                document.execCommand(cmd, false, val);
+            }
+            syncToHidden();
+        });
+    });
+
+    if (hidden.value) {
+        editor.innerHTML = hidden.value;
+    }
+}
+window.initWysiwyg = initWysiwyg;
 
