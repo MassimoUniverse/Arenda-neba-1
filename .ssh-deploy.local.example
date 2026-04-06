@@ -2,3 +2,7 @@
 SSH_HOST=89.223.120.214
 SSH_USER=root
 SSH_PASSWORD=
+
+# Опционально: приватный репозиторий GitHub — на сервере один раз:
+# git config --global credential.helper store
+# затем git pull с токеном, или задайте GIT_ORIGIN=https://TOKEN@github.com/...
