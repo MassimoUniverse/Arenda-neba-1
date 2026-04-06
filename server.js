@@ -1502,6 +1502,19 @@ app.get('/api/popular-cards', (req, res) => {
             images = String(row.images).split(/[\n\r,]+/).map(url => url.trim()).filter(Boolean);
           }
         }
+        if (Array.isArray(images) && images.length > 0) {
+          images = images.map((item) => {
+            if (typeof item === 'string') {
+              const f = fixImageUrl(item);
+              return f || item;
+            }
+            if (item && typeof item === 'object' && item.url) {
+              const f = fixImageUrl(item.url);
+              return { ...item, url: f || item.url };
+            }
+            return item;
+          });
+        }
         
         // ВАЖНО: Обрабатываем image_url через fixImageUrl для правильных путей
         let fixedImageUrl = null;

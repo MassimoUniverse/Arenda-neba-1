@@ -431,7 +431,7 @@ function addCacheBuster(url, updatedAt) {
   return url + separator + 'v=' + timestamp;
 }
 
-/** Пути из админки: image_url + галерея images[], без дубликатов. */
+/** Пути из админки: image_url + галерея images[], без дубликатов. Сначала /uploads/ (загрузки), затем прочее, статика avtovyshka в конце. */
 function collectAdminImagePaths(service) {
   const paths = [];
   const seen = new Set();
@@ -456,32 +456,28 @@ function collectAdminImagePaths(service) {
     }
   }
   if (service.image_url) push(service.image_url);
-  if (service.images && Array.isArray(service.images)) {
-    for (const im of service.images) {
+  let imgs = service.images;
+  if (imgs && typeof imgs === 'string') {
+    try {
+      imgs = JSON.parse(imgs);
+    } catch (e) {
+      imgs = String(imgs).split(/[\n\r,]+/).map((u) => u.trim()).filter(Boolean);
+    }
+  }
+  if (imgs && Array.isArray(imgs)) {
+    for (const im of imgs) {
       const s = typeof im === 'string' ? im : (im && (im.url || im.src || im));
       push(s);
     }
   }
-  return paths;
-}
-
-function stackCardImgOnError(img) {
-  try {
-    const encoded = img.getAttribute('data-candidates');
-    if (!encoded) return;
-    const candidates = JSON.parse(decodeURIComponent(encoded));
-    let idx = parseInt(img.getAttribute('data-candidate-idx') || '0', 10) + 1;
-    if (idx < candidates.length) {
-      img.setAttribute('data-candidate-idx', String(idx));
-      img.src = candidates[idx];
-      return;
-    }
-  } catch (e) {
-    /* ignore */
+  function priority(path) {
+    if (path.startsWith('/uploads/')) return 0;
+    if (/^\/images\/avtovyshka-.*\.webp$/i.test(path)) return 2;
+    if (path.startsWith('/images/')) return 1;
+    return 1;
   }
-  img.onerror = null;
+  return paths.sort((a, b) => priority(a) - priority(b));
 }
-window.stackCardImgOnError = stackCardImgOnError;
 
 // Функция для определения изображения по URL или названию
 function getImageForService(service, useCacheBuster = true) {
@@ -2087,12 +2083,11 @@ async function initOurCapabilitiesSlider() {
         : src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
     });
     const imageSrc = normalizedCandidates[0] || '';
-    const dataCandidatesAttr = encodeURIComponent(JSON.stringify(normalizedCandidates));
     
     li.innerHTML = `
       <div class="card__content">
         <div class="card__bg">
-          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" data-candidates="${dataCandidatesAttr}" data-candidate-idx="0" onerror="window.stackCardImgOnError(this)" />
+          <img src="${imageSrc}" alt="${slide.title}" loading="eager" fetchpriority="high" />
         </div>
         <div class="card__gradient"></div>
         <div class="card__counter">${counter}</div>
@@ -2109,6 +2104,18 @@ async function initOurCapabilitiesSlider() {
     `;
 
     cardsWrapper.appendChild(li);
+    const imgEl = li.querySelector('.card__bg img');
+    if (imgEl && normalizedCandidates.length > 1) {
+      let candIdx = 0;
+      imgEl.addEventListener('error', function onPopularCardImgErr() {
+        candIdx += 1;
+        if (candIdx < normalizedCandidates.length) {
+          imgEl.src = normalizedCandidates[candIdx];
+        } else {
+          imgEl.removeEventListener('error', onPopularCardImgErr);
+        }
+      });
+    }
   });
 
   // Initialize stacking cards effect (CodyHouse method)
