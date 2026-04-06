@@ -14,7 +14,7 @@ const root = path.join(__dirname, '..');
 const uploadsDir = path.join(root, 'uploads');
 const dbPath = path.join(root, 'database.db');
 
-const TS_RE = /-(\d{13,})\.[a-z0-9]+$/i;
+const TS_RE = /-(\d{13,})\.[^.]+$/i;
 
 function buildTimestampToFile() {
   const map = new Map();
@@ -53,7 +53,7 @@ async function tableColumns(db, table) {
 
 function collectBasenamesFromString(s, out) {
   if (!s || typeof s !== 'string') return;
-  const re = /\/uploads\/[^\s"'<>?]+\.(jpg|jpeg|png|webp|JPG)/gi;
+  const re = /\/uploads\/[^\s"'<>?]+\.[^.\s]+/gi;
   let m;
   while ((m = re.exec(s)) !== null) {
     const full = m[0];
