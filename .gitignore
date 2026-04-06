@@ -10,6 +10,10 @@ database.db-wal
 *.db-shm
 *.db-wal
 
+# Сгенерированные страницы техники - генерируются из БД на сервере
+# НЕ должны попадать в git, иначе перезапишут данные из админ-панели
+public/equipment/*.html
+
 # Загруженные файлы - НЕ должны попадать в git
 uploads/
 uploads_*/
@@ -21,6 +25,7 @@ uploads_temp_*/
 *.tmp
 .env
 .env.local
+.ssh-deploy.local
 
 # Node modules
 node_modules/

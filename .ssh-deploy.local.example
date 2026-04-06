@@ -1,0 +1,4 @@
+# Скопируйте в .ssh-deploy.local и заполните (файл в .gitignore, в git не попадёт)
+SSH_HOST=89.223.120.214
+SSH_USER=root
+SSH_PASSWORD=
