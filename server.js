@@ -476,7 +476,7 @@ function generateEquipmentPageHTML(service) {
                 <div class="footer-section">
                     <h3>Контакты</h3>
                     <p>Телефон: <a href="tel:+79910009111" data-ct="phone">+7 (991) 000-91-11</a></p>
-                    <p>Email: info@arendaneba.ru</p>
+                    <p>Email: arendaneba@mail.ru</p>
                     <p>Адрес: Санкт-Петербург, улица Беринга 27 корпус 6</p>
                 </div>
                 <div class="footer-section">

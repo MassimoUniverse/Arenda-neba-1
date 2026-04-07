@@ -99,7 +99,7 @@ function initContactCards() {
       emailCard.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        window.location.href = 'mailto:suedima@rambler.ru';
+        window.location.href = 'mailto:arendaneba@mail.ru';
       });
     }
     // Also make icon clickable
