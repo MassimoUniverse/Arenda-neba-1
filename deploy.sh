@@ -69,24 +69,11 @@ if [ -f "database.db" ]; then
     [ -f "database.db-wal" ] && mv database.db-wal "database_temp_${DEPLOY_TS}.db-wal" 2>/dev/null || true
 fi
 
-# 3. Создаем резервную копию uploads перед деплоем
-BACKUP_UPLOADS_DIR=""
-if [ -d "uploads" ] && [ "$(ls -A uploads 2>/dev/null)" ]; then
-    echo "💾 Создаем резервную копию uploads перед деплоем..."
-    BACKUP_UPLOADS_DIR="uploads_backup_$(date +%Y%m%d_%H%M%S)"
-    cp -r uploads "$BACKUP_UPLOADS_DIR" 2>/dev/null || true
-    if [ -d "$BACKUP_UPLOADS_DIR" ]; then
-        UPLOADS_COUNT=$(find "$BACKUP_UPLOADS_DIR" -type f 2>/dev/null | wc -l)
-        echo "✅ Резервная копия uploads создана: $BACKUP_UPLOADS_DIR ($UPLOADS_COUNT файлов)"
-    fi
-fi
-
-# 4. Временно переименовываем uploads, чтобы git clean не удалил его
-UPLOADS_TEMP_NAME=""
+# 3. uploads/ в .gitignore — git clean -fd его НЕ трогает.
+#    Просто проверяем что папка на месте, без переименования.
 if [ -d "uploads" ]; then
-    echo "🔒 Защищаем папку uploads от удаления..."
-    UPLOADS_TEMP_NAME="uploads_temp_${DEPLOY_TS}"
-    mv uploads "$UPLOADS_TEMP_NAME" 2>/dev/null || true
+    UPLOADS_COUNT=$(find uploads -type f 2>/dev/null | wc -l)
+    echo "✅ Папка uploads на месте ($UPLOADS_COUNT файлов), пропускаем — защищена .gitignore"
 fi
 
 # Получаем последние изменения с удаленного репозитория
@@ -134,43 +121,19 @@ else
     echo "✅ База данных существует"
 fi
 
-# 2. Восстанавливаем папку uploads
-if [ -n "$UPLOADS_TEMP_NAME" ] && [ -d "$UPLOADS_TEMP_NAME" ]; then
-    echo "📁 Восстанавливаем папку uploads..."
-    mv "$UPLOADS_TEMP_NAME" uploads 2>/dev/null || true
-    if [ -d "uploads" ]; then
-        UPLOADS_COUNT=$(find uploads -type f 2>/dev/null | wc -l)
-        echo "✅ Папка uploads восстановлена ($UPLOADS_COUNT файлов)"
-    fi
-elif [ ! -d "uploads" ]; then
+# 2. Проверяем uploads после git операций
+if [ ! -d "uploads" ]; then
     echo "📁 Создаем папку uploads..."
     mkdir -p uploads
-    echo "✅ Папка uploads создана"
-    
-    # Восстанавливаем файлы из резервной копии, если она есть
-    if [ -n "$BACKUP_UPLOADS_DIR" ] && [ -d "$BACKUP_UPLOADS_DIR" ]; then
-        echo "🔄 Восстанавливаем файлы из резервной копии..."
-        cp -r "$BACKUP_UPLOADS_DIR"/* uploads/ 2>/dev/null || true
-        UPLOADS_COUNT=$(find uploads -type f 2>/dev/null | wc -l)
-        echo "✅ Файлы восстановлены из резервной копии ($UPLOADS_COUNT файлов)"
-    fi
-else
-    UPLOADS_COUNT=$(find uploads -type f 2>/dev/null | wc -l)
-    echo "✅ Папка uploads существует ($UPLOADS_COUNT файлов)"
 fi
-
-# Устанавливаем правильные права на папку uploads
-if [ -d "uploads" ]; then
-    chmod 755 uploads
-    echo "✅ Права доступа установлены для uploads"
-fi
+UPLOADS_COUNT=$(find uploads -type f 2>/dev/null | wc -l)
+echo "✅ Папка uploads: $UPLOADS_COUNT файлов"
+chmod 755 uploads
 
 # Очищаем старые резервные копии (старше 7 дней)
-echo "🧹 Очищаем старые резервные копии (старше 7 дней)..."
+echo "🧹 Очищаем старые резервные копии..."
 find . -maxdepth 1 -name "database_backup_*.db" -mtime +7 -delete 2>/dev/null || true
-find . -maxdepth 1 -name "uploads_backup_*" -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
 find . -maxdepth 1 -name "database_temp_*.db*" -mtime +1 -delete 2>/dev/null || true
-find . -maxdepth 1 -name "uploads_temp_*" -type d -mtime +1 -exec rm -rf {} + 2>/dev/null || true
 
 # Установка зависимостей
 echo "📦 Устанавливаем зависимости..."
