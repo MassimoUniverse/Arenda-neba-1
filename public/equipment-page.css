@@ -518,7 +518,8 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   height: 60px;
   flex-shrink: 0; /* Важно: миниатюры не сжимаются */
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f5f5f5;
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.2s ease, transform 0.2s ease;
