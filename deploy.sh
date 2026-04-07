@@ -60,13 +60,13 @@ if [ -f "database.db" ]; then
 fi
 
 # 2. Временно переименовываем базу данных, чтобы git не удалил её
+DEPLOY_TS=$(date +%s)
 if [ -f "database.db" ]; then
     echo "🔒 Защищаем базу данных от удаления..."
-    mv database.db "database_temp_$(date +%s).db" 2>/dev/null || true
-    DB_TEMP_NAME=$(ls database_temp_*.db 2>/dev/null | head -1)
-    # Также защищаем файлы журнала SQLite
-    [ -f "database.db-shm" ] && mv database.db-shm "database_temp_$(date +%s).db-shm" 2>/dev/null || true
-    [ -f "database.db-wal" ] && mv database.db-wal "database_temp_$(date +%s).db-wal" 2>/dev/null || true
+    DB_TEMP_NAME="database_temp_${DEPLOY_TS}.db"
+    mv database.db "$DB_TEMP_NAME" 2>/dev/null || true
+    [ -f "database.db-shm" ] && mv database.db-shm "database_temp_${DEPLOY_TS}.db-shm" 2>/dev/null || true
+    [ -f "database.db-wal" ] && mv database.db-wal "database_temp_${DEPLOY_TS}.db-wal" 2>/dev/null || true
 fi
 
 # 3. Создаем резервную копию uploads перед деплоем
@@ -82,10 +82,11 @@ if [ -d "uploads" ] && [ "$(ls -A uploads 2>/dev/null)" ]; then
 fi
 
 # 4. Временно переименовываем uploads, чтобы git clean не удалил его
+UPLOADS_TEMP_NAME=""
 if [ -d "uploads" ]; then
     echo "🔒 Защищаем папку uploads от удаления..."
-    mv uploads "uploads_temp_$(date +%s)" 2>/dev/null || true
-    UPLOADS_TEMP_NAME=$(ls -d uploads_temp_* 2>/dev/null | head -1)
+    UPLOADS_TEMP_NAME="uploads_temp_${DEPLOY_TS}"
+    mv uploads "$UPLOADS_TEMP_NAME" 2>/dev/null || true
 fi
 
 # Получаем последние изменения с удаленного репозитория
