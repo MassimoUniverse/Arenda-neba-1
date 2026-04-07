@@ -514,8 +514,8 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 }
 
 .gallery-thumbnails img {
-  width: 80px;
-  height: 60px;
+  width: 100px;
+  height: 75px;
   flex-shrink: 0; /* Важно: миниатюры не сжимаются */
   border-radius: 8px;
   object-fit: contain;
