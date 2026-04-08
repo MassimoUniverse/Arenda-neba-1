@@ -71,11 +71,12 @@ fi
 if [ "$NEED_INSTALL" = true ]; then
     echo "📦 Устанавливаем зависимости..."
     npm install
-    npm rebuild sqlite3 2>/dev/null || npm install sqlite3 --build-from-source 2>/dev/null || true
     echo "✅ Зависимости установлены"
-else
-    echo "✅ Зависимости актуальны, пропускаем npm install"
 fi
+
+# Всегда пересобираем sqlite3 под текущую платформу (Windows-бинарник не работает на Linux)
+echo "🔧 Пересобираем sqlite3..."
+npm rebuild sqlite3 2>/dev/null || npm install sqlite3 --build-from-source 2>/dev/null || true
 
 # ============================================
 # 5. Регенерируем страницы техники из БД
