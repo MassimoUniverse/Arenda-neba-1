@@ -238,6 +238,20 @@ body {
     background: #059669;
 }
 
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.item-card-archived {
+    opacity: 0.6;
+    border-left: 3px solid #f59e0b;
+}
+
 .btn-block {
     width: 100%;
     display: block;

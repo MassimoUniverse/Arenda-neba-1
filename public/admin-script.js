@@ -463,26 +463,53 @@ async function loadServices() {
         });
         const services = await response.json();
 
-        const html = services.map(service => `
-            <div class="item-card">
+        const showArchive = document.getElementById('showArchiveToggle')?.checked;
+        const activeServices = services.filter(s => s.active);
+        const archivedServices = services.filter(s => !s.active);
+
+        const renderCard = (service) => `
+            <div class="item-card ${service.active ? '' : 'item-card-archived'}">
                 <div class="item-info">
                     <div class="item-title">${escapeHtml(service.title)}</div>
                     <div class="item-description">${escapeHtml(stripHtmlTrunc(service.short_description || service.description || '', 160))}</div>
                     <div class="item-meta">
                         <span>${escapeHtml(service.price)}</span>
                         <span class="badge ${service.active ? 'badge-success' : 'badge-danger'}">
-                            ${service.active ? 'Активна' : 'Неактивна'}
+                            ${service.active ? 'Активна' : 'В архиве'}
                         </span>
                     </div>
                 </div>
                 <div class="item-actions">
                     <button class="btn btn-small btn-primary" onclick="editService(${service.id})">Редактировать</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteService(${service.id})">Удалить</button>
+                    ${service.active
+                        ? `<button class="btn btn-small btn-warning" onclick="archiveService(${service.id})">В архив</button>`
+                        : `<button class="btn btn-small btn-success" onclick="restoreService(${service.id})">Восстановить</button>
+                           <button class="btn btn-small btn-danger" onclick="deleteService(${service.id})">Удалить навсегда</button>`
+                    }
                 </div>
             </div>
-        `).join('');
+        `;
 
-        document.getElementById('servicesList').innerHTML = html || '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Нет добавленных услуг</p></div>';
+        let html = activeServices.map(renderCard).join('');
+
+        // Переключатель архива
+        const archiveToggle = `
+            <div class="archive-toggle" style="margin: 16px 0; display: flex; align-items: center; gap: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
+                    <input type="checkbox" id="showArchiveToggle" ${showArchive ? 'checked' : ''} onchange="loadServices()" />
+                    Показать архив (${archivedServices.length})
+                </label>
+            </div>
+        `;
+
+        if (showArchive && archivedServices.length) {
+            html += `<div style="margin-top: 20px; padding-top: 16px; border-top: 2px dashed #ddd;">
+                <h3 style="color: #999; font-size: 16px; margin-bottom: 12px;">Архив</h3>
+                ${archivedServices.map(renderCard).join('')}
+            </div>`;
+        }
+
+        document.getElementById('servicesList').innerHTML = (archiveToggle + html) || '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Нет добавленных услуг</p></div>';
     } catch (error) {
         console.error('Error loading services:', error);
         document.getElementById('servicesList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка при загрузке услуг</p></div>';
@@ -1621,8 +1648,33 @@ function editService(id) {
     showServiceModal(id);
 }
 
+async function archiveService(id) {
+    if (!confirm('Переместить услугу в архив? Она будет скрыта с сайта, но данные сохранятся.')) return;
+    try {
+        const response = await fetch(`${API_URL}/api/admin/services/${id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active: 0 })
+        });
+        if (response.ok) { loadServices(); }
+        else { alert('Ошибка при архивации'); }
+    } catch (error) { alert('Ошибка: ' + error.message); }
+}
+
+async function restoreService(id) {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/services/${id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active: 1 })
+        });
+        if (response.ok) { loadServices(); }
+        else { alert('Ошибка при восстановлении'); }
+    } catch (error) { alert('Ошибка: ' + error.message); }
+}
+
 async function deleteService(id) {
-    if (!confirm('Вы уверены, что хотите удалить эту услугу?')) return;
+    if (!confirm('ВНИМАНИЕ! Услуга будет удалена НАВСЕГДА вместе с файлами. Это действие нельзя отменить. Продолжить?')) return;
 
     try {
         const response = await fetch(`${API_URL}/api/admin/services/${id}`, {
