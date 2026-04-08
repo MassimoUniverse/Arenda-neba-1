@@ -2232,10 +2232,22 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
 });
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
-  const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images, 
+  // Быстрое обновление только active (архивация/восстановление)
+  if (Object.keys(req.body).length === 1 && req.body.active !== undefined) {
+    db.run('UPDATE services SET active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [req.body.active, req.params.id],
+      function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, changes: this.changes });
+      }
+    );
+    return;
+  }
+
+  const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
           is_popular, popular_order, card_bullets, custom_specs } = req.body;
-  
+
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
   console.log('Type:', typeof reach_diagrams, Array.isArray(reach_diagrams));
