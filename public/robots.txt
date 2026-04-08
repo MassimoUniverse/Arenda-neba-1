@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /api/admin/
+
+Sitemap: https://avtovyshka-spb.ru/sitemap.xml
+Host: https://avtovyshka-spb.ru

@@ -897,9 +897,72 @@ app.get('/equipment/:filename(*)', (req, res) => {
 });
 
 // Serve static files from public directory (must be after specific routes)
+// ============================================
+// 301 редиректы со старого сайта (avtovyshka-spb.ru)
+// ============================================
+const oldToNewRedirects = {
+  '/avtopark/avtovyshka-13m/': '/equipment/avtovyshka-13m.html',
+  '/avtopark/avtovyshka-15m/': '/equipment/avtovyshka-15m.html',
+  '/avtopark/avtovyshka-16m/': '/equipment/avtovyshka-16m.html',
+  '/avtopark/avtovyshka-17m/': '/equipment/avtovyshka-18m.html',       // 17м → 18м (ближайший)
+  '/avtopark/avtovyshka-21m/': '/equipment/avtovyshka-21m.html',
+  '/avtopark/avtovyshka-24m/': '/equipment/avtovyshka-25m.html',       // 24м → 25м (ближайший)
+  '/avtopark/avtovyshka-25m/': '/equipment/avtovyshka-25m.html',
+  '/avtopark/avtovyshka-29m/': '/equipment/avtovyshka-29m.html',
+  '/avtopark/avtovyshka-40m/': '/equipment/avtovyshka-40-metrov.html',
+  '/avtopark/avtovyshka-45m/': '/equipment/avtovyshka-45m.html',
+  '/avtopark/avtovyshka-50m/': '/equipment/avtovyshka-45m.html',       // 50м → 45м (ближайший)
+  '/avtopark/avtokran-25t-ivanovets/': '/#autopark',
+  '/avtopark/avtokran-25t-kobelco/':   '/#autopark',
+};
+
+Object.entries(oldToNewRedirects).forEach(([oldPath, newPath]) => {
+  // С trailing slash
+  app.get(oldPath, (req, res) => res.redirect(301, newPath));
+  // Без trailing slash
+  if (oldPath.endsWith('/')) {
+    app.get(oldPath.slice(0, -1), (req, res) => res.redirect(301, newPath));
+  }
+});
+
+// Общий редирект /avtopark/ → автопарк на главной
+app.get('/avtopark', (req, res) => res.redirect(301, '/#autopark'));
+app.get('/avtopark/', (req, res) => res.redirect(301, '/#autopark'));
+
 // Редирект с /index.html на /
 app.get('/index.html', (req, res) => {
   res.redirect(301, '/');
+});
+
+// Динамический sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+  const host = 'https://avtovyshka-spb.ru';
+  const today = new Date().toISOString().split('T')[0];
+
+  db.all("SELECT url, updated_at FROM services WHERE active=1 ORDER BY order_num", (err, rows) => {
+    const staticPages = [
+      { loc: '/', priority: '1.0', changefreq: 'weekly' },
+      { loc: '/privacy-policy.html', priority: '0.3', changefreq: 'yearly' },
+    ];
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    staticPages.forEach(p => {
+      xml += `  <url>\n    <loc>${host}${p.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>\n`;
+    });
+
+    if (!err && rows) {
+      rows.forEach(r => {
+        const lastmod = r.updated_at ? r.updated_at.split(' ')[0] : today;
+        xml += `  <url>\n    <loc>${host}${r.url}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+      });
+    }
+
+    xml += '</urlset>';
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  });
 });
 
 // Явный маршрут для корневого пути
