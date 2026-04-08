@@ -183,6 +183,52 @@ function generateEquipmentPageHTML(service) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} - Аренда в СПб | Аренда Неба</title>
     <meta name="description" content="${metaDescription}">
+    <link rel="canonical" href="https://avtovyshka-spb.ru${url}">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="product">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Аренда Неба">
+    <meta property="og:title" content="${title} - Аренда в СПб">
+    <meta property="og:description" content="${metaDescription}">
+    <meta property="og:url" content="https://avtovyshka-spb.ru${url}">
+    <meta property="og:image" content="https://avtovyshka-spb.ru${imageUrl}">
+
+    <!-- JSON-LD: Product + BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "${title}",
+      "description": "${metaDescription.replace(/"/g, '\\"')}",
+      "image": "https://avtovyshka-spb.ru${imageUrl}",
+      "url": "https://avtovyshka-spb.ru${url}",
+      "brand": { "@type": "Brand", "name": "Аренда Неба" },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "RUB",
+        "price": "${priceShift}",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "Аренда Неба",
+          "telephone": "+7-991-000-91-11"
+        }
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://avtovyshka-spb.ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Автопарк", "item": "https://avtovyshka-spb.ru/#autopark" },
+        { "@type": "ListItem", "position": 3, "name": "${title}", "item": "https://avtovyshka-spb.ru${url}" }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../equipment-page.css">
     
