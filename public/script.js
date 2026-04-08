@@ -610,27 +610,27 @@ function parsePrice(priceStr) {
   let baseShift = 18000;
   let baseHalfShift = null;
   
-  // Ищем цену за полсмену (до запятой или если есть слово "полсмен")
-  const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+  // Ищем цену за полсмену/полсуток (до запятой или если есть слово "полсмен"/"полсуток")
+  const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:полсмен|полсуток)/i);
   if (halfShiftMatch) {
     baseHalfShift = parseInt(halfShiftMatch[1].replace(/\s/g, ''));
   } else {
     // Пробуем найти до запятой
     const beforeComma = priceStr.split(',')[0];
-    if (beforeComma && beforeComma.includes('полсмен')) {
+    if (beforeComma && (beforeComma.includes('полсмен') || beforeComma.includes('полсуток'))) {
       const match = beforeComma.match(/(\d+[\s\d]*)/);
       if (match) baseHalfShift = parseInt(match[1].replace(/\s/g, ''));
     }
   }
-  
-  // Ищем цену за смену (после запятой или если нет полсмены)
-  const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+
+  // Ищем цену за смену/сутки (после запятой или если нет полсмены)
+  const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:смен|сутк)/i);
   if (shiftMatch) {
     baseShift = parseInt(shiftMatch[1].replace(/\s/g, ''));
   } else {
     // Пробуем найти после запятой
     const afterComma = priceStr.split(',')[1] || priceStr;
-    if (afterComma && afterComma.includes('смен')) {
+    if (afterComma && (afterComma.includes('смен') || afterComma.includes('сутк'))) {
       const match = afterComma.match(/(\d+[\s\d]*)/);
       if (match) baseShift = parseInt(match[1].replace(/\s/g, ''));
     } else if (!baseHalfShift) {
@@ -956,42 +956,38 @@ function extractShiftPrice(priceStr) {
   // Удаляем все части с полсменой
   let cleaned = priceStr;
   
-  // Удаляем часть с полсменой (до запятой)
-  cleaned = cleaned.replace(/[^,]*полсмен[^,]*/gi, '').trim();
+  // Удаляем часть с полсменой/полсуток (до запятой)
+  cleaned = cleaned.replace(/[^,]*(?:полсмен|полсуток)[^,]*/gi, '').trim();
   // Удаляем запятую в начале, если осталась
   cleaned = cleaned.replace(/^,\s*/, '').trim();
-  
-  // Если после удаления полсмены ничего не осталось, значит была только полсмена
-  // В этом случае ищем цену за смену другим способом
+
+  // Если после удаления ничего не осталось, ищем цену за смену/сутки другим способом
   if (!cleaned || cleaned.length === 0) {
-    // Пробуем найти цену за смену в исходной строке (может быть указана отдельно)
-    const shiftMatch = priceStr.match(/(\d+[\s\d]*\s*₽\s*\/\s*смен[^,]*)/i);
-    if (shiftMatch) {
-      return shiftMatch[1].trim();
-    }
-    // Если не нашли, возвращаем пустую строку
-    return '';
-  }
-  
-  // Если осталась только одна часть, проверяем что это не полсмена
-  if (cleaned.includes('полсмен')) {
-    // Если все еще есть полсмена, значит формат нестандартный - ищем цену за смену напрямую
-    const shiftMatch = priceStr.match(/(\d+[\s\d]*\s*₽\s*\/\s*смен[^,]*)/i);
+    const shiftMatch = priceStr.match(/(\d+[\s\d]*\s*₽\s*\/\s*(?:смен|сутк)[^,]*)/i);
     if (shiftMatch) {
       return shiftMatch[1].trim();
     }
     return '';
   }
+
+  // Если осталась только одна часть, проверяем что это не полсмена/полсуток
+  if (cleaned.includes('полсмен') || cleaned.includes('полсуток')) {
+    const shiftMatch = priceStr.match(/(\d+[\s\d]*\s*₽\s*\/\s*(?:смен|сутк)[^,]*)/i);
+    if (shiftMatch) {
+      return shiftMatch[1].trim();
+    }
+    return '';
+  }
   
-  // Если в очищенной строке есть "смен", возвращаем её
-  if (cleaned.includes('смен')) {
+  // Если в очищенной строке есть "смен" или "сутк", возвращаем её
+  if (cleaned.includes('смен') || cleaned.includes('сутк')) {
     return cleaned;
   }
-  
-  // Если нет слова "смен", но есть число и ₽, добавляем "/смена"
+
+  // Если нет слова "смен"/"сутки", но есть число и ₽, возвращаем как есть
   const priceMatch = cleaned.match(/(\d+[\s\d]*)\s*₽/);
   if (priceMatch) {
-    return cleaned.replace(/(\d+[\s\d]*\s*₽)/, '$1 / смена');
+    return cleaned;
   }
   
   return cleaned;

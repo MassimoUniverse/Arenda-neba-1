@@ -117,14 +117,18 @@ function generateEquipmentPageHTML(service) {
   let priceHalfShift = '';
   let priceShift = '';
   let deliveryPerKm = service.delivery_per_km || 85;
+  const priceType = service.price_type || 'shift';
+  const deliveryType = service.delivery_type || 'per_km';
+  const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (8 часов)';
+  const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 часа)';
   
   if (price) {
-    const halfShiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+    const halfShiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:полсмен|полсуток)/i);
     if (halfShiftMatch) {
       priceHalfShift = halfShiftMatch[1].replace(/\s/g, '');
     }
-    
-    const shiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+
+    const shiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:смен|сутк)/i);
     if (shiftMatch) {
       priceShift = shiftMatch[1].replace(/\s/g, '');
     } else {
@@ -398,6 +402,8 @@ function generateEquipmentPageHTML(service) {
                                 // Данные схем вылета стрелы для JavaScript
                                 window.serviceReachDiagrams = ${JSON.stringify(reachDiagrams)};
                                 window.serviceReachDiagramUrl = ${JSON.stringify(service.reach_diagram_url || '')};
+                                window.servicePriceType = ${JSON.stringify(priceType)};
+                                window.serviceDeliveryType = ${JSON.stringify(deliveryType)};
                                 </script>
                             </div>
                         </div>
@@ -414,19 +420,19 @@ function generateEquipmentPageHTML(service) {
                         <h2>Стоимость аренды</h2>
                         <div class="pricing-table">
                             ${priceHalfShift ? `<div class="pricing-row">
-                                <span>Полсмены (3+1 часа)</span>
+                                <span>${halfUnitLabel}</span>
                                 <span class="pricing-value">${parseInt(priceHalfShift).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
                             </div>` : ''}
                             ${priceShift ? `<div class="pricing-row">
-                                <span>1 смена (8 часов)</span>
+                                <span>1 ${unitLabel}</span>
                                 <span class="pricing-value">${parseInt(priceShift).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
                             </div>` : ''}
                             <div class="pricing-row">
                                 <span>Подача техники (за КАД)</span>
-                                <span class="pricing-value">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</span>
+                                <span class="pricing-value">${deliveryType === 'negotiable' ? 'По договорённости' : `${deliveryPerKm} ₽/км × 2 (в каждую сторону)`}</span>
                             </div>
                         </div>
-                        ${priceHalfShift ? `<p class="pricing-note">* Полсмены (3+1) согласовывается отдельно по началу времени работы</p>` : ''}
+                        ${priceHalfShift ? `<p class="pricing-note">* ${halfUnitLabel} согласовывается отдельно по началу времени работы</p>` : ''}
                     </div>
                 </div>
 
@@ -439,16 +445,16 @@ function generateEquipmentPageHTML(service) {
                     <form class="equipment-calculator-form" id="equipmentCalculatorForm">
                         <input type="hidden" name="equipment" value="${title}">
                         <label class="calc-field">
-                            <span class="calc-field-label">Количество смен</span>
+                            <span class="calc-field-label">${priceType === 'day' ? 'Количество суток' : 'Количество смен'}</span>
                             <select id="equip-calc-shifts" name="duration" required>
-                                ${priceHalfShift ? `<option value="0.5">Полсмены</option>` : ''}
-                                <option value="1" selected>1 смена</option>
-                                <option value="2">2 смены</option>
-                                <option value="3">3 смены</option>
-                                <option value="more">Более 3 смен</option>
+                                ${priceHalfShift ? `<option value="0.5">${priceType === 'day' ? 'Полсуток' : 'Полсмены'}</option>` : ''}
+                                <option value="1" selected>1 ${priceType === 'day' ? 'сутки' : 'смена'}</option>
+                                <option value="2">2 ${priceType === 'day' ? 'суток' : 'смены'}</option>
+                                <option value="3">3 ${priceType === 'day' ? 'суток' : 'смены'}</option>
+                                <option value="more">${priceType === 'day' ? 'Более 3 суток' : 'Более 3 смен'}</option>
                             </select>
                         </label>
-                        <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="Введите количество смен" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; width: 100%; box-sizing: border-box;">
+                        <input type="number" id="equip-calc-shifts-custom" min="4" step="1" value="4" placeholder="${priceType === 'day' ? 'Введите количество суток' : 'Введите количество смен'}" style="display: none; margin-top: 8px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; width: 100%; box-sizing: border-box;">
                         <div class="calc-result" id="equipmentCalcResult">
                             <p class="calc-result-text">Загрузка...</p>
                         </div>
@@ -813,6 +819,13 @@ const db = new sqlite3.Database('./database.db', (err) => {
         if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
           console.error('Error adding delivery_per_km column:', err);
         }
+      });
+
+      db.run(`ALTER TABLE services ADD COLUMN price_type TEXT DEFAULT 'shift'`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {}
+      });
+      db.run(`ALTER TABLE services ADD COLUMN delivery_type TEXT DEFAULT 'per_km'`, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {}
       });
 
       db.run(`ALTER TABLE services ADD COLUMN custom_specs TEXT DEFAULT '[]'`, (err) => {
@@ -1923,7 +1936,9 @@ function processServiceRow(row, res) {
         boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
         basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
         delivery_per_km: row.delivery_per_km || 85,
-        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })()
+        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })(),
+        price_type: row.price_type || 'shift',
+        delivery_type: row.delivery_type || 'per_km'
   };
   res.json(fixedRow);
 }
@@ -2209,7 +2224,9 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
         boom_rotation_angle: row.boom_rotation_angle ? fixEncoding(row.boom_rotation_angle) : '',
         basket_rotation_angle: row.basket_rotation_angle ? fixEncoding(row.basket_rotation_angle) : '',
         delivery_per_km: row.delivery_per_km || 85,
-        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })()
+        custom_specs: (() => { try { return JSON.parse(row.custom_specs || '[]'); } catch(e) { return []; } })(),
+        price_type: row.price_type || 'shift',
+        delivery_type: row.delivery_type || 'per_km'
       };
     });
     res.json(fixedRows);
@@ -2221,7 +2238,7 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('📥 POST /api/admin/services - Creating new service');
   const { title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, 
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets, custom_specs } = req.body;
+          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type } = req.body;
 
   console.log('📋 Service data received:', {
     title,
@@ -2338,8 +2355,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
-    'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || [])],
+    'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km'],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -2367,7 +2384,7 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
 
   const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets, custom_specs } = req.body;
+          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type } = req.body;
 
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -2453,9 +2470,11 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     boom_rotation_angle: boom_rotation_angle || '',
     basket_rotation_angle: basket_rotation_angle || '',
     delivery_per_km: delivery_per_km || 85,
-    custom_specs: custom_specs || []
+    custom_specs: custom_specs || [],
+    price_type: price_type || 'shift',
+    delivery_type: delivery_type || 'per_km'
   };
-  
+
   // ВСЕГДА перегенерируем страницу техники с новым шаблоном при любом изменении
   console.log('🔄 Regenerating equipment page with new template...');
   const createdUrl = createEquipmentPage(serviceData);
@@ -2490,8 +2509,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   }
   
   db.run(
-    'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), req.params.id],
+    'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, price_type = ?, delivery_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', req.params.id],
     function(err) {
       if (err) {
         console.error('❌ Ошибка при обновлении услуги:', err);

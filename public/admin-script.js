@@ -112,6 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Переключатель видимости поля ₽/км при выборе «По договорённости»
+document.querySelectorAll('input[name="delivery_type"]').forEach(r => {
+    r.addEventListener('change', () => {
+        const wrap = document.getElementById('deliveryPerKmWrap');
+        if (wrap) wrap.style.display = r.value === 'negotiable' ? 'none' : '';
+    });
+});
+
 // Login Form Handler
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
@@ -591,12 +599,34 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Обязательно. Введите только число</small>
                 </div>
                 <div class="form-group">
-                    <label for="serviceDeliveryPerKm">Цена подачи техники за КАД</label>
-                    <div class="input-with-suffix">
-                        <input type="number" id="serviceDeliveryPerKm" name="delivery_per_km" placeholder="85" min="0" step="1" value="85">
-                        <span class="input-suffix">₽/км</span>
+                    <label>Тип цены</label>
+                    <div style="display:flex;gap:16px;margin-top:4px;">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="radio" name="price_type" id="priceTypeShift" value="shift" checked> Смена (8ч)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="radio" name="price_type" id="priceTypeDay" value="day"> Сутки (24ч)
+                        </label>
                     </div>
-                    <small class="form-hint">Стоимость за каждый километр за КАД (в каждую сторону)</small>
+                    <small class="form-hint">Что отображать на странице и в калькуляторе</small>
+                </div>
+                <div class="form-group">
+                    <label for="serviceDeliveryPerKm">Цена подачи техники за КАД</label>
+                    <div style="display:flex;gap:16px;margin-bottom:8px;">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="radio" name="delivery_type" id="deliveryTypePerKm" value="per_km" checked> ₽/км
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="radio" name="delivery_type" id="deliveryTypeNegotiable" value="negotiable"> По договорённости
+                        </label>
+                    </div>
+                    <div id="deliveryPerKmWrap">
+                        <div class="input-with-suffix">
+                            <input type="number" id="serviceDeliveryPerKm" name="delivery_per_km" placeholder="85" min="0" step="1" value="85">
+                            <span class="input-suffix">₽/км</span>
+                        </div>
+                        <small class="form-hint">Стоимость за каждый километр за КАД (в каждую сторону)</small>
+                    </div>
                 </div>
             </div>
 
@@ -1077,6 +1107,18 @@ async function loadServiceData(id) {
             if (deliveryInput) {
                 deliveryInput.value = service.delivery_per_km || 85;
             }
+
+            // Загружаем тип цены (смена/сутки)
+            const priceType = service.price_type || 'shift';
+            const ptRadio = document.getElementById(priceType === 'day' ? 'priceTypeDay' : 'priceTypeShift');
+            if (ptRadio) ptRadio.checked = true;
+
+            // Загружаем тип подачи (₽/км или по договорённости)
+            const deliveryType = service.delivery_type || 'per_km';
+            const dtRadio = document.getElementById(deliveryType === 'negotiable' ? 'deliveryTypeNegotiable' : 'deliveryTypePerKm');
+            if (dtRadio) dtRadio.checked = true;
+            const dWrap = document.getElementById('deliveryPerKmWrap');
+            if (dWrap) dWrap.style.display = deliveryType === 'negotiable' ? 'none' : '';
             
             // Загружаем динамические характеристики
             let specsToLoad = [];
@@ -1408,18 +1450,21 @@ window.saveService = async function(event, id) {
 
     // Формируем цену из двух полей
     const priceHalfShift = document.getElementById('servicePriceHalfShift')?.value || '';
-    
+    const selectedPriceType = document.querySelector('input[name="price_type"]:checked')?.value || 'shift';
+    const unitLabel = selectedPriceType === 'day' ? 'сутки' : 'смена';
+    const halfUnitLabel = selectedPriceType === 'day' ? 'полсуток' : 'полсмена';
+
     // Формируем строку цены
     let priceStr = '';
     if (priceHalfShift) {
         const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''));
         const shiftNum = parseInt(priceShift.replace(/\s/g, ''));
-        priceStr = `от ${halfShiftNum.toLocaleString('ru-RU')} ₽/полсмена, от ${shiftNum.toLocaleString('ru-RU')} ₽/смена`;
+        priceStr = `от ${halfShiftNum.toLocaleString('ru-RU')} ₽/${halfUnitLabel}, от ${shiftNum.toLocaleString('ru-RU')} ₽/${unitLabel}`;
     } else {
         const shiftNum = parseInt(priceShift.replace(/\s/g, ''));
-        priceStr = `от ${shiftNum.toLocaleString('ru-RU')} ₽/смена`;
+        priceStr = `от ${shiftNum.toLocaleString('ru-RU')} ₽/${unitLabel}`;
     }
-    
+
     data.price = priceStr;
     
     // Явно берём название из поля (чтобы дефис «Автовышка-платформа» не терялся)
@@ -1456,6 +1501,8 @@ window.saveService = async function(event, id) {
         else if (lbl.includes('поворот') && lbl.includes('корзин')) data.basket_rotation_angle = s.value;
     });
     data.delivery_per_km = parseInt(document.getElementById('serviceDeliveryPerKm')?.value || '85');
+    data.price_type = document.querySelector('input[name="price_type"]:checked')?.value || 'shift';
+    data.delivery_type = document.querySelector('input[name="delivery_type"]:checked')?.value || 'per_km';
     
     // Добавляем поля популярных карточек
     data.is_popular = document.getElementById('serviceIsPopular')?.checked ? 1 : 0;

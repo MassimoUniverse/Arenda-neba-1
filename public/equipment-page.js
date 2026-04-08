@@ -324,14 +324,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         let priceHalfShift = '';
         let priceShift = '';
         const deliveryPerKm = fixedService.delivery_per_km || 85;
-        
+        const priceType = fixedService.price_type || window.servicePriceType || 'shift';
+        const deliveryType = fixedService.delivery_type || window.serviceDeliveryType || 'per_km';
+        const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (8 часов)';
+        const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 часа)';
+
         if (fixedService.price) {
-          const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*полсмен/i);
+          const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:полсмен|полсуток)/i);
           if (halfShiftMatch) {
             priceHalfShift = halfShiftMatch[1].replace(/\s/g, '');
           }
-          
-          const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+
+          const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:смен|сутк)/i);
           if (shiftMatch) {
             priceShift = shiftMatch[1].replace(/\s/g, '');
           } else {
@@ -342,49 +346,49 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
           }
         }
-        
+
         if (!priceShift && priceHalfShift) {
           const halfShiftNum = parseInt(priceHalfShift.replace(/\s/g, ''), 10);
           if (halfShiftNum && halfShiftNum > 0) {
             priceShift = Math.round(halfShiftNum / 0.83).toString();
-            console.log('💡 Цена за смену вычислена из полсмены:', priceShift);
+            console.log('💡 Цена вычислена из половинной ставки:', priceShift);
           }
         }
-        
+
         if (!priceShift) {
           priceShift = '18000';
-          console.warn('⚠️ Цена за смену не найдена, используется значение по умолчанию');
+          console.warn('⚠️ Цена не найдена, используется значение по умолчанию');
         }
-        
+
         pricingTable.innerHTML = '';
-        
-        // ВСЕГДА показываем цену за полсмену, если она вычислена
+
+        // Показываем цену за полсмену/полсуток, если она вычислена
         if (priceHalfShift) {
           const row = document.createElement('div');
           row.className = 'pricing-row';
           row.innerHTML = `
-            <span>Полсмены (3+1 часа)</span>
+            <span>${halfUnitLabel}</span>
             <span class="pricing-value">${parseInt(priceHalfShift).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
           `;
           pricingTable.appendChild(row);
         }
-        
-        // ВСЕГДА показываем цену за смену
+
+        // Показываем цену за смену/сутки
         if (priceShift) {
           const row = document.createElement('div');
           row.className = 'pricing-row';
           row.innerHTML = `
-            <span>1 смена (8 часов)</span>
+            <span>1 ${unitLabel}</span>
             <span class="pricing-value">${parseInt(priceShift).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
           `;
           pricingTable.appendChild(row);
         }
-        
+
         const deliveryRow = document.createElement('div');
         deliveryRow.className = 'pricing-row';
         deliveryRow.innerHTML = `
           <span>Подача техники (за КАД)</span>
-          <span class="pricing-value">${deliveryPerKm} ₽/км × 2 (в каждую сторону)</span>
+          <span class="pricing-value">${deliveryType === 'negotiable' ? 'По договорённости' : `${deliveryPerKm} ₽/км × 2 (в каждую сторону)`}</span>
         `;
         pricingTable.appendChild(deliveryRow);
       }
@@ -392,12 +396,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Обновляем цену в заголовке (если есть)
       const priceEls = document.querySelectorAll('.price-value');
       if (priceEls.length && fixedService.price) {
-        // Показываем только цену за смену в заголовке
-        const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*смен/i);
+        const pType = fixedService.price_type || window.servicePriceType || 'shift';
+        const priceUnitLabel = pType === 'day' ? 'сутки' : 'смена';
+        const shiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:смен|сутк)/i);
         if (shiftMatch) {
           const shiftPrice = parseInt(shiftMatch[1].replace(/\s/g, ''));
           priceEls.forEach(el => {
-            el.innerHTML = `${shiftPrice.toLocaleString('ru-RU')} ₽ / смена <span class="price-vat">без НДС</span>`;
+            el.innerHTML = `${shiftPrice.toLocaleString('ru-RU')} ₽ / ${priceUnitLabel} <span class="price-vat">без НДС</span>`;
           });
         } else {
           priceEls.forEach(el => {
@@ -1473,27 +1478,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (service && service.price) {
       const priceStr = service.price;
       
-      // Ищем цену за полсмену - пробуем разные форматы
-      const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*полсмен/i);
+      // Ищем цену за полсмену/полсуток - пробуем разные форматы
+      const halfShiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*(?:полсмен|полсуток)/i);
       if (halfShiftMatch) {
         baseHalfShift = parseInt(halfShiftMatch[1].replace(/\s/g, ''), 10);
       } else {
         // Пробуем найти до запятой
         const beforeComma = priceStr.split(',')[0];
-        if (beforeComma && beforeComma.includes('полсмен')) {
+        if (beforeComma && (beforeComma.includes('полсмен') || beforeComma.includes('полсуток'))) {
           const match = beforeComma.match(/(\d+[\s\d]*)/);
           if (match) baseHalfShift = parseInt(match[1].replace(/\s/g, ''), 10);
         }
       }
-      
-      // Ищем цену за смену
-      const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*смен/i);
+
+      // Ищем цену за смену/сутки
+      const shiftMatch = priceStr.match(/(\d+[\s\d]*)\s*₽\s*[\/\s]*(?:смен|сутк)/i);
       if (shiftMatch) {
         basePrice = parseInt(shiftMatch[1].replace(/\s/g, ''), 10);
       } else {
         // Пробуем найти после запятой
         const afterComma = priceStr.split(',')[1] || priceStr;
-        if (afterComma && afterComma.includes('смен')) {
+        if (afterComma && (afterComma.includes('смен') || afterComma.includes('сутк'))) {
           const match = afterComma.match(/(\d+[\s\d]*)/);
           if (match) basePrice = parseInt(match[1].replace(/\s/g, ''), 10);
         } else if (!baseHalfShift) {
@@ -1511,11 +1516,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pricingRows = pricingTable.querySelectorAll('.pricing-row');
         pricingRows.forEach(row => {
           const text = row.textContent || '';
-          if (text.includes('Полсмены') || text.includes('полсмен')) {
+          if (text.includes('Полсмены') || text.includes('полсмен') || text.includes('Полсуток') || text.includes('полсуток')) {
             const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
             if (priceMatch) {
               baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
-              console.log('✅ Найдена цена за полсмену из таблицы цен:', baseHalfShift);
+              console.log('✅ Найдена цена за полсмену/полсуток из таблицы цен:', baseHalfShift);
             }
           }
         });
@@ -1529,11 +1534,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pricingRows = pricingTable.querySelectorAll('.pricing-row');
         pricingRows.forEach(row => {
           const text = row.textContent || '';
-          if ((text.includes('смен') || text.includes('8 часов')) && !text.includes('полсмен')) {
+          if ((text.includes('смен') || text.includes('8 часов') || text.includes('сутк') || text.includes('24 часа')) && !text.includes('полсмен') && !text.includes('полсуток')) {
             const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
             if (priceMatch) {
               basePrice = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
-              console.log('✅ Найдена цена за смену из таблицы цен:', basePrice);
+              console.log('✅ Найдена цена из таблицы цен:', basePrice);
             }
           }
         });
@@ -1772,11 +1777,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const pricingRows = pricingTable.querySelectorAll('.pricing-row');
             for (const row of pricingRows) {
               const text = row.textContent || '';
-              if (text.includes('Полсмены') || text.includes('полсмен')) {
+              if (text.includes('Полсмены') || text.includes('полсмен') || text.includes('Полсуток') || text.includes('полсуток')) {
                 const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
                 if (priceMatch) {
                   baseHalfShift = parseInt(priceMatch[1].replace(/\s/g, ''), 10);
-                  console.log('✅ Найдена цена за полсмену из таблицы цен (в расчете):', baseHalfShift);
+                  console.log('✅ Найдена цена за полсмену/полсуток из таблицы цен (в расчете):', baseHalfShift);
                   break;
                 }
               }
@@ -1794,27 +1799,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Отображаем результат
       let shiftsText;
       let timeText = '';
-      
+      const calcPriceType = (service && service.price_type) || window.servicePriceType || 'shift';
+      const isDay = calcPriceType === 'day';
+
       if (shifts === 0.5) {
-        shiftsText = 'полсмены';
-        timeText = 'Полсмены включает в себя 3 часа работы и один час подачи';
+        shiftsText = isDay ? 'полсуток' : 'полсмены';
+        timeText = isDay ? 'Полсуток — 12 часов аренды' : 'Полсмены включает в себя 3 часа работы и один час подачи';
       } else {
-        timeText = 'Смена включает в себя 7 часов работы и один час подачи';
-        if (shiftsSelectValue === 'more') {
-          shiftsText = shifts === 4 ? '4 смены' : `${shifts} смен`;
-        } else if (shifts === 1) {
-          shiftsText = 'смену';
-        } else if (shifts < 5) {
-          shiftsText = 'смены';
+        timeText = isDay ? 'Сутки — 24 часа аренды' : 'Смена включает в себя 7 часов работы и один час подачи';
+        if (isDay) {
+          if (shiftsSelectValue === 'more') {
+            shiftsText = `${shifts} суток`;
+          } else if (shifts === 1) {
+            shiftsText = 'сутки';
+          } else {
+            shiftsText = 'суток';
+          }
         } else {
-          shiftsText = 'смен';
+          if (shiftsSelectValue === 'more') {
+            shiftsText = shifts === 4 ? '4 смены' : `${shifts} смен`;
+          } else if (shifts === 1) {
+            shiftsText = 'смену';
+          } else if (shifts < 5) {
+            shiftsText = 'смены';
+          } else {
+            shiftsText = 'смен';
+          }
         }
       }
-      
+
       if (resultEl) {
         resultEl.innerHTML = `
           <p class="calc-result-text">
-            ${formatted} ₽ за ${shifts === 0.5 ? 'полсмены' : (shiftsSelectValue === 'more' ? shiftsText : `${shifts} ${shiftsText}`)} <span class="price-vat">без НДС</span>
+            ${formatted} ₽ за ${shifts === 0.5 ? shiftsText : (shiftsSelectValue === 'more' ? shiftsText : `${shifts} ${shiftsText}`)} <span class="price-vat">без НДС</span>
           </p>
           ${timeText ? `<span class="calculator-time">${timeText}</span>` : ''}
         `;
