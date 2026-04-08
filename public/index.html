@@ -285,6 +285,10 @@
             <span class="field-label">Сообщение</span>
             <textarea name="message" rows="3" placeholder="Опишите задачу или адрес объекта (необязательно)"></textarea>
           </label>
+          <label class="privacy-checkbox">
+            <input type="checkbox" name="privacy_agreed" id="privacy-checkbox" required>
+            <span>Нажимая кнопку, вы соглашаетесь на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a></span>
+          </label>
           <button type="submit" class="btn btn-primary btn-submit">Оставить заявку</button>
           <div class="form-message" id="form-message"></div>
         </form>
@@ -416,6 +420,7 @@
           <li><a href="#calculator">Быстрая заявка</a></li>
           <li><a href="#reviews">Отзывы</a></li>
           <li><a href="#contacts">Контакты</a></li>
+          <li><a href="/privacy-policy.html">Политика конфиденциальности</a></li>
         </ul>
       </div>
       <div class="footer-col">

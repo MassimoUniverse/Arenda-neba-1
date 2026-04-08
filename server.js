@@ -423,6 +423,10 @@ function generateEquipmentPageHTML(service) {
                             <div class="form-group" style="margin-bottom: 20px;">
                                 <textarea name="message" placeholder="Комментарий к заказу" rows="3" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; resize: vertical;"></textarea>
                             </div>
+                            <label class="privacy-checkbox">
+                                <input type="checkbox" name="privacy_agreed" id="privacy-checkbox" required>
+                                <span>Нажимая кнопку, вы соглашаетесь на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a></span>
+                            </label>
                             <button type="submit" class="btn btn-primary" style="width: 100%;">
                                 <span>Отправить заявку</span>
                             </button>
@@ -488,6 +492,9 @@ function generateEquipmentPageHTML(service) {
                         <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 14px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
                     </div>
                 </div>
+            </div>
+            <div style="text-align: center; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                <a href="/privacy-policy.html" style="color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none;">Политика конфиденциальности</a>
             </div>
             <div class="footer-bottom" style="position: relative;">
                 <p>2016-2025 © ООО «Аренда Неба»</p>

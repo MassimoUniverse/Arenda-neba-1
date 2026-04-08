@@ -1921,6 +1921,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
+      // Добавляем согласие на обработку ПД
+      const privacyCheckbox = form.querySelector('#privacy-checkbox');
+      data.privacy_agreed = !!privacyCheckbox?.checked;
+
       // Отправляем данные на сервер
       try {
         const response = await fetch('/api/requests', {

@@ -925,6 +925,37 @@ input[type='number'] {
   margin: 8px 0 16px;
 }
 
+/* Чекбокс согласия на обработку ПД */
+.privacy-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.privacy-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.privacy-checkbox a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.privacy-checkbox a:hover {
+  color: var(--accent-hover);
+}
+
 .calculator-form .btn-submit {
   grid-column: 1 / -1;
   width: 100%;

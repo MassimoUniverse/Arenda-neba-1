@@ -1797,7 +1797,7 @@ function initCalculator() {
       phone: formData.get('phone'),
       email: formData.get('email') || '',
       message: formData.get('message') || '',
-      privacy_agreed: true
+      privacy_agreed: !!form.querySelector('#privacy-checkbox')?.checked
     };
     if (result) {
       data.equipment = result.equipmentName;
