@@ -562,7 +562,7 @@ function showServiceModal(id = null) {
             </div>
             <div class="form-group">
                     <label for="serviceUrl">URL страницы</label>
-                    <input type="text" id="serviceUrl" name="url" placeholder="/equipment/avtovyshka-13m.html">
+                    <input type="text" id="serviceUrl" name="url" placeholder="/avtopark/avtovyshka-13m.html">
                     <small class="form-hint">Если не указан, будет сгенерирован автоматически из названия</small>
             </div>
             <div class="form-group">

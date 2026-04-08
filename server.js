@@ -538,30 +538,30 @@ function createEquipmentPage(service) {
       console.log('📝 Generated URL from title:', serviceUrl);
     }
     
-    // Убираем начальный слэш и /equipment/ если есть
-    let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
+    // Убираем начальный слэш и /avtopark/ или /equipment/ если есть
+    let filename = serviceUrl.replace(/^\/+/, '').replace(/^(avtopark|equipment)\//, '');
     if (!filename.endsWith('.html')) {
       filename += '.html';
     }
-    
+
     console.log('📄 Final filename:', filename);
-    
+
     // Путь к файлу
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    const filePath = path.join(equipmentDir, filename);
-    
+    const avtoparkDir = path.join(__dirname, 'public', 'avtopark');
+    const filePath = path.join(avtoparkDir, filename);
+
     console.log('📂 __dirname:', __dirname);
-    console.log('📂 Equipment directory:', equipmentDir);
+    console.log('📂 Avtopark directory:', avtoparkDir);
     console.log('📂 Full file path:', filePath);
-    console.log('📂 File path exists check:', fs.existsSync(equipmentDir));
-    
+    console.log('📂 File path exists check:', fs.existsSync(avtoparkDir));
+
     // Создаем директорию если её нет
-    if (!fs.existsSync(equipmentDir)) {
-      console.log('📁 Creating equipment directory...');
-      fs.mkdirSync(equipmentDir, { recursive: true });
-      console.log('✅ Equipment directory created');
+    if (!fs.existsSync(avtoparkDir)) {
+      console.log('📁 Creating avtopark directory...');
+      fs.mkdirSync(avtoparkDir, { recursive: true });
+      console.log('✅ Avtopark directory created');
     } else {
-      console.log('✅ Equipment directory exists');
+      console.log('✅ Avtopark directory exists');
     }
     
     // Генерируем HTML
@@ -585,7 +585,7 @@ function createEquipmentPage(service) {
     }
     
     // Возвращаем URL для сохранения в базу
-    const returnUrl = '/equipment/' + filename;
+    const returnUrl = '/avtopark/' + filename;
     console.log('🔗 Returning URL:', returnUrl);
     return returnUrl;
   } catch (error) {
@@ -818,12 +818,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // Explicit route for equipment pages (MUST be BEFORE static files)
 // Используем (*) для захвата всего пути, включая специальные символы
+// Редирект /equipment/* → /avtopark/* (для старых ссылок)
 app.get('/equipment/:filename(*)', (req, res) => {
+  res.redirect(301, '/avtopark/' + req.params.filename);
+});
+
+app.get('/avtopark/:filename(*)', (req, res) => {
   try {
     // Декодируем имя файла из URL (на случай кириллицы в URL)
     let filename = req.params.filename ? decodeURIComponent(req.params.filename) : '';
-    
-    console.log(`\n🔍 [EQUIPMENT ROUTE] Request received`);
+
+    console.log(`\n🔍 [AVTOPARK ROUTE] Request received`);
     console.log(`   Raw param: ${req.params.filename}`);
     console.log(`   Decoded: ${filename}`);
     console.log(`   Full URL: ${req.url}`);
@@ -858,7 +863,7 @@ app.get('/equipment/:filename(*)', (req, res) => {
   }
   
   // Используем абсолютный путь
-  const filePath = path.resolve(__dirname, 'public', 'equipment', filename);
+  const filePath = path.resolve(__dirname, 'public', 'avtopark', filename);
   
   console.log(`📂 Looking for file at: ${filePath}`);
   
@@ -868,9 +873,9 @@ app.get('/equipment/:filename(*)', (req, res) => {
     console.error(`   Full path: ${filePath}`);
     
     // Показываем список доступных файлов для отладки
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    if (fs.existsSync(equipmentDir)) {
-      const files = fs.readdirSync(equipmentDir).filter(f => f.endsWith('.html'));
+    const avtoparkDir2 = path.join(__dirname, 'public', 'avtopark');
+    if (fs.existsSync(avtoparkDir2)) {
+      const files = fs.readdirSync(avtoparkDir2).filter(f => f.endsWith('.html'));
       console.log(`   📋 Available files: ${files.join(', ')}`);
     }
     
@@ -898,36 +903,32 @@ app.get('/equipment/:filename(*)', (req, res) => {
 
 // Serve static files from public directory (must be after specific routes)
 // ============================================
-// 301 редиректы со старого сайта (avtovyshka-spb.ru)
+// 301 редиректы со старого сайта (avtovyshka-spb.ru) — только несовпадающие URL
 // ============================================
 const oldToNewRedirects = {
-  '/avtopark/avtovyshka-13m/': '/equipment/avtovyshka-13m.html',
-  '/avtopark/avtovyshka-15m/': '/equipment/avtovyshka-15m.html',
-  '/avtopark/avtovyshka-16m/': '/equipment/avtovyshka-16m.html',
-  '/avtopark/avtovyshka-17m/': '/equipment/avtovyshka-18m.html',       // 17м → 18м (ближайший)
-  '/avtopark/avtovyshka-21m/': '/equipment/avtovyshka-21m.html',
-  '/avtopark/avtovyshka-24m/': '/equipment/avtovyshka-25m.html',       // 24м → 25м (ближайший)
-  '/avtopark/avtovyshka-25m/': '/equipment/avtovyshka-25m.html',
-  '/avtopark/avtovyshka-29m/': '/equipment/avtovyshka-29m.html',
-  '/avtopark/avtovyshka-40m/': '/equipment/avtovyshka-40-metrov.html',
-  '/avtopark/avtovyshka-45m/': '/equipment/avtovyshka-45m.html',
-  '/avtopark/avtovyshka-50m/': '/equipment/avtovyshka-45m.html',       // 50м → 45м (ближайший)
+  '/avtopark/avtovyshka-17m/': '/avtopark/avtovyshka-18m.html',       // 17м → 18м (ближайший)
+  '/avtopark/avtovyshka-24m/': '/avtopark/avtovyshka-25m.html',       // 24м → 25м (ближайший)
+  '/avtopark/avtovyshka-50m/': '/avtopark/avtovyshka-45m.html',       // 50м → 45м (ближайший)
   '/avtopark/avtokran-25t-ivanovets/': '/#autopark',
   '/avtopark/avtokran-25t-kobelco/':   '/#autopark',
 };
 
 Object.entries(oldToNewRedirects).forEach(([oldPath, newPath]) => {
-  // С trailing slash
   app.get(oldPath, (req, res) => res.redirect(301, newPath));
-  // Без trailing slash
   if (oldPath.endsWith('/')) {
     app.get(oldPath.slice(0, -1), (req, res) => res.redirect(301, newPath));
   }
 });
 
-// Общий редирект /avtopark/ → автопарк на главной
-app.get('/avtopark', (req, res) => res.redirect(301, '/#autopark'));
-app.get('/avtopark/', (req, res) => res.redirect(301, '/#autopark'));
+// Старые URL /avtopark/avtovyshka-XXm/ (со слешем) → /avtopark/avtovyshka-XXm.html
+// Это нужно чтобы старые URL вида /avtopark/avtovyshka-13m/ (папка) вели на .html файл
+app.get('/avtopark/:slug/', (req, res, next) => {
+  const slug = req.params.slug;
+  if (slug && !slug.includes('.')) {
+    return res.redirect(301, `/avtopark/${slug}.html`);
+  }
+  next();
+});
 
 // Редирект с /index.html на /
 app.get('/index.html', (req, res) => {
@@ -1700,21 +1701,25 @@ app.get('/api/services/url/*', (req, res) => {
   const urlWithSlash = url.startsWith('/') ? url : '/' + url;
   const urlWithoutSlash = url.startsWith('/') ? url.substring(1) : url;
   
-  // Также пробуем варианты без префикса /equipment/
-  let urlWithoutEquipment = url;
-  if (urlWithoutEquipment.includes('/equipment/')) {
-    urlWithoutEquipment = urlWithoutEquipment.replace('/equipment/', '');
-  } else if (urlWithoutEquipment.includes('equipment/')) {
-    urlWithoutEquipment = urlWithoutEquipment.replace('equipment/', '');
+  // Также пробуем варианты без префикса /avtopark/ или /equipment/
+  let urlWithoutPrefix = url;
+  if (urlWithoutPrefix.includes('/avtopark/')) {
+    urlWithoutPrefix = urlWithoutPrefix.replace('/avtopark/', '');
+  } else if (urlWithoutPrefix.includes('avtopark/')) {
+    urlWithoutPrefix = urlWithoutPrefix.replace('avtopark/', '');
+  } else if (urlWithoutPrefix.includes('/equipment/')) {
+    urlWithoutPrefix = urlWithoutPrefix.replace('/equipment/', '');
+  } else if (urlWithoutPrefix.includes('equipment/')) {
+    urlWithoutPrefix = urlWithoutPrefix.replace('equipment/', '');
   }
-  const urlWithoutEquipmentWithSlash = '/' + urlWithoutEquipment;
+  const urlWithoutPrefixWithSlash = '/' + urlWithoutPrefix;
   
   // Список всех вариантов для поиска
   const searchUrls = [
     urlWithSlash,
     urlWithoutSlash,
-    urlWithoutEquipment,
-    urlWithoutEquipmentWithSlash
+    urlWithoutPrefix,
+    urlWithoutPrefixWithSlash
   ].filter((u, index, self) => self.indexOf(u) === index); // Убираем дубликаты
   
   console.log('   Trying URLs:', searchUrls);
@@ -2212,9 +2217,9 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   let finalUrl = url;
   if (!finalUrl || finalUrl.trim() === '') {
     finalUrl = generateUrlFromTitle(title);
-    // Добавляем префикс /equipment/ если его нет
-    if (!finalUrl.startsWith('/equipment/')) {
-      finalUrl = '/equipment/' + finalUrl;
+    // Добавляем префикс /avtopark/ если его нет
+    if (!finalUrl.startsWith('/avtopark/')) {
+      finalUrl = '/avtopark/' + finalUrl;
     }
   }
   
@@ -2350,9 +2355,9 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   let finalUrl = url;
   if (!finalUrl || finalUrl.trim() === '') {
     finalUrl = generateUrlFromTitle(title);
-    // Добавляем префикс /equipment/ если его нет
-    if (!finalUrl.startsWith('/equipment/')) {
-      finalUrl = '/equipment/' + finalUrl;
+    // Добавляем префикс /avtopark/ если его нет
+    if (!finalUrl.startsWith('/avtopark/')) {
+      finalUrl = '/avtopark/' + finalUrl;
     }
   }
   
@@ -2470,8 +2475,8 @@ function deleteEquipmentPage(serviceUrl) {
       return;
     }
     
-    // Убираем начальный слэш и /equipment/ если есть
-    let filename = serviceUrl.replace(/^\/+/, '').replace(/^equipment\//, '');
+    // Убираем начальный слэш и /avtopark/ или /equipment/ если есть
+    let filename = serviceUrl.replace(/^\/+/, '').replace(/^(avtopark|equipment)\//, '');
     if (!filename.endsWith('.html')) {
       filename += '.html';
     }

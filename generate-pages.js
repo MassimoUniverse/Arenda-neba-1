@@ -94,9 +94,9 @@ function generateEquipmentPageHTML(service) {
     : description || `Аренда ${title.toLowerCase()} в Санкт-Петербурге. ☎ +7 (991) 000-91-11`;
   
   // Используем _template.html как шаблон (отдельный файл, не перезаписывается генератором)
-  const templatePath = path.join(__dirname, 'public', 'equipment', '_template.html');
+  const templatePath = path.join(__dirname, 'public', 'avtopark', '_template.html');
   // Fallback на старый шаблон если _template.html не найден
-  const fallbackPath = path.join(__dirname, 'public', 'equipment', 'avtovyshka-13m.html');
+  const fallbackPath = path.join(__dirname, 'public', 'avtopark', 'avtovyshka-13m.html');
   
   const resolvedTemplatePath = fs.existsSync(templatePath) ? templatePath : fallbackPath;
   
@@ -242,12 +242,12 @@ db.serialize(() => {
 
     console.log(`📊 Найдено ${services.length} услуг для генерации страниц\n`);
 
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    
+    const avtoparkDir = path.join(__dirname, 'public', 'avtopark');
+
     // Создаем директорию если её нет
-    if (!fs.existsSync(equipmentDir)) {
-      fs.mkdirSync(equipmentDir, { recursive: true });
-      console.log('📁 Создана директория:', equipmentDir);
+    if (!fs.existsSync(avtoparkDir)) {
+      fs.mkdirSync(avtoparkDir, { recursive: true });
+      console.log('📁 Создана директория:', avtoparkDir);
     }
 
     let generated = 0;
@@ -257,12 +257,12 @@ db.serialize(() => {
       try {
         // Определяем имя файла
         let filename = service.url || generateUrlFromTitle(service.title);
-        filename = filename.replace(/^\/+/, '').replace(/^equipment\//, '');
+        filename = filename.replace(/^\/+/, '').replace(/^(avtopark|equipment)\//, '');
         if (!filename.endsWith('.html')) {
           filename += '.html';
         }
 
-        const filePath = path.join(equipmentDir, filename);
+        const filePath = path.join(avtoparkDir, filename);
 
         // Генерируем HTML
         const html = generateEquipmentPageHTML(service);
