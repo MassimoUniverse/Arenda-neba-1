@@ -40,3 +40,11 @@ if ! node -e "require('sqlite3')" 2>/dev/null; then
   rm -rf node_modules/sqlite3
   npm install sqlite3 --no-audit --no-fund
 fi
+
+# Перегенерируем страницы техники из серверной БД
+echo ">>> регенерация страниц техники..."
+if [ -f regen-pages-direct.js ]; then
+  node regen-pages-direct.js 2>&1 | tail -3
+else
+  echo "⚠️ regen-pages-direct.js не найден, пропускаем"
+fi
