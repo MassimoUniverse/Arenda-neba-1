@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const deliveryRow = document.createElement('div');
         deliveryRow.className = 'pricing-row';
         deliveryRow.innerHTML = `
-          <span>Подача техники (за КАД)</span>
+          <span>${deliveryType === 'negotiable' ? 'Подача техники' : 'Подача техники (за КАД)'}</span>
           <span class="pricing-value">${deliveryType === 'negotiable' ? 'По договорённости' : `${deliveryPerKm} ₽/км × 2 (в каждую сторону)`}</span>
         `;
         pricingTable.appendChild(deliveryRow);

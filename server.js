@@ -428,7 +428,7 @@ function generateEquipmentPageHTML(service) {
                                 <span class="pricing-value">${parseInt(priceShift).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
                             </div>` : ''}
                             <div class="pricing-row">
-                                <span>Подача техники (за КАД)</span>
+                                <span>${deliveryType === 'negotiable' ? 'Подача техники' : 'Подача техники (за КАД)'}</span>
                                 <span class="pricing-value">${deliveryType === 'negotiable' ? 'По договорённости' : `${deliveryPerKm} ₽/км × 2 (в каждую сторону)`}</span>
                             </div>
                         </div>
