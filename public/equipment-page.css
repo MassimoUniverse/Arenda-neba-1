@@ -326,6 +326,7 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   font-size: 28px;
   font-weight: 700;
   margin: 0;
+  word-spacing: 0.05em;
 }
 
 .equipment-price {
