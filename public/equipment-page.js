@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Применяем fixEncoding ко всем текстовым полям (description — HTML, не трогаем)
       const fixedService = {
         ...service,
-        title: service.title ? fixEncoding(service.title) : service.title,
+        title: service.title || '',
         description: service.description || service.description,
         price: service.price ? fixEncoding(service.price) : service.price,
         height_lift: service.height_lift ? fixEncoding(service.height_lift) : service.height_lift,
