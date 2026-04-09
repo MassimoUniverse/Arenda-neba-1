@@ -269,13 +269,13 @@ function generateEquipmentPageHTML(service) {
     <!-- Navigation -->
     <header class="site-header" id="siteHeader">
         <div class="container header-inner">
-            <a href="../index.html" class="logo">Аренда Неба</a>
+            <a href="/" class="logo">Аренда Неба</a>
             <div class="header-right">
                 <nav class="main-nav">
-                    <a href="../index.html#calculator">Калькулятор</a>
-                    <a href="../index.html#autopark">Наш автопарк</a>
-                    <a href="../index.html#reviews">Отзывы</a>
-                    <a href="../index.html#contacts">Контакты</a>
+                    <a href="/#calculator">Калькулятор</a>
+                    <a href="/#autopark">Наш автопарк</a>
+                    <a href="/#reviews">Отзывы</a>
+                    <a href="/#contacts">Контакты</a>
                 </nav>
                 <div class="header-contacts-mini">
                     <a href="tel:+79910009111" class="header-messenger phone" data-ct="phone" aria-label="Позвонить">
@@ -290,7 +290,7 @@ function generateEquipmentPageHTML(service) {
                                 <path d="M20.5 4.4 4.3 10.8c-.8.3-.8 1.1-.1 1.3l3.5 1.1 1.4 4.5c.1.4.5.6.9.3l2-1.6 3.3 2.4c.6.4 1.1.2 1.3-.6l2.2-12c.2-.8-.2-1.2-.8-1zM9.3 13.2l7.2-4.7c.2-.1.4 0 .2.2l-5.9 5.4-.2 2.6-1.3-3.5z" />
                             </svg>
                         </a>
-                        <a href="https://web.max.ru/u/+79910009111" class="header-messenger max" target="_blank" rel="noopener" aria-label="MAX">
+                        <a href="https://max.ru/u/f9LHodD0cOJKO3OAwk4K6TkpnuLAN43TGG_qBrsn3ftm9j4pV7icx5M-tDw" class="header-messenger max" target="_blank" rel="noopener" aria-label="MAX">
                             <img src="../images/max-logo.svg" alt="" class="header-max-logo-img" width="40" height="40" decoding="async" />
                         </a>
                     </div>
@@ -303,21 +303,21 @@ function generateEquipmentPageHTML(service) {
             </div>
         </div>
         <nav class="mobile-nav" id="mobile-nav">
-            <a href="../index.html">Главная</a>
-            <a href="../index.html#calculator">Калькулятор</a>
-            <a href="../index.html#autopark">Наш автопарк</a>
-            <a href="../index.html#reviews">Отзывы</a>
-            <a href="../index.html#quick-contact-form">Оставить заявку</a>
-            <a href="../index.html#contacts">Контакты</a>
+            <a href="/">Главная</a>
+            <a href="/#calculator">Калькулятор</a>
+            <a href="/#autopark">Наш автопарк</a>
+            <a href="/#reviews">Отзывы</a>
+            <a href="/#quick-contact-form">Оставить заявку</a>
+            <a href="/#contacts">Контакты</a>
         </nav>
     </header>
 
     <!-- Breadcrumbs -->
     <div class="breadcrumbs">
         <div class="container">
-            <a href="../index.html">Главная</a>
+            <a href="/">Главная</a>
             <span>/</span>
-            <a href="../index.html#services">Автопарк</a>
+            <a href="/#services">Автопарк</a>
             <span>/</span>
             <span>${breadcrumbTitle}</span>
         </div>
@@ -525,7 +525,7 @@ function generateEquipmentPageHTML(service) {
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                        <a href="../index.html" class="logo-text" style="font-size: 20px; font-weight: 700; color: rgba(255, 255, 255, 0.9); text-decoration: none;">Аренда Неба</a>
+                        <a href="/" class="logo-text" style="font-size: 20px; font-weight: 700; color: rgba(255, 255, 255, 0.9); text-decoration: none;">Аренда Неба</a>
                     </div>
                     <p>Аренда спецтехники в Санкт-Петербурге и Ленинградской области</p>
                 </div>
@@ -539,7 +539,7 @@ function generateEquipmentPageHTML(service) {
                     <h3>Режим работы</h3>
                     <p>Круглосуточно, без выходных</p>
                     <div style="margin-top: 15px;">
-                        <a href="https://web.max.ru/u/+79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 8px; padding: 8px 14px; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="MAX">MAX</a>
+                        <a href="https://max.ru/u/f9LHodD0cOJKO3OAwk4K6TkpnuLAN43TGG_qBrsn3ftm9j4pV7icx5M-tDw" target="_blank" rel="noopener" style="display: inline-block; margin-right: 8px; padding: 8px 14px; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="MAX">MAX</a>
                         <a href="https://t.me/+79910009111" target="_blank" rel="noopener" style="display: inline-block; margin-right: 8px; padding: 8px 14px; background: #0088cc; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="Telegram">Telegram</a>
                         <a href="https://wa.me/79910009111" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 14px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;" aria-label="WhatsApp">WhatsApp</a>
                     </div>
