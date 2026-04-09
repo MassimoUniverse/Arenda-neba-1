@@ -119,8 +119,8 @@ function generateEquipmentPageHTML(service) {
   let deliveryPerKm = service.delivery_per_km || 85;
   const priceType = service.price_type || 'shift';
   const deliveryType = service.delivery_type || 'per_km';
-  const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (8 часов)';
-  const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 часа)';
+  const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (7+1 час)';
+  const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 час)';
   
   if (price) {
     const halfShiftMatch = price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:полсмен|полсуток)/i);
