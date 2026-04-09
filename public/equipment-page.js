@@ -326,8 +326,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const deliveryPerKm = fixedService.delivery_per_km || 85;
         const priceType = fixedService.price_type || window.servicePriceType || 'shift';
         const deliveryType = fixedService.delivery_type || window.serviceDeliveryType || 'per_km';
-        const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (8 часов)';
-        const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 часа)';
+        const unitLabel = priceType === 'day' ? 'сутки (24 часа)' : 'смена (7+1 час)';
+        const halfUnitLabel = priceType === 'day' ? 'Полсуток (12 часов)' : 'Полсмены (3+1 час)';
 
         if (fixedService.price) {
           const halfShiftMatch = fixedService.price.match(/(\d+[\s\d]*)\s*₽\s*\/\s*(?:полсмен|полсуток)/i);
@@ -1534,7 +1534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pricingRows = pricingTable.querySelectorAll('.pricing-row');
         pricingRows.forEach(row => {
           const text = row.textContent || '';
-          if ((text.includes('смен') || text.includes('8 часов') || text.includes('сутк') || text.includes('24 часа')) && !text.includes('полсмен') && !text.includes('полсуток')) {
+          if ((text.includes('смен') || text.includes('7+1') || text.includes('сутк') || text.includes('24 часа')) && !text.includes('полсмен') && !text.includes('полсуток')) {
             const priceMatch = text.match(/(\d+[\s\d]*)\s*₽/);
             if (priceMatch) {
               basePrice = parseInt(priceMatch[1].replace(/\s/g, ''), 10);

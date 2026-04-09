@@ -42,12 +42,12 @@ function buildPricingSectionHtml(service) {
   let rows = '';
   if (priceHalfShift) {
     rows += `<div class="pricing-row">
-                                <span>Полсмены (3+1 часа)</span>
+                                <span>Полсмены (3+1 час)</span>
                                 <span class="pricing-value">${parseInt(priceHalfShift, 10).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
                             </div>`;
   }
   rows += `<div class="pricing-row">
-                                <span>1 смена (8 часов)</span>
+                                <span>1 смена (7+1 час)</span>
                                 <span class="pricing-value">${parseInt(priceShift, 10).toLocaleString('ru-RU')} ₽ <span class="price-vat">без НДС</span></span>
                             </div>
                             <div class="pricing-row">

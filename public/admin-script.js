@@ -602,7 +602,7 @@ function showServiceModal(id = null) {
                     <label>Тип цены</label>
                     <div style="display:flex;gap:16px;margin-top:4px;">
                         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-                            <input type="radio" name="price_type" id="priceTypeShift" value="shift" checked> Смена (8ч)
+                            <input type="radio" name="price_type" id="priceTypeShift" value="shift" checked> Смена (7+1ч)
                         </label>
                         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
                             <input type="radio" name="price_type" id="priceTypeDay" value="day"> Сутки (24ч)
