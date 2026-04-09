@@ -27,8 +27,16 @@ echo ">>> git fetch origin $BRANCH"
 GIT_TERMINAL_PROMPT=0 git fetch origin "$BRANCH"
 
 echo ">>> синхронизация с origin/$BRANCH"
-git checkout -f -B "$BRANCH" "origin/$BRANCH"
+git reset --hard "origin/$BRANCH" 2>/dev/null || git checkout -f -B "$BRANCH" "origin/$BRANCH"
 
 echo ">>> готово:"
 git log -1 --oneline
 git status -sb
+
+# Проверяем, что sqlite3 нативный модуль рабочий (не Windows-бинарник)
+echo ">>> проверка sqlite3..."
+if ! node -e "require('sqlite3')" 2>/dev/null; then
+  echo ">>> sqlite3 сломан, переустанавливаем..."
+  rm -rf node_modules/sqlite3
+  npm install sqlite3 --no-audit --no-fund
+fi
