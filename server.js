@@ -1958,7 +1958,8 @@ app.post('/api/requests', (req, res) => {
     [name, phone, email || '', message || '', equipmentText],
     function(err) {
       if (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Request insert error:', err.message);
+        res.status(500).json({ error: 'Ошибка при отправке заявки. Пожалуйста, позвоните нам.' });
         return;
       }
       

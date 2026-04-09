@@ -66,6 +66,7 @@ db.serialize(() => {
     phone TEXT NOT NULL,
     email TEXT,
     message TEXT,
+    equipment TEXT,
     status TEXT DEFAULT 'new',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
