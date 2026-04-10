@@ -1986,7 +1986,7 @@ app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
   }
 
   const equipmentText = [equipment, price].filter(Boolean).join(' — ') || '';
-  const attachmentPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
+  const attachmentPath = req.file ? `uploads/attachments/${req.file.filename}` : null;
 
   db.run(
     'INSERT INTO requests (name, phone, email, message, equipment, attachment) VALUES (?, ?, ?, ?, ?, ?)',

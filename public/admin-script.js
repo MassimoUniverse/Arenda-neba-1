@@ -1946,9 +1946,19 @@ async function loadRequests() {
                             ${request.email ? `<span>✉️ ${escapeHtml(request.email)}</span>` : ''}
                             <span>${new Date(request.created_at).toLocaleString('ru-RU')}</span>
                             <span class="badge ${statusClass}">${statusText}</span>
-                            ${request.attachment ? `<a href="/${request.attachment.replace(/\\\\/g, '/')}" target="_blank" download style="color:#f97316;font-weight:500;text-decoration:none;">📎 Скачать реквизиты</a>` : ''}
                         </div>
                         ${request.equipment ? `<div style="margin-top:4px;font-size:13px;color:#666;">🔧 ${escapeHtml(request.equipment)}</div>` : ''}
+                        ${(() => {
+                            if (!request.attachment) return '';
+                            const relPath = request.attachment.replace(/\\/g, '/').replace(/^.*uploads\//, 'uploads/');
+                            const url = '/' + relPath;
+                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(relPath);
+                            if (isImage) {
+                                return `<div style="margin-top:8px;"><img src="${url}" alt="Реквизиты" style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #ddd;cursor:pointer;" onclick="window.open('${url}','_blank')"><br><a href="${url}" download style="color:#f97316;font-size:13px;">📎 Скачать</a></div>`;
+                            } else {
+                                return `<div style="margin-top:8px;"><a href="${url}" target="_blank" download style="color:#f97316;font-weight:500;text-decoration:none;">📎 Скачать реквизиты</a></div>`;
+                            }
+                        })()}
                     </div>
                     <div class="item-actions">
                         <select onchange="updateRequestStatus(${request.id}, this.value)" class="form-control">
