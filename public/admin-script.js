@@ -1946,7 +1946,9 @@ async function loadRequests() {
                             ${request.email ? `<span>✉️ ${escapeHtml(request.email)}</span>` : ''}
                             <span>${new Date(request.created_at).toLocaleString('ru-RU')}</span>
                             <span class="badge ${statusClass}">${statusText}</span>
+                            ${request.attachment ? `<a href="/${request.attachment.replace(/\\\\/g, '/')}" target="_blank" download style="color:#f97316;font-weight:500;text-decoration:none;">📎 Скачать реквизиты</a>` : ''}
                         </div>
+                        ${request.equipment ? `<div style="margin-top:4px;font-size:13px;color:#666;">🔧 ${escapeHtml(request.equipment)}</div>` : ''}
                     </div>
                     <div class="item-actions">
                         <select onchange="updateRequestStatus(${request.id}, this.value)" class="form-control">
