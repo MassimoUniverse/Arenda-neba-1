@@ -341,6 +341,14 @@
             <span class="field-label">Сообщение</span>
             <textarea name="message" rows="3" placeholder="Опишите задачу или адрес объекта (необязательно)"></textarea>
           </label>
+          <div class="file-upload-wrapper">
+            <input type="file" name="attachment" id="form-attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none">
+            <label for="form-attachment" class="file-upload-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              <span class="file-upload-label">Прикрепить реквизиты</span>
+            </label>
+            <span class="file-name-display" id="file-name-display"></span>
+          </div>
           <label class="privacy-checkbox">
             <input type="checkbox" name="privacy_agreed" id="privacy-checkbox" required>
             <span>Нажимая кнопку, вы соглашаетесь на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a></span>

@@ -475,6 +475,14 @@ function generateEquipmentPageHTML(service) {
                             <div class="form-group" style="margin-bottom: 20px;">
                                 <textarea name="message" placeholder="Комментарий к заказу" rows="3" style="width: 100%; padding: 14px 16px; font-size: 15px; font-family: inherit; color: var(--text-dark); background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s ease; resize: vertical;"></textarea>
                             </div>
+                            <div class="file-upload-wrapper">
+                                <input type="file" name="attachment" id="eq-form-attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none">
+                                <label for="eq-form-attachment" class="file-upload-btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                                    <span class="file-upload-label">Прикрепить реквизиты</span>
+                                </label>
+                                <span class="file-name-display" id="eq-file-name-display"></span>
+                            </div>
                             <label class="privacy-checkbox">
                                 <input type="checkbox" name="privacy_agreed" id="privacy-checkbox" required>
                                 <span>Нажимая кнопку, вы соглашаетесь на <a href="/privacy-policy.html" target="_blank">обработку персональных данных</a></span>
@@ -870,6 +878,9 @@ const db = new sqlite3.Database('./database.db', (err) => {
   }
 });
 
+// Добавляем колонку attachment в requests если её нет
+db.run("ALTER TABLE requests ADD COLUMN attachment TEXT", () => {});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -1083,6 +1094,29 @@ const upload = multer({
     } else {
       cb(new Error('Only image files are allowed!'));
     }
+  }
+});
+
+// Multer для вложений к заявкам (реквизиты)
+const attachmentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'uploads', 'attachments');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `attachment-${timestamp}${ext}`);
+  }
+});
+const attachmentUpload = multer({
+  storage: attachmentStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedExt = /\.(pdf|doc|docx|jpg|jpeg|png)$/i;
+    if (allowedExt.test(path.extname(file.originalname))) cb(null, true);
+    else cb(new Error('Недопустимый тип файла'));
   }
 });
 
@@ -1944,18 +1978,19 @@ function processServiceRow(row, res) {
 }
 
 // Submit request
-app.post('/api/requests', (req, res) => {
+app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
   const { name, phone, email, message, equipment, price, privacy_agreed } = req.body;
-  
+
   if (!name || !phone || !privacy_agreed) {
     return res.status(400).json({ error: 'Name, phone, and privacy agreement are required' });
   }
 
   const equipmentText = [equipment, price].filter(Boolean).join(' — ') || '';
+  const attachmentPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
 
   db.run(
-    'INSERT INTO requests (name, phone, email, message, equipment) VALUES (?, ?, ?, ?, ?)',
-    [name, phone, email || '', message || '', equipmentText],
+    'INSERT INTO requests (name, phone, email, message, equipment, attachment) VALUES (?, ?, ?, ?, ?, ?)',
+    [name, phone, email || '', message || '', equipmentText, attachmentPath],
     function(err) {
       if (err) {
         console.error('Request insert error:', err.message);

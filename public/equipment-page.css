@@ -1114,6 +1114,31 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
   /* Анимация будет установлена через JavaScript */
 }
 
+/* Кнопка прикрепления файла */
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1.5px dashed #f97316;
+  border-radius: 8px;
+  color: #f97316;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+.file-upload-btn:hover { background: rgba(249,115,22,0.07); }
+.file-name-display { font-size: 13px; color: #888; word-break: break-all; }
+
 .calc-submit-btn {
   width: 100%;
   padding: 0 24px;

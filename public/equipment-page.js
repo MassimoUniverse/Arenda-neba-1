@@ -1942,14 +1942,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       const privacyCheckbox = form.querySelector('#privacy-checkbox');
       data.privacy_agreed = !!privacyCheckbox?.checked;
 
+      // Собираем FormData (поддержка файла-вложения)
+      const fd = new FormData();
+      Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
+      fd.set('privacy_agreed', data.privacy_agreed ? '1' : '');
+      const fileInput = form.querySelector('input[name="attachment"]');
+      if (fileInput && fileInput.files && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+
       // Отправляем данные на сервер
       try {
         const response = await fetch('/api/requests', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
+          body: fd,
         });
         
         if (response.ok) {

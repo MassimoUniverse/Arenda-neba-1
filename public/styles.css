@@ -926,6 +926,37 @@ input[type='number'] {
 }
 
 /* Чекбокс согласия на обработку ПД */
+/* Кнопка прикрепления файла */
+.file-upload-wrapper {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1.5px dashed var(--accent, #f97316);
+  border-radius: 8px;
+  color: var(--accent, #f97316);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  user-select: none;
+}
+.file-upload-btn:hover {
+  background: rgba(249, 115, 22, 0.07);
+}
+.file-name-display {
+  font-size: 13px;
+  color: var(--text-muted, #666);
+  word-break: break-all;
+}
+
 .privacy-checkbox {
   display: flex;
   align-items: flex-start;

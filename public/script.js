@@ -8,6 +8,14 @@ function getShortDescription(html, maxLen) {
 
 // Мобильное меню
 document.addEventListener('DOMContentLoaded', () => {
+  // Показ имени прикреплённого файла
+  document.querySelectorAll('input[name="attachment"]').forEach(input => {
+    input.addEventListener('change', () => {
+      const display = input.closest('.file-upload-wrapper')?.querySelector('.file-name-display');
+      if (display) display.textContent = input.files[0] ? input.files[0].name : '';
+    });
+  });
+
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
   
@@ -1794,11 +1802,22 @@ function initCalculator() {
       submitBtn.textContent = 'Отправка...';
     }
 
+    // Собираем FormData (поддержка файла-вложения)
+    const fd = new FormData();
+    fd.append('name', data.name);
+    fd.append('phone', data.phone);
+    fd.append('email', data.email || '');
+    fd.append('message', data.message || '');
+    fd.append('privacy_agreed', data.privacy_agreed ? '1' : '');
+    if (data.equipment) fd.append('equipment', data.equipment);
+    if (data.price) fd.append('price', data.price);
+    const fileInput = form.querySelector('input[name="attachment"]');
+    if (fileInput && fileInput.files && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+
     try {
       const response = await fetch('/api/requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: fd
       });
       const res = await response.json();
 
@@ -2233,23 +2252,29 @@ function initQuickContactForm() {
       email: formData.get('email') || '',
       message: formData.get('message') || ''
     };
-    
+
     // Скрываем предыдущее сообщение
     messageDiv.classList.remove('show', 'success', 'error');
-    
+
     // Отключаем кнопку отправки
     const submitBtn = form.querySelector('.btn-submit');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Отправка...';
-    
+
+    const fd2 = new FormData();
+    fd2.append('name', data.name);
+    fd2.append('phone', data.phone);
+    fd2.append('email', data.email || '');
+    fd2.append('message', data.message || '');
+    fd2.append('privacy_agreed', '1');
+    const fileInput2 = form.querySelector('input[name="attachment"]');
+    if (fileInput2 && fileInput2.files && fileInput2.files[0]) fd2.append('attachment', fileInput2.files[0]);
+
     try {
       const response = await fetch('/api/requests', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        body: fd2
       });
       
       const result = await response.json();
