@@ -9,6 +9,7 @@ const fs = require('fs');
 const cors = require('cors');
 const iconv = require('iconv-lite');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { slugifyAsciiFilename } = require('./lib/slugify-filename.js');
 
@@ -19,6 +20,88 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key';
 // Telegram Bot Configuration
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+// Email (SMTP) Configuration
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const SMTP_TO = process.env.SMTP_TO;
+
+let mailTransporter = null;
+if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  mailTransporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+  mailTransporter.verify((err) => {
+    if (err) console.error('❌ SMTP verify error:', err.message);
+    else console.log('✅ SMTP transporter ready (' + SMTP_HOST + ')');
+  });
+} else {
+  console.warn('⚠️ SMTP not configured. Email notifications disabled.');
+}
+
+// Function to send email notification about new lead
+async function sendEmailNotification({ name, phone, email, equipment, message, attachmentAbsolutePath }) {
+  if (!mailTransporter || !SMTP_TO) return;
+
+  const subjectName = (name || 'клиент').replace(/[\r\n]+/g, ' ').slice(0, 80);
+  const subject = `Новая заявка с avtovyshka-spb.ru — ${subjectName}`;
+  const time = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+
+  const escape = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const lines = [
+    `<h2 style="color:#ff6b00;margin:0 0 12px">Новая заявка с сайта</h2>`,
+    `<table cellpadding="6" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">`,
+    `<tr><td style="color:#666">Имя:</td><td><b>${escape(name)}</b></td></tr>`,
+    `<tr><td style="color:#666">Телефон:</td><td><b><a href="tel:${escape(phone)}">${escape(phone)}</a></b></td></tr>`,
+    email ? `<tr><td style="color:#666">Email:</td><td>${escape(email)}</td></tr>` : '',
+    equipment ? `<tr><td style="color:#666">Техника:</td><td>${escape(equipment)}</td></tr>` : '',
+    message ? `<tr><td style="color:#666;vertical-align:top">Комментарий:</td><td>${escape(message).replace(/\n/g, '<br>')}</td></tr>` : '',
+    `<tr><td style="color:#666">Время:</td><td>${escape(time)} (МСК)</td></tr>`,
+    `</table>`,
+    attachmentAbsolutePath ? `<p style="font-family:Arial,sans-serif;font-size:13px;color:#666;margin-top:16px">📎 К письму прикреплён файл с реквизитами от клиента.</p>` : '',
+    `<p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:24px">— Уведомление с сайта avtovyshka-spb.ru</p>`
+  ].filter(Boolean).join('\n');
+
+  const textPlain =
+    `Новая заявка с сайта avtovyshka-spb.ru\n\n` +
+    `Имя: ${name}\n` +
+    `Телефон: ${phone}\n` +
+    (email ? `Email: ${email}\n` : '') +
+    (equipment ? `Техника: ${equipment}\n` : '') +
+    (message ? `Комментарий: ${message}\n` : '') +
+    `Время: ${time} (МСК)\n`;
+
+  const mailOptions = {
+    from: `"Аренда Неба — заявки" <${SMTP_FROM}>`,
+    to: SMTP_TO,
+    subject,
+    text: textPlain,
+    html: lines,
+    replyTo: email || undefined
+  };
+
+  if (attachmentAbsolutePath && fs.existsSync(attachmentAbsolutePath)) {
+    mailOptions.attachments = [{
+      filename: path.basename(attachmentAbsolutePath),
+      path: attachmentAbsolutePath
+    }];
+  }
+
+  try {
+    const info = await mailTransporter.sendMail(mailOptions);
+    console.log('✅ Email notification sent:', info.messageId);
+  } catch (err) {
+    console.error('❌ Error sending email notification:', err.message);
+  }
+}
 
 // Function to send Telegram notification
 async function sendTelegramNotification(message) {
@@ -2042,12 +2125,25 @@ app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
                                   `<b>Время:</b> ${new Date().toLocaleString('ru-RU')}`;
       sendTelegramNotification(notificationMessage);
 
+      const absoluteAttachmentPath = req.file
+        ? path.join(__dirname, 'uploads', 'attachments', req.file.filename)
+        : null;
+
       // Если есть вложение — дублируем файл в Telegram отдельным сообщением
-      if (req.file) {
-        const absoluteAttachmentPath = path.join(__dirname, 'uploads', 'attachments', req.file.filename);
+      if (absoluteAttachmentPath) {
         const fileCaption = `📎 Реквизиты от <b>${name}</b>`;
         sendTelegramFile(absoluteAttachmentPath, fileCaption);
       }
+
+      // Email-уведомление (с вложением, если оно есть)
+      sendEmailNotification({
+        name,
+        phone,
+        email,
+        equipment: equipmentText,
+        message,
+        attachmentAbsolutePath: absoluteAttachmentPath
+      });
 
       res.json({
         success: true,
