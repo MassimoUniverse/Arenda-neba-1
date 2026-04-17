@@ -26,9 +26,9 @@ async function sendTelegramNotification(message) {
     console.warn('Telegram bot token or chat ID not set. Skipping notification.');
     return;
   }
-  
+
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-  
+
   try {
     await axios.post(url, {
       chat_id: TELEGRAM_CHAT_ID,
@@ -38,6 +38,40 @@ async function sendTelegramNotification(message) {
     console.log('✅ Telegram notification sent.');
   } catch (error) {
     console.error('❌ Error sending Telegram notification:', error.response ? error.response.data : error.message);
+  }
+}
+
+// Function to send a file attachment to Telegram (uses sendDocument — universal, keeps filename)
+async function sendTelegramFile(absoluteFilePath, caption) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  if (!absoluteFilePath) return;
+
+  try {
+    if (!fs.existsSync(absoluteFilePath)) {
+      console.warn('⚠️ Telegram file not found on disk:', absoluteFilePath);
+      return;
+    }
+    const FormDataLib = require('form-data');
+    const form = new FormDataLib();
+    form.append('chat_id', String(TELEGRAM_CHAT_ID));
+    if (caption) {
+      form.append('caption', caption);
+      form.append('parse_mode', 'HTML');
+    }
+    form.append('document', fs.createReadStream(absoluteFilePath), {
+      filename: path.basename(absoluteFilePath)
+    });
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`;
+    await axios.post(url, form, {
+      headers: form.getHeaders(),
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      timeout: 30000
+    });
+    console.log('✅ Telegram file sent:', path.basename(absoluteFilePath));
+  } catch (error) {
+    console.error('❌ Error sending Telegram file:', error.response ? error.response.data : error.message);
   }
 }
 
@@ -2008,10 +2042,17 @@ app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
                                   `<b>Время:</b> ${new Date().toLocaleString('ru-RU')}`;
       sendTelegramNotification(notificationMessage);
 
-      res.json({ 
+      // Если есть вложение — дублируем файл в Telegram отдельным сообщением
+      if (req.file) {
+        const absoluteAttachmentPath = path.join(__dirname, 'uploads', 'attachments', req.file.filename);
+        const fileCaption = `📎 Реквизиты от <b>${name}</b>`;
+        sendTelegramFile(absoluteAttachmentPath, fileCaption);
+      }
+
+      res.json({
         success: true,
         message: 'Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.',
-        id: this.lastID 
+        id: this.lastID
       });
     }
   );
