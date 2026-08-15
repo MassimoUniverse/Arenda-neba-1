@@ -1,3 +1,6 @@
+// Заявки отправляются через API Gateway Яндекса: CDN не пропускает POST (405), а прямой IP режется ТСПУ
+window.LEAD_API_BASE = window.LEAD_API_BASE || 'https://d5dajiugtjeok52f222v.sk0vql13.apigw.yandexcloud.net';
+
 // Вспомогательная функция: берёт первый абзац из HTML-описания (без тегов), обрезает до maxLen
 function getShortDescription(html, maxLen) {
   if (!html) return '';
@@ -1815,7 +1818,7 @@ function initCalculator() {
     if (fileInput && fileInput.files && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
 
     try {
-      const response = await fetch('/api/requests', {
+      const response = await fetch(window.LEAD_API_BASE + '/api/requests', {
         method: 'POST',
         body: fd
       });
@@ -2272,7 +2275,7 @@ function initQuickContactForm() {
     if (fileInput2 && fileInput2.files && fileInput2.files[0]) fd2.append('attachment', fileInput2.files[0]);
 
     try {
-      const response = await fetch('/api/requests', {
+      const response = await fetch(window.LEAD_API_BASE + '/api/requests', {
         method: 'POST',
         body: fd2
       });

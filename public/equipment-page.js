@@ -1,5 +1,8 @@
 // Анимации и логика для страниц техники с GSAP и Lenis
 
+// Заявки отправляются через API Gateway Яндекса: CDN не пропускает POST (405), а прямой IP режется ТСПУ
+window.LEAD_API_BASE = window.LEAD_API_BASE || 'https://d5dajiugtjeok52f222v.sk0vql13.apigw.yandexcloud.net';
+
 // Функция для исправления кодировки текста (аналогично server.js)
 function fixEncoding(text) {
   if (!text || typeof text !== 'string') return text;
@@ -1951,7 +1954,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Отправляем данные на сервер
       try {
-        const response = await fetch('/api/requests', {
+        const response = await fetch(window.LEAD_API_BASE + '/api/requests', {
           method: 'POST',
           body: fd,
         });
