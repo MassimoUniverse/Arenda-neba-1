@@ -1,5 +1,9 @@
 // API Base URL
-const API_URL = window.location.origin;
+// Основной домен идёт через CDN Яндекса, а тот блокирует POST/PUT/DELETE (405),
+// поэтому админка обращается к API напрямую на origin. origin.* и localhost — как раньше.
+const API_URL = (location.hostname === 'avtovyshka-spb.ru' || location.hostname === 'www.avtovyshka-spb.ru')
+    ? 'https://origin.avtovyshka-spb.ru'
+    : window.location.origin;
 let authToken = localStorage.getItem('authToken');
 let currentSection = 'homepage';
 
