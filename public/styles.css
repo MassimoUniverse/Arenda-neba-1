@@ -3608,33 +3608,38 @@ input[type='number'] {
   .services-carousel {
     flex-direction: column;
     position: relative;
+    /* место сверху под стрелки листания */
+    padding-top: 52px;
   }
 
-  /* Стрелки листания автопарка: на мобильном показываем поверх ленты по краям */
+  /* Стрелки листания автопарка: над лентой, справа сверху.
+     Важно: НЕ поверх ленты — иначе прокручиваемая область перехватывает касание. */
   .carousel-btn {
     display: flex;
     position: absolute;
-    top: 71px; /* центр фото карточки: отступ ленты 16px + половина высоты фото 180px */
+    top: 0;
     z-index: 5;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
     font-size: 16px;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
 
   .carousel-btn.prev {
-    left: 6px;
+    left: auto;
+    right: 50px;
   }
 
   .carousel-btn.next {
-    right: 6px;
+    left: auto;
+    right: 0;
   }
 
-  /* На краю ленты кнопка не нужна — прячем, чтобы не перекрывала фото */
   .carousel-btn:disabled {
-    opacity: 0;
+    opacity: 0.35;
     pointer-events: none;
   }
   

@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Touch события
       btn.addEventListener('touchstart', (e) => {
         if (btn.disabled) return;
-        e.preventDefault();
+        // preventDefault() отменяет клик на тач-устройствах — из-за него стрелки не нажимались на телефоне
         
         if (hoverAnimation) hoverAnimation.kill();
         
@@ -813,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       btn.addEventListener('touchend', (e) => {
         if (btn.disabled) return;
-        e.preventDefault();
+        // preventDefault() отменяет клик на тач-устройствах — из-за него стрелки не нажимались на телефоне
         
         if (pressAnimation) pressAnimation.kill();
         
