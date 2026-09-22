@@ -3608,8 +3608,6 @@ input[type='number'] {
   .services-carousel {
     flex-direction: column;
     position: relative;
-    /* место сверху под стрелки листания */
-    padding-top: 52px;
   }
 
   /* Стрелки листания автопарка: над лентой, справа сверху.
@@ -3630,12 +3628,12 @@ input[type='number'] {
 
   .carousel-btn.prev {
     left: auto;
-    right: 50px;
+    right: 66px;
   }
 
   .carousel-btn.next {
     left: auto;
-    right: 0;
+    right: 16px;
   }
 
   .carousel-btn:disabled {
@@ -3644,6 +3642,9 @@ input[type='number'] {
   }
   
   .services-viewport {
+    /* Место сверху под стрелки. Нельзя делать это через padding у .services-carousel:
+       ниже по файлу правило .container в @media 480px сбрасывает padding и отступ пропадает. */
+    margin-top: 56px;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -3714,6 +3715,15 @@ input[type='number'] {
 @media (max-width: 480px) {
   .container {
     padding: 0 12px;
+  }
+
+  /* у .container здесь padding 12px — выравниваем стрелки по краю карточек */
+  .carousel-btn.prev {
+    right: 62px;
+  }
+
+  .carousel-btn.next {
+    right: 12px;
   }
   
   .header-inner {
