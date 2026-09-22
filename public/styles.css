@@ -3276,7 +3276,16 @@ input[type='number'] {
    ============================================= */
 @media (max-width: 1024px) {
   .calculator-layout {
-    grid-template-columns: 1fr;
+    /* minmax(0,1fr): обычный 1fr не даёт колонке сжаться уже содержимого,
+       из-за чего блок уезжал за правый край экрана на телефонах */
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calculator-side,
+  .calculator-preview,
+  .calculator-preview-info,
+  .calculator-form {
+    min-width: 0;
   }
   
   .reviews-grid {
@@ -3443,11 +3452,20 @@ input[type='number'] {
   
   /* Калькулятор */
   .calculator-layout {
-    grid-template-columns: 1fr;
+    /* minmax(0,1fr): обычный 1fr не даёт колонке сжаться уже содержимого,
+       из-за чего блок уезжал за правый край экрана на телефонах */
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calculator-side,
+  .calculator-preview,
+  .calculator-preview-info,
+  .calculator-form {
+    min-width: 0;
   }
   
   .calculator-form {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 20px 16px;
     gap: 18px;
   }
@@ -3589,10 +3607,35 @@ input[type='number'] {
   /* Услуги */
   .services-carousel {
     flex-direction: column;
+    position: relative;
   }
-  
+
+  /* Стрелки листания автопарка: на мобильном показываем поверх ленты по краям */
   .carousel-btn {
-    display: none;
+    display: flex;
+    position: absolute;
+    top: 71px; /* центр фото карточки: отступ ленты 16px + половина высоты фото 180px */
+    z-index: 5;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .carousel-btn.prev {
+    left: 6px;
+  }
+
+  .carousel-btn.next {
+    right: 6px;
+  }
+
+  /* На краю ленты кнопка не нужна — прячем, чтобы не перекрывала фото */
+  .carousel-btn:disabled {
+    opacity: 0;
+    pointer-events: none;
   }
   
   .services-viewport {
