@@ -1954,13 +1954,12 @@ async function loadRequests() {
                         ${request.equipment ? `<div style="margin-top:4px;font-size:13px;color:#666;">🔧 ${escapeHtml(request.equipment)}</div>` : ''}
                         ${(() => {
                             if (!request.attachment) return '';
-                            const relPath = request.attachment.replace(/\\/g, '/').replace(/^.*uploads\//, 'uploads/');
-                            const url = '/' + relPath;
-                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(relPath);
+                            // Файл отдаётся только с токеном (публичный /uploads/attachments закрыт), поэтому без прямых ссылок
+                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(request.attachment);
                             if (isImage) {
-                                return `<div style="margin-top:8px;"><img src="${url}" alt="Реквизиты" style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #ddd;cursor:pointer;" onclick="window.open('${url}','_blank')"><br><a href="${url}" download style="color:#f97316;font-size:13px;">📎 Скачать</a></div>`;
+                                return `<div style="margin-top:8px;"><img data-attachment-id="${request.id}" alt="Реквизиты" style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #ddd;cursor:pointer;" onclick="openRequestAttachment(${request.id})"><br><a href="#" onclick="openRequestAttachment(${request.id}); return false;" style="color:#f97316;font-size:13px;">📎 Открыть</a></div>`;
                             } else {
-                                return `<div style="margin-top:8px;"><a href="${url}" target="_blank" download style="color:#f97316;font-weight:500;text-decoration:none;">📎 Скачать реквизиты</a></div>`;
+                                return `<div style="margin-top:8px;"><a href="#" onclick="openRequestAttachment(${request.id}); return false;" style="color:#f97316;font-weight:500;text-decoration:none;">📎 Открыть реквизиты</a></div>`;
                             }
                         })()}
                     </div>
@@ -1977,9 +1976,61 @@ async function loadRequests() {
         }).join('');
 
         document.getElementById('requestsList').innerHTML = html || '<div class="empty-state"><div class="empty-state-icon">📩</div><p>Нет новых заявок</p></div>';
+        loadAttachmentPreviews();
     } catch (error) {
         console.error('Error loading requests:', error);
         document.getElementById('requestsList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка при загрузке заявок</p></div>';
+    }
+}
+
+// ---- Вложения заявок (реквизиты) — загружаются с токеном админа ----
+const attachmentBlobUrls = {};
+
+async function fetchRequestAttachment(id) {
+    if (attachmentBlobUrls[id]) return attachmentBlobUrls[id];
+    const response = await fetch(`${API_URL}/api/admin/requests/${id}/attachment`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (!response.ok) {
+        let message = 'Не удалось получить файл';
+        try { message = (await response.json()).error || message; } catch (e) {}
+        throw new Error(message);
+    }
+    attachmentBlobUrls[id] = URL.createObjectURL(await response.blob());
+    return attachmentBlobUrls[id];
+}
+
+function loadAttachmentPreviews() {
+    document.querySelectorAll('img[data-attachment-id]').forEach(async (img) => {
+        try {
+            img.src = await fetchRequestAttachment(img.dataset.attachmentId);
+        } catch (error) {
+            const note = document.createElement('span');
+            note.textContent = '⚠️ ' + error.message;
+            note.style.cssText = 'color:#999;font-size:13px;';
+            img.replaceWith(note);
+        }
+    });
+}
+
+async function openRequestAttachment(id) {
+    // Окно открываем сразу по клику, иначе браузер заблокирует его как всплывающее
+    const win = window.open('', '_blank');
+    try {
+        const url = await fetchRequestAttachment(id);
+        if (win) {
+            win.location.href = url;
+        } else {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rekvizity-zayavka-${id}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+    } catch (error) {
+        if (win) win.close();
+        alert('Ошибка: ' + error.message);
     }
 }
 

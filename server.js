@@ -12,10 +12,16 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { slugifyAsciiFilename } = require('./lib/slugify-filename.js');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key';
+// Без JWT_SECRET в .env берём случайный секрет на время работы процесса:
+// входы сбросятся при перезапуске, зато токен нельзя подделать по известной строке из кода.
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  console.warn('⚠️ JWT_SECRET не задан в .env — используется случайный секрет, входы сбросятся при перезапуске');
+  return require('crypto').randomBytes(48).toString('hex');
+})();
 
 // Telegram Bot Configuration
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -1160,6 +1166,10 @@ app.get('/', (req, res) => {
 
 app.use(express.static('public'));
 
+// Реквизиты из заявок (uploads/attachments) — персональные данные клиентов.
+// Публично их не отдаём: только через GET /api/admin/requests/:id/attachment с токеном админа.
+app.use('/uploads/attachments', (req, res) => res.status(404).end());
+
 // Serve uploads with no-cache headers to prevent browser caching
 app.use('/uploads', (req, res, next) => {
   // Set headers to prevent caching of uploaded images
@@ -1224,7 +1234,8 @@ const attachmentStorage = multer.diskStorage({
   filename: (req, file, cb) => {
     const timestamp = Date.now();
     const ext = path.extname(file.originalname);
-    cb(null, `attachment-${timestamp}${ext}`);
+    // Случайный хвост: раньше имя было только временем загрузки — его можно было перебрать
+    cb(null, `attachment-${timestamp}-${crypto.randomBytes(12).toString('hex')}${ext.toLowerCase()}`);
   }
 });
 const attachmentUpload = multer({
@@ -2157,6 +2168,53 @@ app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
 // ============ ADMIN API ENDPOINTS ============
 
 // Admin login
+// ---- Защита входа в админку от перебора пароля ----
+// Счётчики живут в памяти процесса и обнуляются при перезапуске — против перебора этого достаточно.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_PER_IP = 5;     // неудачных попыток с одного IP для одного логина
+const LOGIN_MAX_PER_USER = 20;  // неудачных попыток на один логин со всех IP вместе
+const loginFailures = new Map(); // ключ -> { count, first }
+
+function loginClientIp(req) {
+  // nginx перезаписывает X-Real-IP адресом посетителя, клиент подделать его не может
+  return req.get('X-Real-IP') || req.socket.remoteAddress || 'unknown';
+}
+
+function loginKeys(req, username) {
+  const user = String(username || '').toLowerCase();
+  return [[`ip:${loginClientIp(req)}|${user}`, LOGIN_MAX_PER_IP], [`user:${user}`, LOGIN_MAX_PER_USER]];
+}
+
+// Сколько минут ещё ждать (0 — вход разрешён)
+function loginBlockedMinutes(req, username) {
+  const now = Date.now();
+  for (const [key, max] of loginKeys(req, username)) {
+    const rec = loginFailures.get(key);
+    if (!rec) continue;
+    if (now - rec.first > LOGIN_WINDOW_MS) { loginFailures.delete(key); continue; }
+    if (rec.count >= max) return Math.max(1, Math.ceil((rec.first + LOGIN_WINDOW_MS - now) / 60000));
+  }
+  return 0;
+}
+
+function registerLoginFailure(req, username) {
+  const now = Date.now();
+  for (const [key] of loginKeys(req, username)) {
+    const rec = loginFailures.get(key);
+    if (!rec || now - rec.first > LOGIN_WINDOW_MS) loginFailures.set(key, { count: 1, first: now });
+    else rec.count++;
+  }
+}
+
+function clearLoginFailures(req, username) {
+  for (const [key] of loginKeys(req, username)) loginFailures.delete(key);
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, rec] of loginFailures) if (now - rec.first > LOGIN_WINDOW_MS) loginFailures.delete(key);
+}, 10 * 60 * 1000).unref();
+
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   
@@ -2165,6 +2223,12 @@ app.post('/api/admin/login', (req, res) => {
   if (!username || !password) {
     console.log('❌ Missing credentials');
     return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  const blockedMin = loginBlockedMinutes(req, username);
+  if (blockedMin) {
+    console.log('⛔ Вход заблокирован (много неудачных попыток):', username, loginClientIp(req));
+    return res.status(429).json({ error: `Слишком много неудачных попыток входа. Попробуйте через ${blockedMin} мин.` });
   }
 
   db.get('SELECT * FROM admins WHERE username = ?', [username], async (err, admin) => {
@@ -2176,17 +2240,20 @@ app.post('/api/admin/login', (req, res) => {
 
     if (!admin) {
       console.log('❌ Admin not found:', username);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      registerLoginFailure(req, username);
+      return res.status(401).json({ error: 'Неверное имя пользователя или пароль' });
     }
 
     try {
       const validPassword = await bcrypt.compare(password, admin.password_hash);
       if (!validPassword) {
         console.log('❌ Invalid password for:', username);
-        return res.status(401).json({ error: 'Invalid credentials' });
+        registerLoginFailure(req, username);
+        return res.status(401).json({ error: 'Неверное имя пользователя или пароль' });
       }
 
       const token = jwt.sign({ id: admin.id, username: admin.username }, JWT_SECRET, { expiresIn: '24h' });
+      clearLoginFailures(req, username);
       console.log('✅ Login successful for:', username);
       res.json({ token, username: admin.username });
     } catch (compareError) {
@@ -2863,6 +2930,21 @@ app.put('/api/admin/requests/:id', authenticateToken, (req, res) => {
   );
 });
 
+// Реквизиты из заявки — только для авторизованного админа (публичный /uploads/attachments закрыт)
+app.get('/api/admin/requests/:id/attachment', authenticateToken, (req, res) => {
+  db.get('SELECT attachment FROM requests WHERE id = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row || !row.attachment) return res.status(404).json({ error: 'У заявки нет вложения' });
+
+    const dir = path.join(__dirname, 'uploads', 'attachments');
+    // win32.basename понимает разделители и Windows, и Linux, и отсекает любые ../ — файл берётся строго из папки вложений
+    const filePath = path.join(dir, path.win32.basename(String(row.attachment)));
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Файл вложения не найден на сервере' });
+
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(filePath);
+  });
+});
 // Update homepage (Protected)
 app.put('/api/admin/homepage', authenticateToken, (req, res) => {
   const { title, subtitle, video_url } = req.body;
