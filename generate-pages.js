@@ -1,3 +1,14 @@
+// ВНИМАНИЕ: это устаревшая упрощённая копия генератора из server.js. На 2026-10 она портит
+// страницы: заменяет только заголовок и часть полей, а canonical, цена, фото и описание
+// остаются от шаблона (13-метровой вышки). Настоящие страницы создаёт server.js при
+// сохранении техники в админке. Запуск — только осознанно, с флагом --force.
+if (!process.argv.includes('--force')) {
+  console.error('⛔ generate-pages.js устарел и портит страницы /avtopark/*.html.');
+  console.error('   Чтобы обновить страницу — откройте технику в админке и нажмите «Сохранить».');
+  console.error('   Если всё же нужно запустить: node generate-pages.js --force');
+  process.exit(1);
+}
+
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');

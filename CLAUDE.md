@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm start              # Production: node server.js
 npm run dev            # nodemon server.js
 npm run init-db        # init-db.js — schema + default admin
-npm run generate-pages # Regenerate /public/equipment/*.html from DB (see generate-pages.js)
+npm run generate-pages # DISABLED (needs --force): stale generator, corrupts /public/avtopark/*.html — pages are written by server.js on admin save
 npm run fix-encoding   # fix-encoding.js — repair mixed UTF-8 / Win-1251 in DB
 npm run update         # update.sh (git pull + restart — environment-dependent)
 
@@ -141,7 +141,7 @@ scripts/server-setup-git.sh  # Runs on VPS during deploy: git pull → npm insta
 
 **Server PM2 logs**: `pm2 logs arenda-neba` · error log at `/opt/arenda-neba/logs/pm2-error.log`.
 
-Optional: **`webhook-handler.js`** on port **3001** can auto-deploy on GitHub push (if configured on the server).
+**`webhook-handler.js`** (PM2, port **3001**) is effectively dead: port 3001 is closed by ufw and not proxied by nginx, last received push 2026-04-09. Deploys are manual.
 
 **Backups**: `backup-full.sh` / `backup-full.ps1` — `database.db` + `uploads/` into `./backups/`.
 

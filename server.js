@@ -3108,14 +3108,18 @@ app.post('/api/admin/upload', authenticateToken, upload.single('image'), async (
           .webp({ quality: 85 })
           .toFile(webpPath);
         
-        // Создаем JPEG версию для совместимости (fallback)
-        await sharp(uploadedPath)
-          .resize(1920, null, {
-            fit: 'inside',
-            withoutEnlargement: true
-          })
-          .jpeg({ quality: 85 })
-          .toFile(jpegPath);
+        // Создаем JPEG версию для совместимости (fallback).
+        // Если загрузили .jpg, путь совпадает с оригиналом — sharp падал с «same file for input and output»
+        // и сайт получал неоптимизированный оригинал. В этом случае запасной JPEG — сам оригинал.
+        if (path.resolve(jpegPath) !== path.resolve(uploadedPath)) {
+          await sharp(uploadedPath)
+            .resize(1920, null, {
+              fit: 'inside',
+              withoutEnlargement: true
+            })
+            .jpeg({ quality: 85 })
+            .toFile(jpegPath);
+        }
         
         // НЕ удаляем оригинал - сохраняем его для резервной копии
         // Оригинал остается в папке uploads с исходным именем
