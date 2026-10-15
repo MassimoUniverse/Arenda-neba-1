@@ -370,6 +370,7 @@ async function loadHomepage() {
         `;
 
         document.getElementById('homepageForm').innerHTML = formHtml;
+        initDropzones(document.getElementById('homepageForm'));
         
         // Update preview if video exists
         if (data.video_url) {
@@ -712,7 +713,7 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Ссылка на главное фото техники</small>
             </div>
             <div class="form-group">
-                    <label>Или загрузите основное изображение</label>
+                    <label>Главное фото</label>
                 <input type="file" id="serviceImageFile" accept="image/*" onchange="handleImageUpload(this, 'serviceImage', 'serviceImagePreview')">
                     <small class="form-hint">Максимальный размер: 30MB. Форматы: JPG, PNG, GIF, WebP</small>
             </div>
@@ -726,7 +727,7 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Введите URL изображений, каждое с новой строки</small>
             </div>
             <div class="form-group">
-                    <label>Или загрузите дополнительные изображения</label>
+                    <label>Дополнительные фото (галерея)</label>
                     <input type="file" id="serviceImagesFiles" accept="image/*" multiple onchange="handleMultipleImagesUpload(this, 'serviceImagesPreview')">
                     <small class="form-hint">Можно выбрать несколько файлов. Максимальный размер каждого: 30MB. Форматы: JPG, PNG, GIF, WebP</small>
             </div>
@@ -744,7 +745,7 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Введите URL схем, каждое с новой строки. Можно указать название через | (например: url.jpg|Название схемы)</small>
             </div>
             <div class="form-group">
-                    <label>Или загрузите схемы вылета стрелы</label>
+                    <label>Загрузить схемы</label>
                     <input type="file" id="serviceReachDiagramsFiles" accept="image/*" multiple onchange="handleMultipleReachDiagramsUpload(this, 'serviceReachDiagramsPreview')">
                     <small class="form-hint">Можно выбрать несколько файлов. Максимальный размер каждого: 30MB. Форматы: JPG, PNG, GIF, WebP</small>
             </div>
@@ -771,7 +772,9 @@ function showServiceModal(id = null) {
     `;
 
     document.getElementById('modal').classList.add('show');
-    
+    initServiceFormTabs();
+    initDropzones(document.getElementById('serviceForm'));
+
     // === Инициализация WYSIWYG-редактора ===
     initWysiwyg('descToolbar', 'serviceDescriptionEditor', 'serviceDescription');
     
@@ -1456,20 +1459,20 @@ window.saveService = async function(event, id) {
     const priceShift = document.getElementById('servicePriceShift')?.value?.trim();
     
     if (!title) {
-        showError('Пожалуйста, укажите название услуги');
-        document.getElementById('serviceTitle')?.focus();
+        showError('Пожалуйста, укажите название техники');
+        focusServiceField('serviceTitle');
         return;
     }
-    
+
     if (!shortDescription) {
         showError('Пожалуйста, укажите краткое описание');
-        document.getElementById('serviceShortDescription')?.focus();
+        focusServiceField('serviceShortDescription');
         return;
     }
-    
+
     if (!priceShift) {
         showError('Пожалуйста, укажите цену за смену');
-        document.getElementById('servicePriceShift')?.focus();
+        focusServiceField('servicePriceShift');
         return;
     }
     
@@ -1858,6 +1861,7 @@ function showReviewModal(id = null) {
     }
 
     document.getElementById('modal').classList.add('show');
+    initDropzones(modalBody);
 }
 
 async function loadReviewData(id) {
@@ -2929,6 +2933,140 @@ function renderReachDiagramsPreview(previewContainer, container) {
 }
 
 // Modal Management
+// ---- Форма техники: вкладки вместо одной длинной простыни ----
+// Все поля остаются в одной <form>, скрытые вкладки просто не показываются —
+// сохранение (saveService) собирает их как раньше.
+const SERVICE_TABS = [
+    ['Основная информация', 'Основное'],
+    ['Цены', 'Цены'],
+    ['Технические характеристики', 'Характеристики'],
+    ['Изображения', 'Фото'],
+    ['Схемы вылета стрелы', 'Схемы вылета'],
+    ['Популярная техника', 'На главной']
+];
+
+function initServiceFormTabs() {
+    const form = document.getElementById('serviceForm');
+    if (!form || form.querySelector('.form-tabs')) return;
+
+    const sections = [...form.querySelectorAll(':scope > .form-section')];
+    const tabs = SERVICE_TABS
+        .map(([heading, label]) => ({
+            label,
+            section: sections.find(s => s.querySelector('.form-section-title')?.textContent.trim() === heading)
+        }))
+        .filter(t => t.section);
+    if (tabs.length < 2) return;
+
+    // Ручной ввод ссылок нужен редко — прячем под «Указать ссылками»
+    [['serviceImage', 'serviceImagesUrls'], ['serviceReachDiagramsUrls']].forEach(ids => {
+        const groups = ids.map(id => document.getElementById(id)?.closest('.form-group')).filter(Boolean);
+        if (!groups.length) return;
+        const details = document.createElement('details');
+        details.className = 'form-advanced';
+        details.innerHTML = '<summary>Указать ссылками вручную</summary>';
+        const section = groups[0].closest('.form-section');
+        groups.forEach(g => details.appendChild(g));
+        section.appendChild(details);
+    });
+
+    const nav = document.createElement('div');
+    nav.className = 'form-tabs';
+    nav.setAttribute('role', 'tablist');
+    tabs.forEach((tab, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'form-tab';
+        btn.setAttribute('role', 'tab');
+        btn.textContent = tab.label;
+        btn.addEventListener('click', () => showServiceTab(i));
+        nav.appendChild(btn);
+        tab.section.dataset.tabIndex = i;
+    });
+    form.classList.add('form-tabbed');
+    form.insertBefore(nav, form.firstChild);
+
+    // Полоса вкладок прилипает сразу под заголовком окна
+    const header = document.querySelector('#modal .modal-header');
+    if (header) nav.style.top = header.offsetHeight + 'px';
+
+    showServiceTab(0);
+}
+
+function showServiceTab(index) {
+    const form = document.getElementById('serviceForm');
+    if (!form) return;
+    form.querySelectorAll(':scope > .form-section').forEach(section => {
+        section.classList.toggle('is-active', section.dataset.tabIndex === String(index));
+    });
+    form.querySelectorAll('.form-tab').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+        btn.setAttribute('aria-selected', i === index ? 'true' : 'false');
+    });
+    const active = form.querySelector('.form-tab.active');
+    if (active) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const scroller = document.querySelector('#modal .modal-content');
+    if (scroller) scroller.scrollTop = 0;
+}
+
+// Перед фокусом на пустом обязательном поле открываем его вкладку
+function focusServiceField(id) {
+    const field = document.getElementById(id);
+    const section = field?.closest('.form-section');
+    if (section && section.dataset.tabIndex !== undefined) showServiceTab(Number(section.dataset.tabIndex));
+    field?.focus();
+}
+
+// ---- Загрузка файлов перетаскиванием ----
+// Оборачивает input[type=file] в зону «перетащите сюда». Брошенные файлы кладутся
+// в тот же input и вызывают его обычный onchange — загрузка работает как при выборе.
+function initDropzones(root) {
+    if (!root) return;
+    root.querySelectorAll('input[type="file"]').forEach(input => {
+        if (input.closest('.dropzone')) return;
+        const zone = document.createElement('div');
+        zone.className = 'dropzone';
+        const isVideo = (input.accept || '').startsWith('video');
+        const what = isVideo ? 'видео' : 'фото';
+        zone.innerHTML = `
+            <span class="dropzone-icon" aria-hidden="true">${isVideo ? '🎬' : '🖼️'}</span>
+            <span class="dropzone-text"><b>Перетащите ${what} сюда</b> или нажмите, чтобы выбрать${input.multiple ? ' (можно несколько)' : ''}</span>`;
+        input.parentNode.insertBefore(zone, input);
+        zone.appendChild(input);
+
+        const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+        zone.addEventListener('dragenter', (e) => { stop(e); zone.classList.add('dragover'); });
+        zone.addEventListener('dragover', (e) => { stop(e); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', (e) => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
+        zone.addEventListener('drop', (e) => {
+            stop(e);
+            zone.classList.remove('dragover');
+            const accepted = [...(e.dataTransfer?.files || [])].filter(f => {
+                const accept = input.accept || '';
+                return !accept || accept.split(',').some(a => {
+                    a = a.trim();
+                    return a.endsWith('/*') ? f.type.startsWith(a.slice(0, -1)) : f.type === a || f.name.toLowerCase().endsWith(a);
+                });
+            });
+            if (!accepted.length) {
+                showError(isVideo ? 'Перетащите видеофайл' : 'Перетащите изображение (JPG, PNG, WebP)');
+                return;
+            }
+            const dt = new DataTransfer();
+            (input.multiple ? accepted : accepted.slice(0, 1)).forEach(f => dt.items.add(f));
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+}
+
+// Файл, брошенный мимо зоны, браузер открыл бы вместо админки — с потерей несохранённой формы
+['dragover', 'drop'].forEach(type => {
+    window.addEventListener(type, (e) => {
+        if (!e.target.closest || !e.target.closest('.dropzone')) e.preventDefault();
+    });
+});
+
 function closeModal() {
     const modal = document.getElementById('modal');
     if (modal) {
