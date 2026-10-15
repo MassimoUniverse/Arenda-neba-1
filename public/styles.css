@@ -4464,3 +4464,77 @@ input[type='number'] {
     top: 8px;
   }
 }
+
+/* =============================================
+   Нижняя панель связи на телефоне (.mobile-cta)
+   ============================================= */
+.mobile-cta {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-cta {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 -4px 20px rgba(26, 31, 54, 0.10);
+    transition: transform 0.25s ease;
+  }
+
+  .mobile-cta.mobile-cta-hidden {
+    transform: translateY(110%);
+  }
+
+  .mobile-cta-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-cta-btn:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-cta-call {
+    background: var(--accent, #ff6b35);
+    color: #fff;
+  }
+
+  .mobile-cta-max {
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    color: #fff;
+  }
+
+  .mobile-cta-max img {
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  /* Контент и cookie-баннер не прячутся под панелью */
+  body.has-mobile-cta {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  body.has-mobile-cta .cookie-consent-banner {
+    bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+}

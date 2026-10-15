@@ -2469,3 +2469,36 @@ function openDiagramFullscreen(imageUrl, title) {
     e.stopPropagation();
   });
 }
+
+// ---- Нижняя панель на телефоне: «Позвонить» и «Написать в MAX» ----
+// Шапка с иконками связи наверху экрана — до неё неудобно тянуться пальцем.
+// Ссылки те же, что в шапке: tel: с data-ct="phone" (подмена номера CallTouch)
+// и max.ru — автоцели Метрики считают клики по ним сами.
+(function initMobileCta() {
+  if (document.querySelector('.mobile-cta')) return;
+
+  const bar = document.createElement('nav');
+  bar.className = 'mobile-cta';
+  bar.setAttribute('aria-label', 'Связаться с нами');
+  bar.innerHTML =
+    '<a href="tel:+79910009111" class="mobile-cta-btn mobile-cta-call" data-ct="phone">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>' +
+      '<span>Позвонить</span>' +
+    '</a>' +
+    '<a href="https://max.ru/u/f9LHodD0cOJKO3OAwk4K6TkpnuLAN43TGG_qBrsn3ftm9j4pV7icx5M-tDw" class="mobile-cta-btn mobile-cta-max" target="_blank" rel="noopener">' +
+      '<img src="/images/max-logo.svg" alt="" width="22" height="22" decoding="async">' +
+      '<span>Написать в MAX</span>' +
+    '</a>';
+
+  document.body.appendChild(bar);
+  document.body.classList.add('has-mobile-cta');
+
+  // Пока открыта клавиатура (заполняют форму), панель не закрывает поля
+  const isField = (el) => el && el.matches && el.matches('input, textarea, select');
+  document.addEventListener('focusin', (e) => {
+    if (isField(e.target)) bar.classList.add('mobile-cta-hidden');
+  });
+  document.addEventListener('focusout', (e) => {
+    if (isField(e.target)) bar.classList.remove('mobile-cta-hidden');
+  });
+})();
