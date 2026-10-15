@@ -298,11 +298,24 @@ function generateEquipmentPageHTML(service) {
   // Формируем breadcrumb
   const breadcrumbTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
   
-  // Формируем meta description
-  const metaDescription = description.length > 150 
-    ? description.substring(0, 150) + '...' 
-    : description || `Аренда ${title.toLowerCase()} в Санкт-Петербурге. ☎ +7 (991) 000-91-11`;
-  
+  // Формируем meta description — только простой текст. Раньше сюда шёл HTML из редактора
+  // (<p>, <strong>, переносы строк): в сниппете Яндекса был мусор, а JSON-LD с переносом
+  // строки внутри строки невалиден. Хелперы объявлены здесь, а не снаружи: regen-pages-direct.js
+  // вырезает из server.js только эту функцию.
+  const toPlainText = (html) => String(html || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const escapeAttr = (text) => String(text)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const metaSource = toPlainText(service.short_description) || toPlainText(description);
+  const metaPlain = metaSource.length > 160
+    ? metaSource.slice(0, 157).replace(/\s+\S*$/, '') + '…'
+    : metaSource || `Аренда ${title.toLowerCase()} в Санкт-Петербурге. ☎ +7 (991) 000-91-11`;
+  const metaDescription = escapeAttr(metaPlain);
+
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -311,6 +324,10 @@ function generateEquipmentPageHTML(service) {
     <title>${title} - Аренда в СПб | Аренда Неба</title>
     <meta name="description" content="${metaDescription}">
     <link rel="canonical" href="https://avtovyshka-spb.ru${url}">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon-120.png" type="image/png" sizes="120x120">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
     <!-- Open Graph -->
     <meta property="og:type" content="product">
@@ -326,8 +343,8 @@ function generateEquipmentPageHTML(service) {
     {
       "@context": "https://schema.org",
       "@type": "Product",
-      "name": "${title}",
-      "description": "${metaDescription.replace(/"/g, '\\"')}",
+      "name": ${JSON.stringify(title)},
+      "description": ${JSON.stringify(metaPlain)},
       "image": "https://avtovyshka-spb.ru${imageUrl}",
       "url": "https://avtovyshka-spb.ru${url}",
       "brand": { "@type": "Brand", "name": "Аренда Неба" },
@@ -351,7 +368,7 @@ function generateEquipmentPageHTML(service) {
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://avtovyshka-spb.ru/" },
         { "@type": "ListItem", "position": 2, "name": "Автопарк", "item": "https://avtovyshka-spb.ru/#autopark" },
-        { "@type": "ListItem", "position": 3, "name": "${title}", "item": "https://avtovyshka-spb.ru${url}" }
+        { "@type": "ListItem", "position": 3, "name": ${JSON.stringify(title)}, "item": "https://avtovyshka-spb.ru${url}" }
       ]
     }
     </script>
@@ -687,20 +704,16 @@ function generateEquipmentPageHTML(service) {
         </div>
     </footer>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    <!-- Библиотеки — свои копии в /vendor: зарубежные CDN (cdnjs, jsdelivr) из России
+         открываются через раз и блокировали загрузку страницы и календаря в форме заказа -->
+    <link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css">
+    <script src="/vendor/gsap.min.js"></script>
+    <script src="/vendor/ScrollTrigger.min.js"></script>
+    <script src="/vendor/lenis.min.js"></script>
+    <script src="/vendor/flatpickr/flatpickr.min.js"></script>
+    <script src="/vendor/flatpickr/ru.js"></script>
     <script src="../equipment-page.js"></script>
     <script src="../cookie-consent.js" defer></script>
-    
-    <!-- calltouch -->
-    <script>
-    (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","k2vlrfd9");
-    </script>
-    <!-- calltouch -->
 </body>
 </html>`;
 }
@@ -1004,6 +1017,16 @@ const db = new sqlite3.Database('./database.db', (err) => {
 // Добавляем колонку attachment в requests если её нет
 db.run("ALTER TABLE requests ADD COLUMN attachment TEXT", () => {});
 
+// www.avtovyshka-spb.ru → avtovyshka-spb.ru. CDN передаёт исходный Host, и без редиректа
+// www отдавал полную копию сайта (для поисковиков — дубль всех страниц).
+app.use((req, res, next) => {
+  const host = String(req.headers.host || '').toLowerCase();
+  if (host.startsWith('www.avtovyshka-spb.ru') && (req.method === 'GET' || req.method === 'HEAD')) {
+    return res.redirect(301, 'https://avtovyshka-spb.ru' + req.originalUrl);
+  }
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -1014,6 +1037,57 @@ app.use(express.urlencoded({ extended: true }));
 // Редирект /equipment/* → /avtopark/* (для старых ссылок)
 app.get('/equipment/:filename(*)', (req, res) => {
   res.redirect(301, '/avtopark/' + req.params.filename);
+});
+
+// Старые и неканонические адреса страниц техники → 301 на действующую страницу.
+// Раньше они отвечали 400/404: маршрут ниже перехватывал их раньше блока oldToNewRedirects.
+const AVTOPARK_RETIRED = {
+  'avtovyshka-17m': 'avtovyshka-18m',
+  'avtovyshka-24m': 'avtovyshka-25m',
+  'avtovyshka-45m': 'avtovyshka-40m',
+  'avtovyshka-50m': 'avtovyshka-40m',
+  'avtovyshka-vezdehod-35m': 'avtovyshka-vezdehod-30m',
+  'avtokran-25t-ivanovets': '/#autopark',
+  'avtokran-25t-kobelco': '/#autopark',
+};
+const AVTOPARK_CYRILLIC = {
+  'автовышка-13-метров': 'avtovyshka-13m',
+  'автовышка-15-метров': 'avtovyshka-15m',
+  'автовышка-16-метров': 'avtovyshka-16m',
+  'автовышка-18-метров': 'avtovyshka-18m',
+  'автовышка-21-метр': 'avtovyshka-21m',
+  'автовышка-25-метров': 'avtovyshka-25m',
+  'автовышка-29-метров': 'avtovyshka-29m',
+  'автовышка-45-метров': 'avtovyshka-45m',
+  'автовышка-вездеход-30-метров': 'avtovyshka-vezdehod-30m',
+  'автовышка-вездеход-35-метров': 'avtovyshka-vezdehod-35m',
+  'самоходная-автовышка': 'samohodnaya-avtovyshka',
+  'телескопический-погрузчик': 'teleskopicheskiy-pogruzchik',
+};
+
+app.get(['/avtopark', '/avtopark/*'], (req, res, next) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  let rest;
+  try {
+    rest = decodeURIComponent(req.path.replace(/^\/avtopark\/?/, ''));
+  } catch (e) {
+    return next();
+  }
+  if (!rest) return res.redirect(301, '/' + query + '#autopark');
+
+  const slug = rest.replace(/\/+$/, '').replace(/\.html$/i, '').toLowerCase();
+  if (!slug || slug.includes('/') || slug.startsWith('_')) return next();
+
+  let target = AVTOPARK_CYRILLIC[slug] || slug;
+  target = AVTOPARK_RETIRED[target] || target;
+  if (target.startsWith('/')) return res.redirect(301, target.replace('#', query + '#'));
+
+  const canonical = `${target}.html`;
+  if (canonical === rest) return next(); // уже правильный адрес — отдаёт маршрут ниже
+  if (fs.existsSync(path.join(__dirname, 'public', 'avtopark', canonical))) {
+    return res.redirect(301, `/avtopark/${canonical}${query}`);
+  }
+  next();
 });
 
 app.get('/avtopark/:filename(*)', (req, res) => {
