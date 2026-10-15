@@ -44,3 +44,5 @@ backups/
 .env.*
 !.env.example
 *.bak*
+# Старые логи после ротации (logrotate: /etc/logrotate.d/arenda-neba)
+*.log.*
