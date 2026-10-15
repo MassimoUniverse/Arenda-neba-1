@@ -35,6 +35,7 @@ npm start              # Production: node server.js
 npm run dev            # nodemon server.js
 npm run init-db        # init-db.js — schema + default admin
 npm run generate-pages # DISABLED (needs --force): stale generator, corrupts /public/avtopark/*.html — pages are written by server.js on admin save
+node regen-pages-direct.js # Correct bulk regeneration (evals the real generator from server.js); used by scripts/server-setup-git.sh
 npm run fix-encoding   # fix-encoding.js — repair mixed UTF-8 / Win-1251 in DB
 npm run update         # update.sh (git pull + restart — environment-dependent)
 
