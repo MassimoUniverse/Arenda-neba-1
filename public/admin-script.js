@@ -5,7 +5,29 @@ const API_URL = (location.hostname === 'avtovyshka-spb.ru' || location.hostname 
     ? 'https://origin.avtovyshka-spb.ru'
     : window.location.origin;
 let authToken = localStorage.getItem('authToken');
-let currentSection = 'homepage';
+const ADMIN_SECTIONS = {
+    requests: 'Заявки',
+    services: 'Автопарк',
+    reviews: 'Отзывы',
+    homepage: 'Главная сайта'
+};
+// Открываем раздел из адреса (#services) или последний открытый; по умолчанию — заявки
+let currentSection = (() => {
+    const fromHash = location.hash.replace('#', '');
+    if (ADMIN_SECTIONS[fromHash]) return fromHash;
+    try {
+        const saved = localStorage.getItem('adminSection');
+        if (ADMIN_SECTIONS[saved]) return saved;
+    } catch (e) {}
+    return 'requests';
+})();
+
+// ?v=<время изменения>, чтобы после замены фото в списке не висела старая картинка из кэша
+function addAdminCacheBuster(url, updatedAt) {
+    const date = parseDbDate(updatedAt);
+    if (!url || !date) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'v=' + date.getTime();
+}
 
 // Escape HTML to prevent XSS attacks
 function escapeHtml(text) {
@@ -217,10 +239,17 @@ function showDashboard() {
     const username = localStorage.getItem('username');
     const currentUserEl = document.getElementById('currentUser');
     if (currentUserEl) {
-        currentUserEl.textContent = `Привет, ${username || 'Администратор'}!`;
+        currentUserEl.textContent = username || 'Администратор';
     }
-    
+
     loadCurrentSection();
+    // Счётчик новых заявок в меню нужен сразу, даже если открыт другой раздел
+    if (currentSection !== 'requests') {
+        fetch(`${API_URL}/api/admin/requests`, { headers: { 'Authorization': `Bearer ${authToken}` } })
+            .then(r => r.ok ? r.json() : null)
+            .then(list => { if (list) updateNewRequestsBadge(list.filter(r => r.status === 'new').length); })
+            .catch(() => {});
+    }
     console.log('Панель администратора отображена');
 }
 
@@ -240,12 +269,20 @@ const navItems = document.querySelectorAll('.nav-item');
 navItems.forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
-        navItems.forEach(nav => nav.classList.remove('active'));
-        item.classList.add('active');
-        
         currentSection = item.dataset.section;
+        history.replaceState(null, '', '#' + currentSection);
         loadCurrentSection();
+        window.scrollTo(0, 0);
     });
+});
+
+// Раздел из адреса: ссылка вида admin.html#services и кнопка «Назад»
+window.addEventListener('hashchange', () => {
+    const section = location.hash.replace('#', '');
+    if (!ADMIN_SECTIONS[section] || section === currentSection) return;
+    if (document.getElementById('adminDashboard')?.style.display === 'none') return;
+    currentSection = section;
+    loadCurrentSection();
 });
 
 // Load Section
@@ -255,14 +292,11 @@ function loadCurrentSection() {
         section.style.display = 'none';
     });
 
-    // Update title
-    const titles = {
-        'homepage': 'Главная страница',
-        'services': 'Услуги',
-        'reviews': 'Отзывы',
-        'requests': 'Заявки'
-    };
-    document.getElementById('sectionTitle').textContent = titles[currentSection] || 'Главная страница';
+    navItems.forEach(nav => nav.classList.toggle('active', nav.dataset.section === currentSection));
+    try { localStorage.setItem('adminSection', currentSection); } catch (e) {}
+
+    document.getElementById('sectionTitle').textContent = ADMIN_SECTIONS[currentSection] || 'Заявки';
+    document.title = `${ADMIN_SECTIONS[currentSection] || 'Админ-панель'} — Аренда Неба`;
 
     // Show current section
     const sectionId = currentSection + 'Section';
@@ -299,7 +333,7 @@ async function loadHomepage() {
 
         const formHtml = `
             <div class="form-section">
-                <h3 class="form-section-title">Hero секция</h3>
+                <h3 class="form-section-title">Первый экран сайта</h3>
                 <form id="homepageForm" onsubmit="saveHomepage(event)">
                 <div class="form-group">
                         <label for="homepageTitle">Заголовок (H1) *</label>
@@ -479,49 +513,57 @@ async function loadServices() {
         const activeServices = services.filter(s => s.active);
         const archivedServices = services.filter(s => !s.active);
 
-        const renderCard = (service) => `
-            <div class="item-card ${service.active ? '' : 'item-card-archived'}">
-                <div class="item-info">
-                    <div class="item-title">${escapeHtml(service.title)}</div>
-                    <div class="item-description">${escapeHtml(stripHtmlTrunc(service.short_description || service.description || '', 160))}</div>
-                    <div class="item-meta">
-                        <span>${escapeHtml(service.price)}</span>
-                        <span class="badge ${service.active ? 'badge-success' : 'badge-danger'}">
-                            ${service.active ? 'Активна' : 'В архиве'}
-                        </span>
+        const renderCard = (service) => {
+            const image = service.image_url ? addAdminCacheBuster(service.image_url, service.updated_at) : '';
+            return `
+            <div class="item-card service-card ${service.active ? '' : 'item-card-archived'}">
+                <div class="service-thumb">
+                    ${image
+                        ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-empty',textContent:'🚚'}))">`
+                        : '<div class="thumb-empty">🚚</div>'}
+                    <div class="badges">
+                        ${service.is_popular ? `<span class="badge badge-accent">★ Популярная${service.popular_order ? ' · ' + escapeHtml(service.popular_order) : ''}</span>` : ''}
+                        ${service.active ? '' : '<span class="badge badge-dark">В архиве</span>'}
                     </div>
+                </div>
+                <div class="service-body">
+                    <div class="item-title">${escapeHtml(service.title)}</div>
+                    <div class="service-price">${escapeHtml(service.price || 'Цена не указана')}</div>
+                    <div class="item-description">${escapeHtml(stripHtmlTrunc(service.short_description || service.description || '', 120))}</div>
                 </div>
                 <div class="item-actions">
                     <button class="btn btn-small btn-primary" onclick="editService(${service.id})">Редактировать</button>
+                    ${service.active && service.url ? `<a class="btn btn-small btn-secondary" href="${escapeHtml(service.url)}" target="_blank" rel="noopener" title="Открыть страницу на сайте">↗</a>` : ''}
                     ${service.active
                         ? `<button class="btn btn-small btn-warning" onclick="archiveService(${service.id})">В архив</button>`
                         : `<button class="btn btn-small btn-success" onclick="restoreService(${service.id})">Восстановить</button>
-                           <button class="btn btn-small btn-danger" onclick="deleteService(${service.id})">Удалить навсегда</button>`
+                           <button class="btn btn-small btn-danger" onclick="deleteService(${service.id})">Удалить</button>`
                     }
                 </div>
             </div>
         `;
+        };
 
-        let html = activeServices.map(renderCard).join('');
-
-        // Переключатель архива
-        const archiveToggle = `
-            <div class="archive-toggle" style="margin: 16px 0; display: flex; align-items: center; gap: 8px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
+        // Переключатель архива — в панели над списком
+        const toggleHost = document.getElementById('servicesArchiveToggle');
+        if (toggleHost) {
+            toggleHost.innerHTML = archivedServices.length ? `
+                <label class="switch-label">
                     <input type="checkbox" id="showArchiveToggle" ${showArchive ? 'checked' : ''} onchange="loadServices()" />
                     Показать архив (${archivedServices.length})
-                </label>
-            </div>
-        `;
-
-        if (showArchive && archivedServices.length) {
-            html += `<div style="margin-top: 20px; padding-top: 16px; border-top: 2px dashed #ddd;">
-                <h3 style="color: #999; font-size: 16px; margin-bottom: 12px;">Архив</h3>
-                ${archivedServices.map(renderCard).join('')}
-            </div>`;
+                </label>` : '';
         }
 
-        document.getElementById('servicesList').innerHTML = (archiveToggle + html) || '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Нет добавленных услуг</p></div>';
+        let html = activeServices.length
+            ? `<div class="items-grid">${activeServices.map(renderCard).join('')}</div>`
+            : '<div class="empty-state"><div class="empty-state-icon">🚚</div><p>Нет техники на сайте</p></div>';
+
+        if (showArchive && archivedServices.length) {
+            html += `<div class="list-group-title">Архив</div>
+                <div class="items-grid">${archivedServices.map(renderCard).join('')}</div>`;
+        }
+
+        document.getElementById('servicesList').innerHTML = html;
     } catch (error) {
         console.error('Error loading services:', error);
         document.getElementById('servicesList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка при загрузке услуг</p></div>';
@@ -537,16 +579,16 @@ function showServiceModal(id = null) {
     serviceImagesArray = [];
     isLoadingServiceData = false;
     
-    document.getElementById('modalTitle').textContent = id ? 'Редактировать услугу' : 'Добавить услугу';
+    document.getElementById('modalTitle').textContent = id ? 'Редактировать технику' : 'Добавить технику';
     
     const modalBody = document.getElementById('modalBody');
     const serviceId = id || null;
     modalBody.innerHTML = `
-        <form id="serviceForm" data-service-id="${serviceId || 'new'}"
+        <form id="serviceForm" data-service-id="${serviceId || 'new'}">
             <div class="form-section">
                 <h3 class="form-section-title">Основная информация</h3>
             <div class="form-group">
-                    <label for="serviceTitle">Название услуги *</label>
+                    <label for="serviceTitle">Название техники *</label>
                     <input type="text" id="serviceTitle" name="title" required placeholder="Например: Автовышка-платформа 13 метров">
                     <small class="form-hint">Название будет отображаться в каталоге и на странице услуги</small>
             </div>
@@ -667,7 +709,7 @@ function showServiceModal(id = null) {
                 <div class="form-group">
                     <label for="serviceImage">Основное изображение (URL)</label>
                 <input type="text" id="serviceImage" name="image_url" placeholder="https://example.com/image.jpg">
-                    <small class="form-hint">URL основного изображения услуги</small>
+                    <small class="form-hint">Ссылка на главное фото техники</small>
             </div>
             <div class="form-group">
                     <label>Или загрузите основное изображение</label>
@@ -723,7 +765,7 @@ function showServiceModal(id = null) {
             
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
-                <button type="submit" class="btn btn-primary">Сохранить услугу</button>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
             </div>
         </form>
     `;
@@ -1647,52 +1689,32 @@ window.saveService = async function(event, id) {
 }
 
 // Функции для показа сообщений
-function showError(message) {
-    // Удаляем предыдущие сообщения
-    const existing = document.querySelectorAll('.error-message.show[style*="position: fixed"]');
-    existing.forEach(el => el.remove());
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message show';
-    errorDiv.textContent = message;
-    errorDiv.style.position = 'fixed';
-    errorDiv.style.top = '20px';
-    errorDiv.style.right = '20px';
-    errorDiv.style.zIndex = '10000';
-    errorDiv.style.padding = '1rem 1.5rem';
-    errorDiv.style.borderRadius = '8px';
-    errorDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    errorDiv.style.maxWidth = '400px';
-    document.body.appendChild(errorDiv);
-    
+function showToast(message, type, duration) {
+    let host = document.querySelector('.toast-host');
+    if (!host) {
+        host = document.createElement('div');
+        host.className = 'toast-host';
+        host.setAttribute('role', 'status');
+        document.body.appendChild(host);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = (type === 'error' ? '⚠️ ' : '✓ ') + message;
+    host.appendChild(toast);
+    // Не копим больше трёх уведомлений
+    while (host.children.length > 3) host.firstElementChild.remove();
     setTimeout(() => {
-        errorDiv.classList.remove('show');
-        setTimeout(() => errorDiv.remove(), 300);
-    }, 5000);
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+function showError(message) {
+    showToast(message, 'error', 6000);
 }
 
 function showSuccess(message) {
-    // Удаляем предыдущие сообщения
-    const existing = document.querySelectorAll('.success-message.show[style*="position: fixed"]');
-    existing.forEach(el => el.remove());
-    
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message show';
-    successDiv.textContent = message;
-    successDiv.style.position = 'fixed';
-    successDiv.style.top = '20px';
-    successDiv.style.right = '20px';
-    successDiv.style.zIndex = '10000';
-    successDiv.style.padding = '1rem 1.5rem';
-    successDiv.style.borderRadius = '8px';
-    successDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    successDiv.style.maxWidth = '400px';
-    document.body.appendChild(successDiv);
-    
-    setTimeout(() => {
-        successDiv.classList.remove('show');
-        setTimeout(() => successDiv.remove(), 300);
-    }, 3000);
+    showToast(message, 'success', 3000);
 }
 
 function editService(id) {
@@ -1752,23 +1774,28 @@ async function loadReviews() {
         });
         const reviews = await response.json();
 
-        const html = reviews.map(review => `
+        const html = reviews.map(review => {
+            const rating = Math.max(0, Math.min(5, parseInt(review.rating, 10) || 0));
+            const date = review.date ? new Date(review.date + 'T00:00:00') : null;
+            const dateText = date && !isNaN(date) ? date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) : (review.date || '');
+            return `
             <div class="item-card">
                 <div class="item-info">
-                    <div class="item-title">${escapeHtml(review.client_name)}</div>
-                    <div class="item-description">${escapeHtml(review.text)}</div>
+                    <div class="review-stars" aria-label="Оценка ${rating} из 5">${'★'.repeat(rating)}<span style="color:#e2e8f0">${'★'.repeat(5 - rating)}</span></div>
+                    <div class="review-text">${escapeHtml(review.text)}</div>
+                    <div class="item-title" style="font-size:15px;margin:0">${escapeHtml(review.client_name)}</div>
                     <div class="item-meta">
-                        <span>${escapeHtml(review.company || '')}</span>
-                        <span>${'★'.repeat(review.rating)}</span>
-                        <span>${escapeHtml(review.date)}</span>
+                        ${review.company ? `<span>${escapeHtml(review.company)}</span>` : ''}
+                        <span>${escapeHtml(dateText)}</span>
                     </div>
                 </div>
                 <div class="item-actions">
-                    <button class="btn btn-small btn-primary" onclick="editReview(${review.id})">Редактировать</button>
+                    <button class="btn btn-small btn-secondary" onclick="editReview(${review.id})">Редактировать</button>
                     <button class="btn btn-small btn-danger" onclick="deleteReview(${review.id})">Удалить</button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         document.getElementById('reviewsList').innerHTML = html || '<div class="empty-state"><div class="empty-state-icon">💬</div><p>Нет добавленных отзывов</p></div>';
     } catch (error) {
@@ -1918,70 +1945,175 @@ async function deleteReview(id) {
 }
 
 // Requests Management
+const REQUEST_STATUSES = {
+    new: 'Новая',
+    in_progress: 'В работе',
+    completed: 'Завершена',
+    cancelled: 'Отменена'
+};
+const REQUEST_FILTERS = [
+    ['all', 'Все'],
+    ['new', 'Новые'],
+    ['in_progress', 'В работе'],
+    ['completed', 'Завершённые'],
+    ['cancelled', 'Отменённые']
+];
+let requestsCache = [];
+let requestsFilter = 'all';
+let requestsQuery = '';
+
+// SQLite CURRENT_TIMESTAMP хранит время в UTC без пояснения ("2026-10-04 19:52:03").
+// new Date() понимает такую строку как местное время — заявки показывались на 3 часа раньше.
+function parseDbDate(value) {
+    if (!value) return null;
+    const str = String(value);
+    const iso = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(str) ? str.replace(' ', 'T') + 'Z' : str;
+    const date = new Date(iso);
+    return isNaN(date) ? null : date;
+}
+
+function formatRequestDate(value) {
+    const date = parseDbDate(value);
+    if (!date) return '';
+    const time = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86400000);
+    if (days === 0) return `Сегодня, ${time}`;
+    if (days === 1) return `Вчера, ${time}`;
+    const sameYear = date.getFullYear() === new Date().getFullYear();
+    const day = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: sameYear ? undefined : 'numeric' });
+    return `${day}, ${time}`;
+}
+
+// +79106354892 / 89106354892 -> +7 (910) 635-48-92; ссылка tel: — только цифры
+function phoneDigits(phone) {
+    let digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length === 11 && digits[0] === '8') digits = '7' + digits.slice(1);
+    return digits;
+}
+
+function formatPhone(phone) {
+    const d = phoneDigits(phone);
+    if (d.length === 11 && d[0] === '7') {
+        return `+7 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9)}`;
+    }
+    return String(phone || '');
+}
+
+function updateNewRequestsBadge(count) {
+    const badge = document.getElementById('newRequestsBadge');
+    if (badge) badge.textContent = count > 0 ? String(count) : '';
+}
+
 async function loadRequests() {
     try {
         const response = await fetch(`${API_URL}/api/admin/requests`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
-        const requests = await response.json();
-
-        const html = requests.map(request => {
-            const statusClass = {
-                'new': 'badge-warning',
-                'in_progress': 'badge-info',
-                'completed': 'badge-success',
-                'cancelled': 'badge-danger'
-            }[request.status] || 'badge-info';
-
-            const statusText = {
-                'new': 'Новая',
-                'in_progress': 'В работе',
-                'completed': 'Завершена',
-                'cancelled': 'Отменена'
-            }[request.status] || request.status;
-
-            return `
-                <div class="item-card">
-                    <div class="item-info">
-                        <div class="item-title">${escapeHtml(request.name)}</div>
-                        <div class="item-description">${escapeHtml(request.message || 'Без сообщения')}</div>
-                        <div class="item-meta">
-                            <span>📞 ${escapeHtml(request.phone)}</span>
-                            ${request.email ? `<span>✉️ ${escapeHtml(request.email)}</span>` : ''}
-                            <span>${new Date(request.created_at).toLocaleString('ru-RU')}</span>
-                            <span class="badge ${statusClass}">${statusText}</span>
-                        </div>
-                        ${request.equipment ? `<div style="margin-top:4px;font-size:13px;color:#666;">🔧 ${escapeHtml(request.equipment)}</div>` : ''}
-                        ${(() => {
-                            if (!request.attachment) return '';
-                            // Файл отдаётся только с токеном (публичный /uploads/attachments закрыт), поэтому без прямых ссылок
-                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(request.attachment);
-                            if (isImage) {
-                                return `<div style="margin-top:8px;"><img data-attachment-id="${request.id}" alt="Реквизиты" style="max-width:300px;max-height:200px;border-radius:6px;border:1px solid #ddd;cursor:pointer;" onclick="openRequestAttachment(${request.id})"><br><a href="#" onclick="openRequestAttachment(${request.id}); return false;" style="color:#f97316;font-size:13px;">📎 Открыть</a></div>`;
-                            } else {
-                                return `<div style="margin-top:8px;"><a href="#" onclick="openRequestAttachment(${request.id}); return false;" style="color:#f97316;font-weight:500;text-decoration:none;">📎 Открыть реквизиты</a></div>`;
-                            }
-                        })()}
-                    </div>
-                    <div class="item-actions">
-                        <select onchange="updateRequestStatus(${request.id}, this.value)" class="form-control">
-                            <option value="new" ${request.status === 'new' ? 'selected' : ''}>Новая</option>
-                            <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>В работе</option>
-                            <option value="completed" ${request.status === 'completed' ? 'selected' : ''}>Завершена</option>
-                            <option value="cancelled" ${request.status === 'cancelled' ? 'selected' : ''}>Отменена</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        document.getElementById('requestsList').innerHTML = html || '<div class="empty-state"><div class="empty-state-icon">📩</div><p>Нет новых заявок</p></div>';
-        loadAttachmentPreviews();
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        requestsCache = await response.json();
+        updateNewRequestsBadge(requestsCache.filter(r => r.status === 'new').length);
+        renderRequests();
     } catch (error) {
         console.error('Error loading requests:', error);
         document.getElementById('requestsList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Ошибка при загрузке заявок</p></div>';
     }
 }
+
+function renderRequestCard(request) {
+    const status = REQUEST_STATUSES[request.status] ? request.status : 'new';
+    const digits = phoneDigits(request.phone);
+
+    let attachment = '';
+    if (request.attachment) {
+        // Файл отдаётся только с токеном (публичный /uploads/attachments закрыт), поэтому без прямых ссылок
+        const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(request.attachment);
+        attachment = `<div class="request-attachment">
+            ${isImage ? `<img data-attachment-id="${request.id}" alt="Реквизиты" onclick="openRequestAttachment(${request.id})">` : ''}
+            <a href="#" class="attachment-link" onclick="openRequestAttachment(${request.id}); return false;">📎 ${isImage ? 'Открыть' : 'Открыть реквизиты'}</a>
+        </div>`;
+    }
+
+    return `
+        <div class="item-card request-card status-${status}">
+            <div class="request-head">
+                <div>
+                    <div class="request-name">${escapeHtml(request.name)}</div>
+                    <div class="request-date">${escapeHtml(formatRequestDate(request.created_at))} · №${request.id}</div>
+                </div>
+                <select class="status-select status-${status}" aria-label="Статус заявки" onchange="updateRequestStatus(${request.id}, this.value)">
+                    ${Object.entries(REQUEST_STATUSES).map(([value, label]) =>
+                        `<option value="${value}" ${value === status ? 'selected' : ''}>${label}</option>`).join('')}
+                </select>
+            </div>
+            <div class="request-body">
+                ${request.equipment ? `<div class="request-equipment">🚚 ${escapeHtml(request.equipment)}</div>` : ''}
+                ${request.message ? `<div class="request-message">${escapeHtml(request.message)}</div>` : ''}
+                ${attachment}
+            </div>
+            <div class="request-contacts">
+                ${digits ? `<a class="contact-btn call" href="tel:+${digits}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg> ${escapeHtml(formatPhone(request.phone))}</a>` : ''}
+                ${request.email ? `<a class="contact-btn" href="mailto:${escapeHtml(request.email)}">✉️ ${escapeHtml(request.email)}</a>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function renderRequests() {
+    const counts = { all: requestsCache.length };
+    requestsCache.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+
+    const filterEl = document.getElementById('requestsFilter');
+    if (filterEl) {
+        filterEl.innerHTML = REQUEST_FILTERS.map(([value, label]) => `
+            <button type="button" class="chip ${value === requestsFilter ? 'active' : ''}" onclick="setRequestsFilter('${value}')">
+                ${label} <span class="chip-count">${counts[value] || 0}</span>
+            </button>`).join('');
+    }
+
+    const query = requestsQuery.trim().toLowerCase();
+    const queryDigits = query.replace(/\D/g, '');
+    const list = requestsCache.filter(r => {
+        if (requestsFilter !== 'all' && r.status !== requestsFilter) return false;
+        if (!query) return true;
+        const text = [r.name, r.email, r.message, r.equipment, r.id].join(' ').toLowerCase();
+        return text.includes(query) || (queryDigits.length >= 3 && phoneDigits(r.phone).includes(queryDigits));
+    });
+
+    const emptyText = query ? 'Ничего не найдено' : (requestsFilter === 'all' ? 'Заявок пока нет' : 'Здесь пусто');
+    document.getElementById('requestsList').innerHTML = list.length
+        ? list.map(renderRequestCard).join('')
+        : `<div class="empty-state"><div class="empty-state-icon">📭</div><p>${emptyText}</p></div>`;
+    loadAttachmentPreviews();
+}
+
+function setRequestsFilter(value) {
+    requestsFilter = value;
+    renderRequests();
+}
+
+const requestsSearchInput = document.getElementById('requestsSearch');
+if (requestsSearchInput) {
+    requestsSearchInput.addEventListener('input', () => {
+        requestsQuery = requestsSearchInput.value;
+        renderRequests();
+    });
+}
+
+// Счётчик новых заявок в меню обновляется раз в минуту, пока вкладка открыта
+setInterval(() => {
+    if (!authToken || document.hidden) return;
+    if (document.getElementById('adminDashboard')?.style.display === 'none') return;
+    const busy = document.getElementById('requestsList')?.contains(document.activeElement);
+    if (currentSection === 'requests' && !busy && !document.getElementById('modal')?.classList.contains('show')) {
+        loadRequests();
+    } else {
+        fetch(`${API_URL}/api/admin/requests`, { headers: { 'Authorization': `Bearer ${authToken}` } })
+            .then(r => r.ok ? r.json() : null)
+            .then(list => { if (list) updateNewRequestsBadge(list.filter(r => r.status === 'new').length); })
+            .catch(() => {});
+    }
+}, 60000);
 
 // ---- Вложения заявок (реквизиты) — загружаются с токеном админа ----
 const attachmentBlobUrls = {};
@@ -2046,13 +2178,19 @@ async function updateRequestStatus(id, status) {
         });
 
         if (response.ok) {
-            loadRequests();
+            const request = requestsCache.find(r => r.id === id);
+            if (request) request.status = status;
+            updateNewRequestsBadge(requestsCache.filter(r => r.status === 'new').length);
+            renderRequests();
+            showSuccess(`Заявка №${id}: «${REQUEST_STATUSES[status] || status}»`);
         } else {
             const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }));
-            alert('Ошибка при обновлении статуса: ' + (errorData.error || 'Неизвестная ошибка'));
+            showError('Ошибка при обновлении статуса: ' + (errorData.error || 'Неизвестная ошибка'));
+            renderRequests();
         }
     } catch (error) {
-        alert('Ошибка при обновлении статуса: ' + error.message);
+        showError('Ошибка при обновлении статуса: ' + error.message);
+        renderRequests();
     }
 }
 

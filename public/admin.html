@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель - Аренда Неба</title>
-    <link rel="stylesheet" href="admin-styles.css">
+    <link rel="stylesheet" href="admin-styles.css?v=20261015">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -47,51 +47,60 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-section="homepage">
-                    <span class="nav-icon">🏠</span>
-                    <span>Главная страница</span>
-                </a>
-                <a href="#" class="nav-item" data-section="services">
-                    <span class="nav-icon">🚜</span>
-                    <span>Услуги</span>
-                </a>
-                <a href="#" class="nav-item" data-section="reviews">
-                    <span class="nav-icon">💬</span>
-                    <span>Отзывы</span>
-                </a>
-                <a href="#" class="nav-item" data-section="requests">
+                <a href="#requests" class="nav-item active" data-section="requests">
                     <span class="nav-icon">📩</span>
-                    <span>Заявки</span>
+                    <span class="nav-label">Заявки</span>
+                    <span class="nav-badge" id="newRequestsBadge"></span>
+                </a>
+                <a href="#services" class="nav-item" data-section="services">
+                    <span class="nav-icon">🚚</span>
+                    <span class="nav-label">Автопарк</span>
+                </a>
+                <a href="#reviews" class="nav-item" data-section="reviews">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-label">Отзывы</span>
+                </a>
+                <a href="#homepage" class="nav-item" data-section="homepage">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Главная сайта</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <button id="logoutBtn" class="btn btn-secondary btn-block">Выйти</button>
+                <a href="/" target="_blank" rel="noopener" class="sidebar-link">↗ Открыть сайт</a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-header">
-                <h1 id="sectionTitle">Главная страница</h1>
+                <h1 id="sectionTitle">Заявки</h1>
                 <div class="user-info">
-                    <span id="currentUser"></span>
+                    <span id="currentUser" class="user-name"></span>
+                    <button id="logoutBtn" class="btn btn-small btn-secondary">Выйти</button>
                 </div>
             </div>
 
             <div class="content-body">
-                <!-- Homepage Section -->
-                <div id="homepageSection" class="admin-section">
-                    <div id="homepageForm" class="content-form">
-                        <!-- Form will be populated dynamically -->
+                <!-- Requests Section -->
+                <div id="requestsSection" class="admin-section">
+                    <div class="list-toolbar">
+                        <div class="chips" id="requestsFilter"></div>
+                        <span class="spacer"></span>
+                        <input type="search" id="requestsSearch" class="search-input" placeholder="Имя, телефон, техника…" autocomplete="off">
+                    </div>
+                    <div id="requestsList" class="items-list">
+                        <div class="skeleton"></div><div class="skeleton"></div>
                     </div>
                 </div>
 
                 <!-- Services Section -->
                 <div id="servicesSection" class="admin-section" style="display: none;">
                     <div class="section-actions">
-                        <button class="btn btn-primary" onclick="showServiceModal()">+ Добавить услугу</button>
+                        <button class="btn btn-primary" onclick="showServiceModal()">+ Добавить технику</button>
+                        <span class="spacer"></span>
+                        <div id="servicesArchiveToggle"></div>
                     </div>
-                    <div id="servicesList" class="items-list">
+                    <div id="servicesList">
                         <!-- Services will be loaded here -->
                     </div>
                 </div>
@@ -101,15 +110,15 @@
                     <div class="section-actions">
                         <button class="btn btn-primary" onclick="showReviewModal()">+ Добавить отзыв</button>
                     </div>
-                    <div id="reviewsList" class="items-list">
+                    <div id="reviewsList" class="items-grid">
                         <!-- Reviews will be loaded here -->
                     </div>
                 </div>
 
-                <!-- Requests Section -->
-                <div id="requestsSection" class="admin-section" style="display: none;">
-                    <div id="requestsList" class="items-list">
-                        <!-- Requests will be loaded here -->
+                <!-- Homepage Section -->
+                <div id="homepageSection" class="admin-section" style="display: none;">
+                    <div id="homepageForm" class="content-form">
+                        <!-- Form will be populated dynamically -->
                     </div>
                 </div>
             </div>
@@ -129,7 +138,7 @@
         </div>
     </div>
 
-    <script src="admin-script.js"></script>
+    <script src="admin-script.js?v=20261015"></script>
 </body>
 </html>
 
