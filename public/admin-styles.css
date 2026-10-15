@@ -810,6 +810,18 @@ input[type="file"]::file-selector-button {
 
 .service-card .item-actions .btn-primary { flex: 1; min-width: 0; }
 
+/* Карточки в сетке (отзывы) — всегда колонкой: текст сверху, кнопки внизу */
+.items-grid > .item-card {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.items-grid > .item-card .item-actions {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
+
 /* Карточка отзыва */
 .review-stars {
     color: #f59e0b;
