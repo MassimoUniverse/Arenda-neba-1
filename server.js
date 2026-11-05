@@ -390,8 +390,11 @@ function generateEquipmentPageHTML(service) {
             accurateTrackBounce:true,
             webvisor:true
        });
+       // Счётчик владельца сайта (аккаунт с карточками на Картах); старый 40444210 оставлен для Директа
+       ym(114086028, "init", {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true});
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/40444210" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <noscript><div><img src="https://mc.yandex.ru/watch/114086028" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
     
     <!-- calltouch -->

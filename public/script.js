@@ -1,6 +1,15 @@
 // Заявки отправляются через API Gateway Яндекса: CDN не пропускает POST (405), а прямой IP режется ТСПУ
 window.LEAD_API_BASE = window.LEAD_API_BASE || 'https://d5dajiugtjeok52f222v.sk0vql13.apigw.yandexcloud.net';
 
+// Цель Метрики «Заявка отправлена» — только после успешного ответа сервера.
+// Шлём в оба счётчика: 40444210 (на нём обучается Директ) и 114086028 (счётчик владельца).
+window.sendLeadGoal = window.sendLeadGoal || function (source) {
+  if (typeof window.ym !== 'function') return;
+  [40444210, 114086028].forEach(function (id) {
+    try { window.ym(id, 'reachGoal', 'lead_sent', { form: source }); } catch (e) {}
+  });
+};
+
 // Вспомогательная функция: берёт первый абзац из HTML-описания (без тегов), обрезает до maxLen
 function getShortDescription(html, maxLen) {
   if (!html) return '';
@@ -1825,6 +1834,7 @@ function initCalculator() {
       const res = await response.json();
 
       if (response.ok && res.success) {
+        window.sendLeadGoal('calculator');
         if (messageDiv) {
           messageDiv.textContent = res.message || 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.';
           messageDiv.classList.add('show', 'success');
@@ -2284,6 +2294,7 @@ function initQuickContactForm() {
       
       if (response.ok && result.success) {
         // Успешная отправка
+        window.sendLeadGoal('quick_contact');
         messageDiv.textContent = result.message || 'Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.';
         messageDiv.classList.add('show', 'success');
         form.reset();
