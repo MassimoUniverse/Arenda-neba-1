@@ -616,6 +616,23 @@ function showServiceModal(id = null) {
                     <small class="form-hint">Визуальный редактор описания для страницы техники</small>
             </div>
             <div class="form-group">
+                    <label>Подробный текст для страницы техники</label>
+                    <div class="wysiwyg-toolbar" id="seoTextToolbar">
+                        <button type="button" class="wysiwyg-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
+                        <button type="button" class="wysiwyg-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="h3" title="Заголовок">H3</button>
+                        <button type="button" class="wysiwyg-btn" data-cmd="formatBlock" data-val="p" title="Абзац">¶</button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn" data-cmd="insertUnorderedList" title="Список">☰</button>
+                        <span class="wysiwyg-sep"></span>
+                        <button type="button" class="wysiwyg-btn wysiwyg-btn-src" data-action="toggleSource" title="HTML-код">&lt;/&gt;</button>
+                    </div>
+                    <div class="wysiwyg-editor" id="serviceSeoTextEditor" contenteditable="true" data-placeholder="Для каких работ берут эту машину, чем она удобна, что учесть при заказе…"></div>
+                    <textarea id="serviceSeoText" name="seo_text" style="display:none;"></textarea>
+                    <small class="form-hint">Показывается на странице техники в блоке «Что важно знать перед арендой» — всегда виден, в отличие от вкладки «Описание». Пишите своими словами, без повторов с другими машинами</small>
+            </div>
+            <div class="form-group">
                     <label for="serviceUrl">URL страницы</label>
                     <input type="text" id="serviceUrl" name="url" placeholder="/avtopark/avtovyshka-13m.html">
                     <small class="form-hint">Если не указан, будет сгенерирован автоматически из названия</small>
@@ -777,7 +794,8 @@ function showServiceModal(id = null) {
 
     // === Инициализация WYSIWYG-редактора ===
     initWysiwyg('descToolbar', 'serviceDescriptionEditor', 'serviceDescription');
-    
+    initWysiwyg('seoTextToolbar', 'serviceSeoTextEditor', 'serviceSeoText');
+
     // === Динамические характеристики (регистрируем ДО загрузки данных) ===
     function addSpecRow(icon, label, value) {
         const list = document.getElementById('customSpecsList');
@@ -1109,6 +1127,9 @@ async function loadServiceData(id) {
             document.getElementById('serviceDescription').value = service.description || '';
             const descEditor = document.getElementById('serviceDescriptionEditor');
             if (descEditor) descEditor.innerHTML = service.description || '';
+            document.getElementById('serviceSeoText').value = service.seo_text || '';
+            const seoTextEditor = document.getElementById('serviceSeoTextEditor');
+            if (seoTextEditor) seoTextEditor.innerHTML = service.seo_text || '';
             // Парсим цену из формата "от X ₽/полсмена, от Y ₽/смена" или "от Y ₽/смена"
             const priceStr = service.price || '';
             
@@ -1450,6 +1471,11 @@ window.saveService = async function(event, id) {
     const descHidden = document.getElementById('serviceDescription');
     if (descEditor && descHidden && descEditor.style.display !== 'none') {
         descHidden.value = descEditor.innerHTML;
+    }
+    const seoTextEditor = document.getElementById('serviceSeoTextEditor');
+    const seoTextHidden = document.getElementById('serviceSeoText');
+    if (seoTextEditor && seoTextHidden && seoTextEditor.style.display !== 'none') {
+        seoTextHidden.value = seoTextEditor.innerHTML.trim() === '<br>' ? '' : seoTextEditor.innerHTML;
     }
     
     // Валидация обязательных полей

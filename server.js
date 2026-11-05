@@ -758,7 +758,7 @@ function generateEquipmentPageHTML(service) {
                 <a href="/privacy-policy.html" style="color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none;">Политика конфиденциальности</a>
             </div>
             <div class="footer-bottom" style="position: relative;">
-                <p>2016-2025 © ООО «Аренда Неба»</p>
+                <p>2016-2026 © ООО «Аренда Неба»</p>
                 <!-- Скрытая ссылка на админ-панель - кликните по копирайту -->
                 <a href="/admin.html" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 10;" aria-label="Админ-панель"></a>
             </div>
@@ -1043,6 +1043,12 @@ const db = new sqlite3.Database('./database.db', (err) => {
           console.error('Error adding short_description column:', err);
         }
       });
+      // Подробный текст для страницы техники (блок перед вопросами-ответами, см. lib/seo-blocks.js)
+      db.run(`ALTER TABLE services ADD COLUMN seo_text TEXT DEFAULT ''`, (err) => {
+        if (err && !err.message.includes('duplicate column name') && !err.message.includes('no such table')) {
+          console.error('Error adding seo_text column:', err);
+        }
+      });
     });
     
     // Create homepage table if it doesn't exist
@@ -1218,10 +1224,17 @@ app.get('/avtopark/:filename(*)', (req, res) => {
     Promise.all([fs.promises.readFile(filePath, 'utf8'), loadSeoData()])
       .then(([html, data]) => {
         const block = seoBlocks.renderOtherEquipment(data.services, currentUrl);
-        const out = html.includes('<!--SSR:other-equipment-->')
+        let out = html.includes('<!--SSR:other-equipment-->')
           ? html.replace('<!--SSR:other-equipment-->', () => block)
           : html.replace('<!-- Payment Methods -->', () => block + '\n    <!-- Payment Methods -->');
-        res.type('html').send(out);
+        // «Что важно знать перед арендой» — перед вопросами-ответами (или перед «Другой техникой»)
+        const details = seoBlocks.renderEquipmentDetails(data.services.find((s) => s.url === currentUrl), data.services);
+        if (details) {
+          out = out.includes('<!-- Вопросы-ответы -->')
+            ? out.replace('<!-- Вопросы-ответы -->', () => details + '\n\n    <!-- Вопросы-ответы -->')
+            : out.replace('<section class="other-equipment">', () => details.trim() + '\n\n    <section class="other-equipment">');
+        }
+        res.type('html').send(seoBlocks.withCurrentYear(out));
       })
       .catch((e) => {
         console.error('⚠️ Блок «Другая техника» не собран, отдаю файл как есть:', e.message);
@@ -1379,7 +1392,7 @@ app.get('/', async (req, res) => {
       .replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, (m, a, b) => data.homepage && data.homepage.title ? a + seoBlocks.escapeHtml(data.homepage.title) + b : m)
       .replace(/(<p class="hero-subtitle">)[\s\S]*?(<\/p>)/, (m, a, b) => data.homepage && data.homepage.subtitle ? a + seoBlocks.escapeHtml(data.homepage.subtitle) + b : m);
     res.set('Cache-Control', 'no-cache');
-    res.type('html').send(out);
+    res.type('html').send(seoBlocks.withCurrentYear(out));
   } catch (e) {
     console.error('⚠️ Серверная отрисовка главной не удалась, отдаю статический index.html:', e.message);
     res.sendFile(file);
@@ -2698,9 +2711,9 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
 // Service CRUD (Protected)
 app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('📥 POST /api/admin/services - Creating new service');
-  const { title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, 
+  const { title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type } = req.body;
+          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text } = req.body;
 
   console.log('📋 Service data received:', {
     title,
@@ -2777,6 +2790,7 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   const serviceData = {
     title,
     description,
+    short_description, // из него meta description страницы; без него при сохранении бралось длинное описание
     price,
     specifications,
     image_url: fixedImageUrl,
@@ -2817,8 +2831,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
-    'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km'],
+    'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', seo_text || ''],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -2846,7 +2860,7 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
 
   const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
-          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type } = req.body;
+          is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text } = req.body;
 
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -2915,6 +2929,7 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   const serviceData = {
     title,
     description,
+    short_description, // из него meta description страницы; без него при сохранении бралось длинное описание
     price,
     specifications,
     image_url: fixedImageUrl,
@@ -2971,8 +2986,9 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   }
   
   db.run(
-    'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, price_type = ?, delivery_type = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', req.params.id],
+    // seo_text: COALESCE — старая закэшированная админка поле не присылает, текст не должен стереться
+    'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, price_type = ?, delivery_type = ?, seo_text = COALESCE(?, seo_text), updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', typeof seo_text === 'string' ? seo_text : null, req.params.id],
     function(err) {
       if (err) {
         console.error('❌ Ошибка при обновлении услуги:', err);
