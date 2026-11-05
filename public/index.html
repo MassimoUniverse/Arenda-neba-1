@@ -72,10 +72,8 @@
   </script>
   
   <!-- Preload критичных изображений для популярных карточек -->
-  <link rel="preload" as="image" href="/images/avtovyshka-13m.webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="/images/avtovyshka-18m.webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="/images/avtovyshka-21m.webp" fetchpriority="high" />
-  <link rel="preload" as="image" href="/images/avtovyshka-29m.webp" fetchpriority="high" />
+  <!-- На телефоне первый экран — кадр-заставка (видео грузится только на широких экранах) -->
+  <link rel="preload" as="image" href="/images/hero-poster.webp" media="(max-width: 768px)" fetchpriority="high" />
   
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
@@ -163,7 +161,20 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-video-wrapper">
-        <video class="hero-video" src="video.mp4" autoplay muted loop playsinline></video>
+        <video class="hero-video" data-src="video.mp4" poster="/images/hero-poster.webp" muted loop playsinline preload="none"></video>
+        <script>
+          // Видео первого экрана весит 1,9 МБ — запускаем только на широких экранах и без режима экономии трафика.
+          // На телефоне остаётся кадр-заставка из того же видео (poster).
+          (function () {
+            var v = document.querySelector('.hero-video');
+            if (!v || !window.matchMedia('(min-width: 769px)').matches) return;
+            if (navigator.connection && navigator.connection.saveData) return;
+            v.src = v.getAttribute('data-src');
+            v.autoplay = true;
+            var p = v.play && v.play();
+            if (p && p.catch) p.catch(function () {});
+          })();
+        </script>
       </div>
       <div class="hero-content container">
         <p class="hero-badge">Автовышки от 13 до 45 метров · работаем 24/7</p>
@@ -284,7 +295,7 @@
         <div class="calculator-side">
           <div class="calculator-preview" id="calculator-preview">
             <div class="calculator-preview-image">
-              <img id="calculator-image" src="images/avtovyshka-13m.webp" alt="Выбранная техника" />
+              <img id="calculator-image" src="/img/800/images/avtovyshka-13m.webp" alt="Выбранная техника" loading="lazy" decoding="async" />
             </div>
             <div class="calculator-preview-info">
               <p class="calculator-preview-title" id="calculator-title">Автовышка-платформа 13 метров</p>

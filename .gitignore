@@ -46,3 +46,5 @@ backups/
 *.bak*
 # Старые логи после ротации (logrotate: /etc/logrotate.d/arenda-neba)
 *.log.*
+# Уменьшенные копии фото (/img/…), создаются сервером
+cache/

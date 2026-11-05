@@ -1,6 +1,6 @@
 /* Светлый премиальный стиль для детальных страниц техники */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Шрифт Inter подключён в styles.css (свои копии в /fonts) */
 
 *,
 *::before,

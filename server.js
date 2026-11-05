@@ -1301,6 +1301,43 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // Явный маршрут для корневого пути
+// Уменьшенные копии фото для карточек: /img/800/uploads/x.webp → webp шириной 800.
+// Оригиналы 1920 px по 200–400 КБ, а в карточке фото шириной ~300–600 px.
+// Копия делается один раз и лежит в cache/img; если оригинал заменили — пересоздаётся.
+const IMG_WIDTHS = new Set([480, 800, 1200]);
+const IMG_CACHE_DIR = path.join(__dirname, 'cache', 'img');
+app.get('/img/:w/*', async (req, res) => {
+  const width = parseInt(req.params.w, 10);
+  let rel;
+  try {
+    rel = decodeURIComponent(req.params[0] || '');
+  } catch (e) {
+    return res.status(404).end();
+  }
+  if (!IMG_WIDTHS.has(width) || !/^(images|uploads)\/[^?]+\.(webp|jpe?g|png)$/i.test(rel) || rel.includes('..') || rel.startsWith('uploads/attachments/')) {
+    return res.status(404).end();
+  }
+  const srcPath = path.join(__dirname, rel.startsWith('images/') ? 'public' : '', rel);
+  const cachePath = path.join(IMG_CACHE_DIR, String(width), rel.replace(/\.(jpe?g|png)$/i, '.webp'));
+  try {
+    const srcStat = await fs.promises.stat(srcPath);
+    const cacheStat = await fs.promises.stat(cachePath).catch(() => null);
+    if (!cacheStat || cacheStat.mtimeMs < srcStat.mtimeMs) {
+      await fs.promises.mkdir(path.dirname(cachePath), { recursive: true });
+      const tmp = cachePath + '.' + process.pid + '.tmp';
+      await sharp(srcPath).resize({ width, withoutEnlargement: true }).webp({ quality: 72 }).toFile(tmp);
+      await fs.promises.rename(tmp, cachePath);
+    }
+    res.set('Cache-Control', 'public, max-age=604800');
+    res.type('image/webp').sendFile(cachePath);
+  } catch (e) {
+    if (e.code === 'ENOENT') return res.status(404).end();
+    console.error('⚠️ Не удалось уменьшить фото', rel, e.message);
+    // Если уменьшить не вышло — отдаём оригинал, чтобы картинка не пропала
+    res.sendFile(srcPath, (err) => { if (err && !res.headersSent) res.status(404).end(); });
+  }
+});
+
 // Данные для серверной отрисовки (техника и отзывы), кэш на минуту
 let seoDataCache = { at: 0, promise: null };
 function loadSeoData() {

@@ -10,6 +10,16 @@ window.sendLeadGoal = window.sendLeadGoal || function (source) {
   });
 };
 
+// Уменьшенная копия фото через /img/<ширина>/… (server.js): оригиналы 1920 px по 200–400 КБ.
+// Свой домен в адресе убираем; внешние ссылки оставляем как есть.
+function toThumb(src, width) {
+  if (!src) return src;
+  const local = String(src).replace(/^https?:\/\/(?:www\.|origin\.)?avtovyshka-spb\.ru/i, '').replace(/^https?:\/\/localhost(?::\d+)?/i, '');
+  const m = local.match(/^\/?((?:images|uploads)\/[^?#]+\.(?:webp|jpe?g|png))(\?[^#]*)?$/i);
+  return m ? `/img/${width}/${m[1]}${m[2] || ''}` : src;
+}
+window.toThumb = toThumb;
+
 // Вспомогательная функция: берёт первый абзац из HTML-описания (без тегов), обрезает до maxLen
 function getShortDescription(html, maxLen) {
   if (!html) return '';
@@ -174,8 +184,18 @@ async function loadHomepageData() {
     // Update hero video
     const heroVideo = document.querySelector('.hero-video');
     if (heroVideo && data.video_url) {
-      heroVideo.src = data.video_url;
-      heroVideo.load(); // Reload video
+      heroVideo.setAttribute('data-src', data.video_url);
+      // На телефоне видео не грузим — там кадр-заставка (см. index.html).
+      // На широком экране перезапускаем, только если в админке указано другое видео.
+      const wantsVideo = window.matchMedia('(min-width: 769px)').matches
+        && !(navigator.connection && navigator.connection.saveData);
+      const target = new URL(data.video_url, location.href).href;
+      if (wantsVideo && heroVideo.src !== target) {
+        heroVideo.src = data.video_url;
+        heroVideo.load();
+        const p = heroVideo.play && heroVideo.play();
+        if (p && p.catch) p.catch(() => {});
+      }
     }
   } catch (error) {
     console.error('Error loading homepage data:', error);
@@ -418,26 +438,17 @@ function parseSpecifications(specs) {
   return result;
 }
 
-// Функция для добавления параметра обхода кэша к URL изображения
+// Функция для добавления параметра обхода кэша к URL изображения: ?v=<время изменения услуги>.
+// Время из SQLite («2026-04-08 10:00:00») — это UTC; разбираем так же, как сервер (lib/seo-blocks.js),
+// чтобы у картинки из серверного HTML и из скрипта был один адрес и браузер не качал её дважды.
+// Без даты изменения версию не добавляем: «текущее время» в адресе ломало кэш браузера.
 function addCacheBuster(url, updatedAt) {
-  if (!url) return url;
-  // Если URL уже содержит параметры запроса, добавляем timestamp
-  // Если нет, добавляем ?v=timestamp
-  const separator = url.includes('?') ? '&' : '?';
-  // Используем timestamp последнего обновления услуги или текущее время
-  let timestamp;
-  if (updatedAt) {
-    // Преобразуем дату в timestamp (если это строка даты)
-    try {
-      const date = new Date(updatedAt);
-      timestamp = date.getTime();
-    } catch (e) {
-      timestamp = Date.now();
-    }
-  } else {
-    timestamp = Date.now();
-  }
-  return url + separator + 'v=' + timestamp;
+  if (!url || !updatedAt) return url;
+  const str = String(updatedAt);
+  const iso = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(str) ? str.replace(' ', 'T') + 'Z' : str;
+  const timestamp = new Date(iso).getTime();
+  if (isNaN(timestamp)) return url;
+  return url + (url.includes('?') ? '&' : '?') + 'v=' + timestamp;
 }
 
 /** Пути из админки: image_url + галерея images[], без дубликатов. Сначала /uploads/ (загрузки), затем прочее, статика avtovyshka в конце. */
@@ -1012,63 +1023,18 @@ function createServiceCard(service) {
   const imgWrap = document.createElement('div');
   imgWrap.className = 'service-card-image';
   
-  // Создаем picture element для WebP с fallback
+  // Уменьшенная копия (800 px) через /img/… Раньше к адресу дописывалось ?t=<время>
+  // и crossorigin — браузер качал одно и то же фото по нескольку раз
   const picture = document.createElement('picture');
-  
-  // WebP source
-  const sourceWebp = document.createElement('source');
-  const imageSrc = service.image || '/images/avtovyshka-13m.webp';
-  // Не заменяем расширение, если это уже правильный формат
-  let webpSrc = imageSrc;
-  if (!imageSrc.includes('.webp') && !imageSrc.includes('?')) {
-    webpSrc = imageSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
-  }
-  // Добавляем cache busting, если его еще нет
-  if (!webpSrc.includes('?') && !webpSrc.includes('&')) {
-    webpSrc = webpSrc + '?t=' + Date.now();
-  }
-  sourceWebp.srcset = webpSrc;
-  sourceWebp.type = 'image/webp';
-  
-  // JPEG fallback source
-  const sourceJpeg = document.createElement('source');
-  let jpegSrc = imageSrc;
-  if (!imageSrc.includes('.jpg') && !imageSrc.includes('.jpeg') && !imageSrc.includes('?')) {
-    jpegSrc = imageSrc.replace(/\.(png|webp)$/i, '.jpg');
-  }
-  // Добавляем cache busting, если его еще нет
-  if (!jpegSrc.includes('?') && !jpegSrc.includes('&')) {
-    jpegSrc = jpegSrc + '?t=' + Date.now();
-  }
-  sourceJpeg.srcset = jpegSrc;
-  sourceJpeg.type = 'image/jpeg';
-  
-  // IMG fallback - используем оригинальный путь с cache busting
   const img = document.createElement('img');
-  // Принудительно добавляем cache busting
-  let finalImageSrc = imageSrc;
-  if (!finalImageSrc.includes('?') && !finalImageSrc.includes('&')) {
-    finalImageSrc = imageSrc + '?t=' + Date.now();
-  }
-  img.src = finalImageSrc;
+  img.src = toThumb(service.image || '/images/avtovyshka-13m.webp', 800);
   img.alt = service.title;
-  img.loading = 'eager';
+  img.loading = 'lazy';
   img.decoding = 'async';
-  img.setAttribute('crossorigin', 'anonymous');
-  
   img.onerror = function() {
-    // При ошибке загрузки используем fallback с cache busting
-    this.src = '/images/avtovyshka-13m.webp?t=' + Date.now();
-    // Удаляем source элементы, чтобы браузер использовал img
-    const picture = this.parentElement;
-    if (picture && picture.tagName === 'PICTURE') {
-      const sources = picture.querySelectorAll('source');
-      sources.forEach(s => s.remove());
-    }
+    this.onerror = null;
+    this.src = '/img/800/images/avtovyshka-13m.webp';
   };
-  
-  picture.appendChild(sourceWebp);
-  picture.appendChild(sourceJpeg);
   picture.appendChild(img);
   imgWrap.appendChild(picture);
 
@@ -1520,7 +1486,7 @@ function initCalculator() {
     const gsapLib = window.gsap || gsap;
     
     function fillPreviewContent() {
-      previewImage.src = config.image;
+      previewImage.src = toThumb(config.image, 800);
       previewImage.alt = config.name;
       previewTitle.textContent = config.name;
 
@@ -2124,10 +2090,8 @@ async function initOurCapabilitiesSlider() {
     const normalizedCandidates = candidatesRaw.map((src) => {
       if (!src) return src;
       if (/[?&](?:t|v)=/.test(src)) return src;
-      return updatedAtSlide
-        ? addCacheBuster(src, updatedAtSlide)
-        : src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
-    });
+      return addCacheBuster(src, updatedAtSlide);
+    }).map((src) => toThumb(src, 1200)); // уменьшенная копия, как в серверном HTML
     const imageSrc = normalizedCandidates[0] || '';
     // encodeURI нужен чтобы кирилличные имена файлов корректно работали через innerHTML
     const imageSrcEncoded = imageSrc ? imageSrc.replace(/[^\x00-\x7F]/g, c => encodeURIComponent(c)) : '';
