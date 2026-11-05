@@ -758,9 +758,7 @@ function generateEquipmentPageHTML(service) {
                 <a href="/privacy-policy.html" style="color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none;">Политика конфиденциальности</a>
             </div>
             <div class="footer-bottom" style="position: relative;">
-                <p>2016-2026 © ООО «Аренда Неба»</p>
-                <!-- Скрытая ссылка на админ-панель - кликните по копирайту -->
-                <a href="/admin.html" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 10;" aria-label="Админ-панель"></a>
+                <p>2010-2026 © ООО «Аренда Неба»</p>
             </div>
         </div>
     </footer>
@@ -1234,7 +1232,7 @@ app.get('/avtopark/:filename(*)', (req, res) => {
             ? out.replace('<!-- Вопросы-ответы -->', () => details + '\n\n    <!-- Вопросы-ответы -->')
             : out.replace('<section class="other-equipment">', () => details.trim() + '\n\n    <section class="other-equipment">');
         }
-        res.type('html').send(seoBlocks.withCurrentYear(out));
+        res.type('html').send(seoBlocks.fixFooter(out));
       })
       .catch((e) => {
         console.error('⚠️ Блок «Другая техника» не собран, отдаю файл как есть:', e.message);
@@ -1392,7 +1390,7 @@ app.get('/', async (req, res) => {
       .replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, (m, a, b) => data.homepage && data.homepage.title ? a + seoBlocks.escapeHtml(data.homepage.title) + b : m)
       .replace(/(<p class="hero-subtitle">)[\s\S]*?(<\/p>)/, (m, a, b) => data.homepage && data.homepage.subtitle ? a + seoBlocks.escapeHtml(data.homepage.subtitle) + b : m);
     res.set('Cache-Control', 'no-cache');
-    res.type('html').send(seoBlocks.withCurrentYear(out));
+    res.type('html').send(seoBlocks.fixFooter(out));
   } catch (e) {
     console.error('⚠️ Серверная отрисовка главной не удалась, отдаю статический index.html:', e.message);
     res.sendFile(file);
