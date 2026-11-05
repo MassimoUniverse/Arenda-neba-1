@@ -4538,3 +4538,216 @@ input[type='number'] {
     bottom: calc(74px + env(safe-area-inset-bottom));
   }
 }
+
+/* =============================================
+   Блок цен и текста для поиска (главная, #prices),
+   вопросы-ответы и «Другая техника» (страницы техники)
+   ============================================= */
+.seo-section {
+  background: var(--bg-light, #f8f9fc);
+}
+
+.seo-section h3,
+.equipment-faq h2,
+.other-equipment h2 {
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 40px 0 16px;
+}
+
+.seo-section .section-header {
+  margin-bottom: 8px;
+}
+
+.seo-section .section-header p {
+  max-width: 760px;
+}
+
+.seo-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 16px;
+}
+
+.seo-price-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.seo-price-table th,
+.seo-price-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.seo-price-table th {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--bg-light, #f8f9fc);
+}
+
+.seo-price-table tr:last-child td {
+  border-bottom: none;
+}
+
+.seo-price-table td a {
+  color: var(--text-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.seo-price-table td a:hover {
+  color: var(--accent, #ff6b35);
+}
+
+.seo-price-table .price-cell {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.seo-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: var(--text-muted, #64748b);
+}
+
+.seo-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 48px;
+}
+
+.seo-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-dark);
+  line-height: 1.7;
+}
+
+.seo-columns p {
+  color: var(--text-muted, #64748b);
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 14px;
+  padding: 0 20px;
+}
+
+.faq-item summary {
+  padding: 18px 28px 18px 0;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '+';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--accent, #ff6b35);
+}
+
+.faq-item[open] summary::after {
+  content: '−';
+}
+
+.faq-item p {
+  margin: 0 0 18px;
+  color: var(--text-muted, #64748b);
+  line-height: 1.6;
+}
+
+.equipment-faq,
+.other-equipment {
+  padding: 20px 0 40px;
+}
+
+.equipment-faq h2,
+.other-equipment h2 {
+  margin-top: 0;
+}
+
+.other-equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.other-equipment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  background: var(--bg-white, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 14px;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.other-equipment-item:hover {
+  border-color: var(--accent, #ff6b35);
+  box-shadow: 0 6px 20px rgba(26, 31, 54, 0.08);
+}
+
+.other-equipment-title {
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.other-equipment-meta {
+  font-size: 14px;
+  color: var(--text-muted, #64748b);
+}
+
+.other-equipment-price {
+  font-weight: 700;
+  color: var(--accent, #ff6b35);
+}
+
+.other-equipment-all {
+  margin: 16px 0 0;
+}
+
+.other-equipment-all a {
+  color: var(--accent, #ff6b35);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .seo-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .seo-price-table th,
+  .seo-price-table td {
+    padding: 12px 14px;
+  }
+}

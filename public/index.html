@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Аренда Неба — Аренда автовышек в Санкт‑Петербурге</title>
+  <title>Аренда автовышки в Санкт-Петербурге — от 13 до 45 метров | Аренда Неба</title>
   <meta name="description" content="Аренда автовышек от 13 до 45 метров в Санкт-Петербурге и ЛО. Подача от 1 часа, работаем круглосуточно. Телескопические, коленчатые и комбинированные вышки. ☎ +7 (991) 000-91-11">
   <link rel="canonical" href="https://avtovyshka-spb.ru/">
 
@@ -118,7 +118,7 @@
           <div class="nav-dropdown">
             <a href="#autopark" class="dropdown-trigger">Наш автопарк</a>
             <div class="dropdown-menu" id="equipment-dropdown">
-              <!-- Список техники будет добавлен через JavaScript -->
+              <!--SSR:dropdown-->
             </div>
           </div>
           <a href="#calculator">Быстрая заявка</a>
@@ -166,10 +166,10 @@
         <video class="hero-video" src="video.mp4" autoplay muted loop playsinline></video>
       </div>
       <div class="hero-content container">
-        <p class="hero-badge">Аренда автовышек в Санкт‑Петербурге и ЛО</p>
-        <h1 class="hero-title">Поднимем ваши задачи на нужную высоту</h1>
+        <p class="hero-badge">Автовышки от 13 до 45 метров · работаем 24/7</p>
+        <h1 class="hero-title">Аренда автовышек в Санкт-Петербурге и ЛО</h1>
         <p class="hero-subtitle">
-          Современный автопарк, опытные операторы и быстрый выезд на объект.
+          Поднимем ваши задачи на нужную высоту: современный автопарк, опытные операторы и быстрый выезд на объект.
         </p>
         <div class="hero-points" aria-label="Преимущества">
           <div class="hero-point">Техника с ТО</div>
@@ -232,7 +232,7 @@
           <!-- RIGHT CONTENT - Cards -->
           <div class="popular-cards-content">
             <ul class="stack-cards js-stack-cards" aria-label="Популярная техника">
-              <!-- Карточки будут добавлены через JavaScript -->
+              <!--SSR:popular-->
             </ul>
       </div>
         </div>
@@ -262,7 +262,7 @@
 
         <div class="services-viewport">
           <div class="services-grid" id="services-grid">
-            <!-- Карточки техники будут подставляться скриптом -->
+            <!--SSR:services-->
           </div>
         </div>
 
@@ -299,17 +299,7 @@
           <label class="field field-equipment">
             <span class="field-label">Техника</span>
             <select id="calc-equipment" required>
-              <option value="13" selected>Автовышка-платформа 13 метров</option>
-              <option value="15">Автовышка 15 метров</option>
-              <option value="16">Автовышка 16 метров</option>
-              <option value="17">Автовышка 17 метров</option>
-              <option value="18">Автовышка 18 метров</option>
-              <option value="21">Автовышка 21 метр</option>
-              <option value="25">Автовышка 25 метров</option>
-              <option value="29">Автовышка 29 метров</option>
-              <option value="45">Автовышка 45 метров</option>
-              <option value="30offroad">Автовышка‑вездеход 30 метров</option>
-              <option value="self">Самоходная автовышка</option>
+              <!--SSR:calc-options-->
             </select>
           </label>
 
@@ -366,6 +356,9 @@
       </div>
     </section>
 
+    <!-- ЦЕНЫ, ТЕКСТ ДЛЯ ПОИСКА, ВОПРОСЫ-ОТВЕТЫ (собирается на сервере из базы) -->
+    <!--SSR:seo-->
+
     <!-- REVIEWS -->
     <section id="reviews" class="section reviews-section">
       <div class="container section-header" data-fade-in>
@@ -373,7 +366,7 @@
         <p>Часть отзывов мы перенесли со старого сайта, чтобы вы могли оценить наш подход к работе.</p>
       </div>
       <div class="container reviews-grid" id="reviews-grid">
-        <!-- Отзывы подставляются скриптом -->
+        <!--SSR:reviews-->
       </div>
     </section>
 
@@ -482,7 +475,7 @@
     <div class="container footer-inner">
       <div class="footer-col footer-brand">
         <div class="logo">Аренда Неба</div>
-        <p>Современный автопарк автовышек и надёжная работа на высоте в Санкт‑Петербурге и Ленинградской области.</p>
+        <p>Современный автопарк автовышек и надёжная работа на высоте в Санкт-Петербурге и Ленинградской области.</p>
       </div>
       <div class="footer-col">
         <h4>Навигация</h4>

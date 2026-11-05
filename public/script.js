@@ -1104,8 +1104,8 @@ async function displayServices() {
   const grid = document.getElementById('services-grid');
   if (!grid) return;
 
-  grid.innerHTML = '';
-  
+  // Карточки из серверного HTML остаются на месте, пока не загрузятся свежие данные —
+  // иначе блок схлопывается и страница прыгает
   try {
     // Добавляем cache busting к запросу API, чтобы получить свежие данные
     const response = await fetch('/api/services?t=' + Date.now(), {
@@ -1134,11 +1134,14 @@ async function displayServices() {
         };
       });
     
+    grid.innerHTML = '';
     servicesData.forEach((service) => {
       grid.appendChild(createServiceCard(service));
     });
   } catch (error) {
     console.error('Error loading services:', error);
+    if (grid.children.length) { initServicesCarousel(); return; } // серверные карточки уже есть
+    grid.innerHTML = '';
     // Fallback to FALLBACK_SERVICES if API fails
     FALLBACK_SERVICES.forEach((service) => {
       grid.appendChild(createServiceCard(service));
@@ -1317,7 +1320,9 @@ async function displayReviews() {
   const container = document.getElementById('reviews-grid');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading">Загрузка отзывов...</div>';
+  if (!container.children.length) {
+    container.innerHTML = '<div class="loading">Загрузка отзывов...</div>';
+  }
 
   try {
     // Загружаем отзывы из API
@@ -2319,6 +2324,7 @@ function initQuickContactForm() {
 async function initEquipmentDropdown() {
   const dropdown = document.getElementById('equipment-dropdown');
   if (!dropdown) return;
+  if (dropdown.querySelector('a')) return; // список уже пришёл с сервера
 
   // Упрощённый список техники - только высоты и специальные типы
   const equipmentList = [

@@ -12,6 +12,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { slugifyAsciiFilename } = require('./lib/slugify-filename.js');
+const seoBlocks = require('./lib/seo-blocks.js');
 const crypto = require('crypto');
 
 const app = express();
@@ -295,8 +296,52 @@ function generateEquipmentPageHTML(service) {
     } catch(e) { /* ignore */ }
   }
   
-  // Формируем breadcrumb
-  const breadcrumbTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
+  // Формируем breadcrumb — полное название: обрезанное «Автовышка с Большой Корзиной 1...» ничего не говорило
+  const breadcrumbTitle = title;
+
+  // Вопросы-ответы для поиска — из данных этой машины (цены, характеристики), поэтому на каждой
+  // странице свои. Хелперы внутри функции: regen-pages-direct.js вырезает из server.js только её.
+  const faqItems = (() => {
+    const items = [];
+    const fmt = (n) => parseInt(n, 10).toLocaleString('ru-RU').replace(/ /g, ' ');
+    const spec = (re) => {
+      const s = customSpecs.find((x) => x && re.test(String(x.label || '')));
+      return s ? String(s.value || '').trim() : '';
+    };
+    if (priceShift) {
+      let a = `${priceHalfShift ? `${halfUnitLabel} — ${fmt(priceHalfShift)} ₽, ` : ''}1 ${unitLabel} — ${fmt(priceShift)} ₽, цены без НДС.`;
+      a += deliveryType === 'negotiable'
+        ? ' Стоимость подачи техники — по договорённости.'
+        : ` Подача за КАД — ${deliveryPerKm} ₽ за километр в каждую сторону.`;
+      // «Автовышка с Большой Корзиной 13 метров» → «автовышки с большой корзиной 13 метров»
+      const genitive = (() => {
+        const t = title.replace(/Большой Корзиной/g, 'большой корзиной');
+        if (/^Автовышка(\s|$)/.test(t)) {
+          return t.replace(/^Автовышка/, 'автовышки')
+            .replace(/ коленчатая /, ' коленчатой ')
+            .replace(/ вездеход /, '-вездехода ');
+        }
+        const known = { 'Самоходный подъёмник': 'самоходного подъёмника', 'Телескопический погрузчик': 'телескопического погрузчика' };
+        return known[t] || null;
+      })();
+      items.push({ q: genitive ? `Сколько стоит аренда ${genitive}?` : `Сколько стоит аренда: ${title}?`, a });
+    }
+    const facts = [
+      ['Высота подъёма', spec(/высота подъ[её]ма/i) || heightLift],
+      ['вылет стрелы', spec(/вылет/i) || maxReach],
+      ['грузоподъёмность', spec(/грузоподъ[её]мност/i) || maxCapacity],
+      ['корзина', (customSpecs.find((x) => x && /корзин|платформ/i.test(String(x.label || '')) && !/грузоподъ|поворот|высот|вылет/i.test(String(x.label || '')) && /\d/.test(String(x.value || ''))) || {}).value || '']
+    ].filter(([, v]) => v);
+    if (facts.length) {
+      const text = facts.map(([k, v]) => `${k} — ${v}`).join(', ');
+      items.push({ q: 'Какие основные характеристики?', a: text.charAt(0).toUpperCase() + text.slice(1) + '. Полный список — во вкладке «Технические характеристики».' });
+    }
+    const arch = spec(/арк/i);
+    if (arch) items.push({ q: 'Проедет ли техника во двор через арку?', a: `Для проезда нужна арка высотой от ${arch}. Если сомневаетесь — пришлите фото или адрес, менеджер проверит заранее.` });
+    items.push({ q: 'Можно заказать технику на выходные или ночью?', a: 'Да, работаем круглосуточно, 24/7. Техника приезжает с нашим оператором.' });
+    return items;
+  })();
+  const escFaq = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   
   // Формируем meta description — только простой текст. Раньше сюда шёл HTML из редактора
   // (<p>, <strong>, переносы строк): в сниппете Яндекса был мусор, а JSON-LD с переносом
@@ -460,7 +505,7 @@ function generateEquipmentPageHTML(service) {
         <div class="container">
             <a href="/">Главная</a>
             <span>/</span>
-            <a href="/#services">Автопарк</a>
+            <a href="/#autopark">Автопарк</a>
             <span>/</span>
             <span>${breadcrumbTitle}</span>
         </div>
@@ -470,7 +515,7 @@ function generateEquipmentPageHTML(service) {
     <section class="equipment-detail">
         <div class="container">
             <div class="equipment-header">
-                <h1>${title}</h1>
+                <h1>${title} — аренда в СПб</h1>
                 <div class="equipment-price">
                     <span class="price-label">Цена аренды:</span>
                     <span class="price-value">${price || 'По запросу'} <span class="price-vat">без НДС</span></span>
@@ -639,6 +684,19 @@ function generateEquipmentPageHTML(service) {
             </div>
         </div>
     </section>
+
+    ${faqItems.length ? `<!-- Вопросы-ответы -->
+    <section class="equipment-faq">
+        <div class="container">
+            <h2>Частые вопросы</h2>
+            <div class="faq-list">
+                ${faqItems.map((f) => `<details class="faq-item"><summary>${escFaq(f.q)}</summary><p>${escFaq(f.a)}</p></details>`).join('\n                ')}
+            </div>
+        </div>
+        <script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqItems.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }).replace(/</g, '\\u003c')}</script>
+    </section>` : ''}
+
+    <!--SSR:other-equipment-->
 
     <!-- Payment Methods -->
     <section class="payment-methods-equip">
@@ -1153,16 +1211,22 @@ app.get('/avtopark/:filename(*)', (req, res) => {
   }
   
     console.log(`✅ File found, serving: ${filename}`);
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        console.error(`❌ Error serving ${filename}:`, err.message);
-        if (!res.headersSent) {
-          res.status(500).send('Error loading page');
-        }
-      } else {
-        console.log(`✅ Successfully served: ${filename}\n`);
-      }
-    });
+
+    // Блок «Другая техника» — ссылки на остальные машины; собирается из базы при отдаче,
+    // поэтому всегда актуален без перегенерации страниц
+    const currentUrl = '/avtopark/' + filename;
+    Promise.all([fs.promises.readFile(filePath, 'utf8'), loadSeoData()])
+      .then(([html, data]) => {
+        const block = seoBlocks.renderOtherEquipment(data.services, currentUrl);
+        const out = html.includes('<!--SSR:other-equipment-->')
+          ? html.replace('<!--SSR:other-equipment-->', () => block)
+          : html.replace('<!-- Payment Methods -->', () => block + '\n    <!-- Payment Methods -->');
+        res.type('html').send(out);
+      })
+      .catch((e) => {
+        console.error('⚠️ Блок «Другая техника» не собран, отдаю файл как есть:', e.message);
+        if (!res.headersSent) res.sendFile(filePath);
+      });
   } catch (error) {
     console.error(`❌ Error in equipment route:`, error);
     if (!res.headersSent) {
@@ -1237,8 +1301,52 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // Явный маршрут для корневого пути
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Данные для серверной отрисовки (техника и отзывы), кэш на минуту
+let seoDataCache = { at: 0, promise: null };
+function loadSeoData() {
+  if (seoDataCache.promise && Date.now() - seoDataCache.at < 60 * 1000) return seoDataCache.promise;
+  seoDataCache.at = Date.now();
+  seoDataCache.promise = new Promise((resolve, reject) => {
+    db.all('SELECT * FROM services WHERE active = 1 ORDER BY order_num', [], (err, services) => {
+      if (err) return reject(err);
+      db.all('SELECT * FROM reviews WHERE active = 1 ORDER BY created_at DESC', [], (err2, reviews) => {
+        if (err2) return reject(err2);
+        db.get('SELECT * FROM homepage WHERE id = 1', [], (err3, homepage) => {
+          resolve({ services, reviews, homepage: err3 ? null : homepage });
+        });
+      });
+    });
+  }).catch((e) => {
+    seoDataCache.promise = null;
+    throw e;
+  });
+  return seoDataCache.promise;
+}
+
+// Главная: каталог, популярная техника, отзывы, меню автопарка и блок цен — сразу в HTML
+// (робот Яндекса почти не выполняет скрипты). Скрипты в браузере перерисовывают блоки как раньше.
+app.get('/', async (req, res) => {
+  const file = path.join(__dirname, 'public', 'index.html');
+  try {
+    const [html, data] = await Promise.all([fs.promises.readFile(file, 'utf8'), loadSeoData()]);
+    const s = data.services;
+    const out = html
+      .replace('<!--SSR:dropdown-->', () => seoBlocks.renderDropdown(s))
+      .replace('<!--SSR:popular-->', () => seoBlocks.renderPopularCards(s))
+      .replace('<!--SSR:services-->', () => seoBlocks.renderServiceCards(s))
+      .replace('<!--SSR:calc-options-->', () => seoBlocks.renderCalcOptions(s))
+      .replace('<!--SSR:reviews-->', () => seoBlocks.renderReviews(data.reviews))
+      .replace('<!--SSR:seo-->', () => seoBlocks.renderSeoSection(s))
+      // Заголовок и подзаголовок первого экрана — из админки («Главная сайта»), как их потом
+      // подставляет скрипт: робот и посетитель видят один и тот же H1
+      .replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, (m, a, b) => data.homepage && data.homepage.title ? a + seoBlocks.escapeHtml(data.homepage.title) + b : m)
+      .replace(/(<p class="hero-subtitle">)[\s\S]*?(<\/p>)/, (m, a, b) => data.homepage && data.homepage.subtitle ? a + seoBlocks.escapeHtml(data.homepage.subtitle) + b : m);
+    res.set('Cache-Control', 'no-cache');
+    res.type('html').send(out);
+  } catch (e) {
+    console.error('⚠️ Серверная отрисовка главной не удалась, отдаю статический index.html:', e.message);
+    res.sendFile(file);
+  }
 });
 
 app.use(express.static('public'));

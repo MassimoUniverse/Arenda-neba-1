@@ -279,7 +279,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Обновляем заголовок страницы
       const titleEl = document.querySelector('.equipment-title, h1');
       if (titleEl && fixedService.title) {
-        titleEl.textContent = fixedService.title;
+        // Хвост «— аренда в СПб» приходит из серверного HTML (H1 для поиска) — сохраняем его
+        titleEl.textContent = fixedService.title + ' — аренда в СПб';
       }
       
       // Обновляем описание (innerHTML — description хранится как HTML)
