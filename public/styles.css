@@ -1316,6 +1316,7 @@ input[type='number'] {
 
 .service-card-link {
   flex: 0 0 300px;
+  min-width: 0; /* содержимое не должно растягивать карточку шире заданной ширины */
   text-decoration: none;
   color: inherit;
   height: 100%;
@@ -1401,9 +1402,12 @@ input[type='number'] {
   color: var(--text-dark);
   line-height: 1.3;
   flex-shrink: 0;
+  /* Длинное название переносим на вторую строку. Раньше оно шло в одну строку
+     и растягивало карточку: на телефоне она становилась шире экрана. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .service-card-meta {

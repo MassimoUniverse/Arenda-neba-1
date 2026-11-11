@@ -1130,44 +1130,53 @@ function initServicesCarousel() {
   if (!cards.length) return;
 
   let currentIndex = 0;
-  let scrollTimeout;
   let rafId = null;
   let isScrolling = false;
+  let scrollFlagTimeout;
   let cachedMetrics = null;
   let resizeTimeout;
+  let dots = [];
 
-  // Кэшируем метрики и пересчитываем только при необходимости
+  // Позиции остановки считаем по реальному положению карточек. Карточки бывают разной ширины
+  // (длинное название растягивает карточку), поэтому формула «индекс × ширина первой карточки»
+  // давала больше шагов и точек, чем реально можно пролистать.
   function recalculate(force = false) {
     if (cachedMetrics && !force) {
       return cachedMetrics;
     }
-    
-    const cardWidth = cards[0].getBoundingClientRect().width;
-    const gap = 20; // gap между карточками из CSS
-    const viewportWidth = viewport.offsetWidth;
-    
-    const visibleCount = Math.floor((viewportWidth + gap) / (cardWidth + gap));
-    const maxIndex = Math.max(0, cards.length - visibleCount);
-    
-    cachedMetrics = { cardWidth, gap, visibleCount, maxIndex };
+
+    const maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const firstLeft = cards[0].offsetLeft;
+    const stops = [0];
+    for (let i = 1; i < cards.length; i++) {
+      const left = cards[i].offsetLeft - firstLeft;
+      // Дальше конца ленты не прокрутить: такие карточки отдельным шагом не считаем
+      if (left > maxScroll - 30) break;
+      stops.push(left);
+    }
+    if (maxScroll > 0) stops.push(maxScroll); // последний шаг — упор в конец ленты
+
+    cachedMetrics = { stops, maxScroll, maxIndex: stops.length - 1 };
     return cachedMetrics;
   }
 
-  const { cardWidth, gap, visibleCount, maxIndex } = recalculate();
+  function renderDots() {
+    const { maxIndex } = recalculate();
+    if (dots.length === maxIndex + 1) return;
 
-  dotsContainer.innerHTML = '';
-  const dots = [];
-  for (let i = 0; i <= maxIndex; i++) {
-    const dot = document.createElement('button');
-    dot.className = 'carousel-dot';
-    if (i === 0) dot.classList.add('active');
-    dot.type = 'button';
-    dot.addEventListener('click', () => {
-      currentIndex = i;
-      updateCarousel();
-    });
-    dotsContainer.appendChild(dot);
-    dots.push(dot);
+    dotsContainer.innerHTML = '';
+    dots = [];
+    for (let i = 0; i <= maxIndex; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'carousel-dot';
+      dot.type = 'button';
+      dot.addEventListener('click', () => {
+        currentIndex = i;
+        updateCarousel();
+      });
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    }
   }
 
   function updateDots() {
@@ -1177,38 +1186,39 @@ function initServicesCarousel() {
   }
 
   function updateButtons() {
-    const { maxIndex: newMaxIndex } = recalculate();
+    const { maxIndex } = recalculate();
     prevBtn.disabled = currentIndex <= 0;
-    nextBtn.disabled = currentIndex >= newMaxIndex;
+    nextBtn.disabled = currentIndex >= maxIndex;
+  }
+
+  // Какому шагу соответствует текущее положение ленты
+  function indexFromScroll() {
+    const { stops, maxScroll, maxIndex } = recalculate();
+    const scrollLeft = viewport.scrollLeft;
+    if (scrollLeft >= maxScroll - 2) return maxIndex;
+
+    let nearest = 0;
+    for (let i = 1; i <= maxIndex; i++) {
+      if (Math.abs(stops[i] - scrollLeft) < Math.abs(stops[nearest] - scrollLeft)) {
+        nearest = i;
+      }
+    }
+    return nearest;
   }
 
   function updateCarousel() {
-    const { cardWidth, gap, maxIndex: newMaxIndex } = recalculate();
-    let targetScroll;
+    const { stops, maxIndex } = recalculate();
+    currentIndex = Math.min(Math.max(currentIndex, 0), maxIndex);
 
-    if (currentIndex >= newMaxIndex) {
-      // Если это последняя позиция, прокручиваем так, чтобы последняя карточка была полностью видна
-      // Используем реальные размеры элементов вместо расчетов
-      const gridScrollWidth = grid.scrollWidth; // Реальная ширина содержимого grid
-      const viewportWidth = viewport.offsetWidth; // Видимая ширина viewport
-      
-      // Максимальная прокрутка = реальная ширина содержимого - видимая ширина viewport
-      // Это гарантирует, что последняя карточка будет полностью видна
-      // Добавляем небольшой запас для гарантии полной видимости
-      const maxScroll = Math.max(0, gridScrollWidth - viewportWidth + 1);
-      targetScroll = maxScroll;
-    } else {
-      targetScroll = currentIndex * (cardWidth + gap);
-    }
-    
     // Устанавливаем флаг, чтобы не обрабатывать программную прокрутку
     isScrolling = true;
-    viewport.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    viewport.scrollTo({ left: stops[currentIndex], behavior: 'smooth' });
     updateDots();
     updateButtons();
-    
+
     // Сбрасываем флаг после завершения прокрутки
-    setTimeout(() => {
+    clearTimeout(scrollFlagTimeout);
+    scrollFlagTimeout = setTimeout(() => {
       isScrolling = false;
     }, 500);
   }
@@ -1216,23 +1226,19 @@ function initServicesCarousel() {
   // Оптимизированная обработка прокрутки с requestAnimationFrame
   function handleScroll() {
     if (isScrolling) return; // Пропускаем обработку при программной прокрутке
-    
+
     if (rafId) {
       cancelAnimationFrame(rafId);
     }
-    
+
     rafId = requestAnimationFrame(() => {
-      const { cardWidth, gap, maxIndex: newMaxIndex } = recalculate();
-      const scrollLeft = viewport.scrollLeft;
-      const newIndex = Math.round(scrollLeft / (cardWidth + gap));
-      
-      if (newIndex !== currentIndex && newIndex >= 0 && newIndex <= newMaxIndex) {
+      rafId = null;
+      const newIndex = indexFromScroll();
+      if (newIndex !== currentIndex) {
         currentIndex = newIndex;
         updateDots();
         updateButtons();
       }
-      
-      rafId = null;
     });
   }
 
@@ -1247,39 +1253,36 @@ function initServicesCarousel() {
   });
 
   nextBtn.addEventListener('click', () => {
-    const { maxIndex: newMaxIndex } = recalculate();
-    if (currentIndex < newMaxIndex) {
+    const { maxIndex } = recalculate();
+    if (currentIndex < maxIndex) {
       currentIndex += 1;
-      updateCarousel();
-    } else if (currentIndex === newMaxIndex) {
-      // Если уже на последней позиции, убеждаемся что последняя карточка полностью видна
       updateCarousel();
     }
   });
 
-  updateButtons();
-  
-  // При загрузке страницы и изменении размера окна пересчитываем и проверяем последнюю карточку
-  const checkLastCard = () => {
-    const { maxIndex: checkMaxIndex } = recalculate();
-    if (currentIndex >= checkMaxIndex) {
-      updateCarousel();
-    }
-  };
-  
+  // Пересчёт шагов и точек: размеры меняются при изменении окна и после загрузки шрифта
+  // (ширина названий, а с ней и карточек, зависит от шрифта)
+  function refresh() {
+    recalculate(true);
+    renderDots();
+    currentIndex = indexFromScroll();
+    updateDots();
+    updateButtons();
+  }
+
+  refresh();
+
   // Оптимизированная обработка изменения размера окна
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      cachedMetrics = null; // Сбрасываем кэш при изменении размера
-      checkLastCard();
-    }, 150);
+    resizeTimeout = setTimeout(refresh, 150);
   }, { passive: true });
-  
-  // Проверяем после небольшой задержки при загрузке (когда карточки уже отрендерены)
-  setTimeout(() => {
-    checkLastCard();
-  }, 100);
+
+  // Повторяем после небольшой задержки и после загрузки шрифтов (когда карточки уже отрендерены)
+  setTimeout(refresh, 100);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(refresh).catch(() => {});
+  }
 }
 
 async function displayReviews() {
