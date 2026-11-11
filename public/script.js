@@ -1593,7 +1593,10 @@ function initCalculator() {
         currentBtn.textContent = opt.textContent;
         list.querySelectorAll('.calc-select-option').forEach((el) => el.classList.remove('is-active'));
         li.classList.add('is-active');
-        updatePreview();
+        // Через событие change обновляется всё сразу: карточка техники, список смен/суток и сумма.
+        // Раньше здесь менялась только карточка, а сумма под формой оставалась от прошлой машины,
+        // пока посетитель не трогал количество смен.
+        selectEl.dispatchEvent(new Event('change'));
         customSelect.classList.remove('open');
         if (equipmentField) equipmentField.classList.remove('is-open');
       });
