@@ -635,7 +635,7 @@ function showServiceModal(id = null) {
             <div class="form-group">
                     <label for="serviceUrl">URL страницы</label>
                     <input type="text" id="serviceUrl" name="url" placeholder="/avtopark/avtovyshka-13m.html">
-                    <small class="form-hint">Если не указан, будет сгенерирован автоматически из названия</small>
+                    <small class="form-hint">Если не указан, будет сгенерирован автоматически из названия. Без необходимости не меняйте: при смене адреса старая страница убирается, а старые ссылки автоматически ведут на новую.</small>
             </div>
             <div class="form-group">
                     <label for="serviceOrder">Порядок отображения</label>
@@ -1120,6 +1120,9 @@ async function loadServiceData(id) {
         });
         const services = await response.json();
         const service = services.find(s => s.id === id);
+        // Отметка версии записи: сервер сверит её при сохранении и не даст затереть более свежие правки
+        const openedForm = document.getElementById('serviceForm');
+        if (openedForm) openedForm.dataset.updatedAt = (service && service.updated_at) || '';
 
         if (service) {
             document.getElementById('serviceTitle').value = service.title;
@@ -1684,6 +1687,14 @@ window.saveService = async function(event, id) {
     const url = id ? `${API_URL}/api/admin/services/${id}` : `${API_URL}/api/admin/services`;
     const method = id ? 'PUT' : 'POST';
 
+    // Версия записи, с которой открывали форму (см. заполнение формы): если технику с тех пор изменили,
+    // сервер откажет и попросит обновить страницу, а не затрёт чужие правки.
+    if (id && form.dataset.updatedAt) data.expected_updated_at = form.dataset.updatedAt;
+
+    // Защита от двойной отправки: второй запрос пришёл бы уже с устаревшей отметкой версии
+    if (window._serviceSaveInProgress) return;
+    window._serviceSaveInProgress = true;
+
     try {
         const response = await fetch(url, {
             method: method,
@@ -1714,6 +1725,8 @@ window.saveService = async function(event, id) {
             submitBtn.disabled = false;
             submitBtn.textContent = originalBtnText;
         }
+    } finally {
+        window._serviceSaveInProgress = false;
     }
 }
 
@@ -1776,7 +1789,7 @@ async function restoreService(id) {
 }
 
 async function deleteService(id) {
-    if (!confirm('ВНИМАНИЕ! Услуга будет удалена НАВСЕГДА вместе с файлами. Это действие нельзя отменить. Продолжить?')) return;
+    if (!confirm('ВНИМАНИЕ! Техника будет удалена с сайта и из админки. Вернуть её отсюда будет нельзя: копия данных и фото сохраняется только в резервной папке на сервере. Продолжить?')) return;
 
     try {
         const response = await fetch(`${API_URL}/api/admin/services/${id}`, {

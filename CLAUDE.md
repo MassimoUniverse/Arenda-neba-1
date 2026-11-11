@@ -21,10 +21,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Cache busting: `addCacheBuster(url, updated_at)` appends `?v=<unix_ms>` derived from the `updated_at` SQLite datetime string.
 - Related helpers in **`script.js`**: `collectAdminImagePaths()`, `collectAdminImagePathsOrdered()`, `getImageForService()`, `addCacheBuster()`.
 
+### Admin panel: saving, archiving and deleting equipment (2026-11)
+
+- **Save** (`PUT /api/admin/services/:id` → `updateService`): reads the current row first. `active` is kept when the form does not send it (an archived machine stays archived). The form sends `expected_updated_at`; if the row changed since the form was opened the server answers **409** instead of overwriting.
+- **Page address** (`normalizeServiceUrl`): always `/avtopark/<latin-slug>.html`; an empty field keeps the old address; another machine's address is refused (400). On change the old page file moves to `backups/deleted/…` and a 301 is stored in the **`page_redirects`** table (applied in the `/avtopark/*` middleware).
+- **Visibility**: `/avtopark/<page>.html` is served only while an **active** service with that URL exists — archived or deleted machines answer 404 even if the file is still on disk.
+- **Delete**: nothing is erased. The row (`service.json`), the page and the photos move to `backups/deleted/<date>-service-<id>/`; photos used by another machine stay in `uploads/`.
+- **Derived columns** (`height_lift`, `max_reach`, `max_capacity`, `width`, …) are computed on the server from `custom_specs` by **`lib/spec-fields.js`** — do not rely on the values the browser sends. The homepage calculator reads them.
+- Any successful non-GET `/api/admin/*` request resets the 60 s SSR cache (`seoDataCache`).
+- **Homepage calculator** (`loadCalculatorEquipmentFromAPI` in `script.js`): keys are the height (`21`), `self`, `30offroad`, `loader`; a clash gets `-<id>` appended, a machine with no height gets `id<id>`. Only machines from the API are listed.
+
 ### Database fields worth knowing
 
 - **`services`**: includes `short_description`, `is_popular`, `popular_order`, `card_bullets`, `image_url`, `images` (JSON), `custom_specs`, `updated_at`, etc.
-- **`content`**, **`advantages`**, **`reviews`**, **`requests`**, **`admins`**, **`homepage`**.
+- **`content`**, **`advantages`**, **`reviews`**, **`requests`**, **`admins`**, **`homepage`**, **`page_redirects`** (old page address → new).
 
 ---
 
@@ -45,6 +55,7 @@ node reset-admin.js                           # Reset admin user
 node scripts/update-prices-2026.js
 node scripts/apply-equipment-specs-preset.js
 node scripts/rename-uploads-to-ascii.js       # Rename Cyrillic upload filenames to ASCII (+ updates DB)
+node scripts/repair-legacy-spec-fields.js     # Recompute derived spec columns from custom_specs (dry run; --apply to write)
 ```
 
 Local URL: **http://localhost:3000** · Admin: **`/admin.html`**
@@ -72,6 +83,8 @@ ADMIN_PASSWORD=admin123   # change in production
 server.js                    # Monolithic Express (~2850 lines): routes, DB, uploads, HTML generation
 ecosystem.config.js          # PM2 config (app name: arenda-neba, cwd: /opt/arenda-neba, port: 3000)
 lib/slugify-filename.js      # ASCII-safe upload filenames
+lib/seo-blocks.js            # Server-rendered homepage/equipment blocks
+lib/spec-fields.js           # Derived spec columns from custom_specs
 
 public/
   index.html, script.js, styles.css           # Landing + «Популярная техника» slider

@@ -13,6 +13,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const { slugifyAsciiFilename } = require('./lib/slugify-filename.js');
 const seoBlocks = require('./lib/seo-blocks.js');
+const { LEGACY_SPEC_FIELDS, deriveLegacySpecFields } = require('./lib/spec-fields.js');
 const crypto = require('crypto');
 
 const app = express();
@@ -1149,6 +1150,10 @@ app.get(['/avtopark', '/avtopark/*'], (req, res, next) => {
   target = AVTOPARK_RETIRED[target] || target;
   if (target.startsWith('/')) return res.redirect(301, target.replace('#', query + '#'));
 
+  // Адрес страницы поменяли в админке — со старого адреса ведём на новый (см. addPageRedirect)
+  const moved = pageRedirects[`/avtopark/${target}.html`];
+  if (moved) return res.redirect(301, moved + query);
+
   const canonical = `${target}.html`;
   if (canonical === rest) return next(); // уже правильный адрес — отдаёт маршрут ниже
   if (fs.existsSync(path.join(__dirname, 'public', 'avtopark', canonical))) {
@@ -1223,12 +1228,17 @@ app.get('/avtopark/:filename(*)', (req, res) => {
     const currentUrl = '/avtopark/' + filename;
     Promise.all([fs.promises.readFile(filePath, 'utf8'), loadSeoData()])
       .then(([html, data]) => {
+        // Страница показывается, только пока техника есть в базе и не в архиве: файл удалённой
+        // или архивной машины мог остаться на диске, а посетителю его показывать нельзя.
+        // (адрес в базе сверяем и «как есть», и в едином виде — на случай старого формата /equipment/…)
+        const current = data.services.find((s) => s.url === currentUrl || normalizeServiceUrl(s.url) === currentUrl);
+        if (!current) return sendNotFoundPage(req, res);
         const block = seoBlocks.renderOtherEquipment(data.services, currentUrl);
         let out = html.includes('<!--SSR:other-equipment-->')
           ? html.replace('<!--SSR:other-equipment-->', () => block)
           : html.replace('<!-- Payment Methods -->', () => block + '\n    <!-- Payment Methods -->');
         // «Что важно знать перед арендой» — перед вопросами-ответами (или перед «Другой техникой»)
-        const details = seoBlocks.renderEquipmentDetails(data.services.find((s) => s.url === currentUrl), data.services);
+        const details = seoBlocks.renderEquipmentDetails(current, data.services);
         if (details) {
           out = out.includes('<!-- Вопросы-ответы -->')
             ? out.replace('<!-- Вопросы-ответы -->', () => details + '\n\n    <!-- Вопросы-ответы -->')
@@ -2450,6 +2460,17 @@ setInterval(() => {
   for (const [key, rec] of loginFailures) if (now - rec.first > LOGIN_WINDOW_MS) loginFailures.delete(key);
 }, 10 * 60 * 1000).unref();
 
+// Любая успешная правка из админки сбрасывает минутный кэш серверной отрисовки (главная, страницы
+// техники, проверка «техника не в архиве») — изменения видны сразу, а не через минуту.
+app.use('/api/admin', (req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.on('finish', () => {
+      if (res.statusCode < 400) seoDataCache = { at: 0, promise: null };
+    });
+  }
+  next();
+});
+
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   
@@ -2708,12 +2729,177 @@ app.get('/api/admin/services', authenticateToken, (req, res) => {
   });
 });
 
+// ===== Защита правок через админку =====
+
+// Адрес страницы техники в едином виде: /avtopark/<имя>.html. В имени остаются только латиница, цифры
+// и дефис: кириллица транслитерируется, остальное (включая «../») отбрасывается. Пустой адрес — из названия.
+function normalizeServiceUrl(rawUrl, title) {
+  let name = String(rawUrl || '').trim()
+    .replace(/^https?:\/\/[^/]+/i, '')
+    .replace(/[?#].*$/, '')
+    .replace(/^\/+/, '')
+    .replace(/^(avtopark|equipment)\//i, '')
+    .replace(/\.html?$/i, '');
+  if (!name) name = String(title || '').trim();
+  if (!name) return '';
+  return '/avtopark/' + generateUrlFromTitle(name);
+}
+
+function urlTakenMessage(url, title) {
+  return `Адрес страницы ${url} уже занят техникой «${title}». Укажите другой адрес в поле «URL страницы».`;
+}
+
+// Служебные поля (высота, вылет, грузоподъёмность…) считаем из списка характеристик: см. lib/spec-fields.js.
+// Если характеристик нет (старые записи) — берём то, что прислала форма.
+function legacySpecFields(body) {
+  let specs = body.custom_specs;
+  if (typeof specs === 'string') {
+    try { specs = JSON.parse(specs); } catch (e) { specs = []; }
+  }
+  if (Array.isArray(specs) && specs.length) return deriveLegacySpecFields(specs);
+  const fromForm = {};
+  LEGACY_SPEC_FIELDS.forEach((field) => { fromForm[field] = body[field] || ''; });
+  return fromForm;
+}
+
+// --- Переадресации при смене адреса страницы ---
+// «URL страницы» можно поменять в админке. Раньше старая страница оставалась рядом с новой (дубль),
+// а старые ссылки никуда не вели. Теперь старый файл убирается, а со старого адреса идёт переадресация 301
+// (её применяет обработчик /avtopark/* выше).
+let pageRedirects = {};
+
+function loadPageRedirects() {
+  db.all('SELECT old_url, new_url FROM page_redirects', [], (err, rows) => {
+    if (err) return console.error('⚠️ Не удалось прочитать переадресации страниц:', err.message);
+    const map = {};
+    (rows || []).forEach((row) => { if (row.old_url !== row.new_url) map[row.old_url] = row.new_url; });
+    pageRedirects = map;
+  });
+}
+
+db.run(`CREATE TABLE IF NOT EXISTS page_redirects (
+  old_url TEXT PRIMARY KEY,
+  new_url TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)`, (err) => {
+  if (err) console.error('⚠️ Не удалось создать таблицу переадресаций:', err.message);
+  else loadPageRedirects();
+});
+
+function addPageRedirect(oldUrl, newUrl) {
+  if (!oldUrl || !newUrl || oldUrl === newUrl) return;
+  // В памяти — сразу, чтобы уже следующий запрос шёл по новой карте.
+  // Цепочки не копим: всё, что вело на старый адрес, сразу ведём на новый.
+  const map = {};
+  Object.entries(pageRedirects).forEach(([from, to]) => {
+    if (from === newUrl) return; // по новому адресу теперь живая страница
+    const target = to === oldUrl ? newUrl : to;
+    if (from !== target) map[from] = target;
+  });
+  map[oldUrl] = newUrl;
+  pageRedirects = map;
+  // В базе — то же самое
+  db.serialize(() => {
+    db.run('UPDATE page_redirects SET new_url = ? WHERE new_url = ?', [newUrl, oldUrl]);
+    db.run('DELETE FROM page_redirects WHERE old_url = ? OR old_url = new_url', [newUrl]);
+    db.run('INSERT OR REPLACE INTO page_redirects (old_url, new_url) VALUES (?, ?)', [oldUrl, newUrl], (err) => {
+      if (err) console.error('⚠️ Не удалось сохранить переадресацию:', err.message);
+    });
+  });
+}
+
+// По этому адресу снова живая страница — переадресация с него больше не нужна
+function forgetPageRedirect(url) {
+  if (!url || !pageRedirects[url]) return;
+  const map = { ...pageRedirects };
+  delete map[url];
+  pageRedirects = map;
+  db.run('DELETE FROM page_redirects WHERE old_url = ?', [url], (err) => {
+    if (err) console.error('⚠️ Не удалось убрать переадресацию:', err.message);
+  });
+}
+
+// --- Резервная папка вместо удаления ---
+// Файлы удалённой техники и страницы со старым адресом не стираются, а переносятся в
+// backups/deleted/<дата>-<причина>-<id>. Папка backups наружу не раздаётся.
+function trashDirFor(reason, serviceId) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  return path.join(__dirname, 'backups', 'deleted', `${stamp}-${reason}-${serviceId}`);
+}
+
+function moveToTrash(filePath, trashDir) {
+  try {
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return false;
+    fs.mkdirSync(trashDir, { recursive: true });
+    const dest = path.join(trashDir, path.basename(filePath));
+    try {
+      fs.renameSync(filePath, dest);
+    } catch (e) {
+      // другой диск — копируем и только после этого убираем оригинал
+      fs.copyFileSync(filePath, dest);
+      fs.unlinkSync(filePath);
+    }
+    return true;
+  } catch (error) {
+    console.error('❌ Не удалось перенести файл в резервную папку:', filePath, error.message);
+    return false;
+  }
+}
+
+// Убирает страницу техники с сайта: файл public/avtopark/<имя>.html уезжает в резервную папку
+function retireEquipmentPage(serviceUrl, trashDir) {
+  const normalized = normalizeServiceUrl(serviceUrl);
+  if (!normalized) return false;
+  return moveToTrash(path.join(__dirname, 'public', 'avtopark', path.basename(normalized)), trashDir);
+}
+
+// Имена файлов из папки uploads, на которые ссылается запись техники (главное фото, галерея, схемы)
+function uploadFilesOfService(service) {
+  const names = new Set();
+  const add = (fileUrl) => {
+    if (typeof fileUrl !== 'string') return;
+    const match = fileUrl.trim().replace(/^https?:\/\/[^/]+/i, '').replace(/[?#].*$/, '').match(/^\/?uploads\/([^/\\]+)$/);
+    if (!match) return;
+    let name = match[1];
+    try { name = decodeURIComponent(name); } catch (e) { /* оставляем как есть */ }
+    if (name && name !== '.' && name !== '..' && !/[/\\]/.test(name)) names.add(name);
+  };
+  const addList = (value) => {
+    let list = value;
+    if (typeof value === 'string') {
+      if (!value.trim()) return;
+      try { list = JSON.parse(value); } catch (e) { list = [value]; }
+    }
+    if (list && !Array.isArray(list)) list = [list];
+    (list || []).forEach((item) => add(typeof item === 'string' ? item : (item && item.url)));
+  };
+  add(service.image_url);
+  add(service.reach_diagram_url);
+  addList(service.images);
+  addList(service.reach_diagrams);
+  return names;
+}
+
 // Service CRUD (Protected)
 app.post('/api/admin/services', authenticateToken, (req, res) => {
+  if (!req.body.title || !req.body.price) {
+    return res.status(400).json({ error: 'Название и цена обязательны' });
+  }
+  // Адрес страницы не должен совпасть с адресом другой техники: иначе две машины делили бы одну страницу
+  const targetUrl = normalizeServiceUrl(req.body.url, req.body.title);
+  db.get('SELECT id, title FROM services WHERE url = ?', [targetUrl], (dupErr, other) => {
+    if (dupErr) return res.status(500).json({ error: dupErr.message });
+    if (other) return res.status(400).json({ error: urlTakenMessage(targetUrl, other.title) });
+    createService(req, res, targetUrl);
+  });
+});
+
+function createService(req, res, targetUrl) {
   console.log('📥 POST /api/admin/services - Creating new service');
   const { title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
           is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text } = req.body;
+  const legacy = legacySpecFields(req.body); // см. lib/spec-fields.js
 
   console.log('📋 Service data received:', {
     title,
@@ -2751,15 +2937,8 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
     reachDiagramsJson = JSON.stringify([{ url: reach_diagram_url, title: 'Схема вылета стрелы' }]);
   }
 
-  // Генерируем URL если его нет
-  let finalUrl = url;
-  if (!finalUrl || finalUrl.trim() === '') {
-    finalUrl = generateUrlFromTitle(title);
-    // Добавляем префикс /avtopark/ если его нет
-    if (!finalUrl.startsWith('/avtopark/')) {
-      finalUrl = '/avtopark/' + finalUrl;
-    }
-  }
+  // Адрес уже проверен и приведён к виду /avtopark/<имя>.html (см. normalizeServiceUrl)
+  let finalUrl = targetUrl;
   
   // Создаем объект услуги для генерации страницы
   let reachDiagramsArray = [];
@@ -2798,15 +2977,15 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
     reach_diagram_url: fixedReachDiagramUrl,
     reach_diagrams: reachDiagramsArray,
     images: imagesArray,
-    height_lift: height_lift || '',
-    max_reach: max_reach || '',
-    max_capacity: max_capacity || '',
-    lift_type: lift_type || '',
-    transport_length: transport_length || '',
-    transport_height: transport_height || '',
-    width: width || '',
-    boom_rotation_angle: boom_rotation_angle || '',
-    basket_rotation_angle: basket_rotation_angle || '',
+    height_lift: legacy.height_lift,
+    max_reach: legacy.max_reach,
+    max_capacity: legacy.max_capacity,
+    lift_type: legacy.lift_type,
+    transport_length: legacy.transport_length,
+    transport_height: legacy.transport_height,
+    width: legacy.width,
+    boom_rotation_angle: legacy.boom_rotation_angle,
+    basket_rotation_angle: legacy.basket_rotation_angle,
     delivery_per_km: delivery_per_km || 85,
     custom_specs: custom_specs || []
   };
@@ -2832,7 +3011,7 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
   console.log('💾 Saving service to database with URL:', finalUrl);
   db.run(
     'INSERT INTO services (title, description, short_description, price, specifications, image_url, order_num, url, reach_diagram_url, reach_diagrams, images, height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km, is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', seo_text || ''],
+    [title, description, short_description || '', price, specifications || '', fixedImageUrl, order_num || 0, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, legacy.height_lift, legacy.max_reach, legacy.max_capacity, legacy.lift_type, legacy.transport_length, legacy.transport_height, legacy.width, legacy.boom_rotation_angle, legacy.basket_rotation_angle, delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', seo_text || ''],
     function(err) {
       if (err) {
         console.error('❌ Database error:', err);
@@ -2840,10 +3019,11 @@ app.post('/api/admin/services', authenticateToken, (req, res) => {
         return;
       }
       console.log('✅ Service saved to database with ID:', this.lastID);
+      forgetPageRedirect(finalUrl);
       res.json({ success: true, id: this.lastID });
     }
   );
-});
+}
 
 app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   // Быстрое обновление только active (архивация/восстановление)
@@ -2858,9 +3038,34 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     return;
   }
 
+  // Текущая запись нужна, чтобы не терять то, чего нет в форме (архивность, адрес), и чтобы заметить,
+  // что технику успели изменить, пока форма была открыта.
+  db.get('SELECT id, url, active, updated_at FROM services WHERE id = ?', [req.params.id], (preErr, existing) => {
+    if (preErr) return res.status(500).json({ error: preErr.message });
+    if (!existing) return res.status(404).json({ error: 'Техника не найдена — возможно, её удалили. Обновите страницу админки.' });
+
+    // Форма присылает отметку времени, с которой её открыли. Если запись с тех пор меняли
+    // (другая вкладка, другой человек, правка напрямую в базе) — не затираем более свежие данные.
+    const expected = req.body.expected_updated_at;
+    if (expected && existing.updated_at && String(expected) !== String(existing.updated_at)) {
+      return res.status(409).json({ error: 'Эту технику изменили после того, как вы открыли форму. Чтобы не затереть более свежие правки, закройте форму, откройте технику заново и внесите изменения ещё раз.' });
+    }
+
+    // Адрес: пустое поле — оставляем прежний адрес; чужой адрес занять нельзя
+    const targetUrl = normalizeServiceUrl(req.body.url || existing.url, req.body.title);
+    db.get('SELECT id, title FROM services WHERE url = ? AND id != ?', [targetUrl, req.params.id], (dupErr, other) => {
+      if (dupErr) return res.status(500).json({ error: dupErr.message });
+      if (other) return res.status(400).json({ error: urlTakenMessage(targetUrl, other.title) });
+      updateService(req, res, existing, targetUrl);
+    });
+  });
+});
+
+function updateService(req, res, existing, targetUrl) {
   const { title, description, short_description, price, specifications, image_url, order_num, active, url, reach_diagram_url, reach_diagrams, images,
           height_lift, max_reach, max_capacity, lift_type, transport_length, transport_height, width, boom_rotation_angle, basket_rotation_angle, delivery_per_km,
           is_popular, popular_order, card_bullets, custom_specs, price_type, delivery_type, seo_text } = req.body;
+  const legacy = legacySpecFields(req.body); // см. lib/spec-fields.js
 
   // Debug logging
   console.log('PUT /api/admin/services/:id - reach_diagrams received:', reach_diagrams);
@@ -2890,15 +3095,8 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     console.log('⚠️ No reach_diagrams data to save');
   }
 
-  // Генерируем URL если его нет
-  let finalUrl = url;
-  if (!finalUrl || finalUrl.trim() === '') {
-    finalUrl = generateUrlFromTitle(title);
-    // Добавляем префикс /avtopark/ если его нет
-    if (!finalUrl.startsWith('/avtopark/')) {
-      finalUrl = '/avtopark/' + finalUrl;
-    }
-  }
+  // Адрес уже проверен и приведён к виду /avtopark/<имя>.html (см. normalizeServiceUrl)
+  let finalUrl = targetUrl;
   
   // Создаем объект услуги для генерации страницы
   let reachDiagramsArray = [];
@@ -2937,15 +3135,15 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
     reach_diagram_url: fixedReachDiagramUrl,
     reach_diagrams: reachDiagramsArray,
     images: imagesArray,
-    height_lift: height_lift || '',
-    max_reach: max_reach || '',
-    max_capacity: max_capacity || '',
-    lift_type: lift_type || '',
-    transport_length: transport_length || '',
-    transport_height: transport_height || '',
-    width: width || '',
-    boom_rotation_angle: boom_rotation_angle || '',
-    basket_rotation_angle: basket_rotation_angle || '',
+    height_lift: legacy.height_lift,
+    max_reach: legacy.max_reach,
+    max_capacity: legacy.max_capacity,
+    lift_type: legacy.lift_type,
+    transport_length: legacy.transport_length,
+    transport_height: legacy.transport_height,
+    width: legacy.width,
+    boom_rotation_angle: legacy.boom_rotation_angle,
+    basket_rotation_angle: legacy.basket_rotation_angle,
     delivery_per_km: delivery_per_km || 85,
     custom_specs: custom_specs || [],
     price_type: price_type || 'shift',
@@ -2988,7 +3186,7 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
   db.run(
     // seo_text: COALESCE — старая закэшированная админка поле не присылает, текст не должен стереться
     'UPDATE services SET title = ?, description = ?, short_description = ?, price = ?, specifications = ?, image_url = ?, order_num = ?, active = ?, url = ?, reach_diagram_url = ?, reach_diagrams = ?, images = ?, height_lift = ?, max_reach = ?, max_capacity = ?, lift_type = ?, transport_length = ?, transport_height = ?, width = ?, boom_rotation_angle = ?, basket_rotation_angle = ?, delivery_per_km = ?, is_popular = ?, popular_order = ?, card_bullets = ?, custom_specs = ?, price_type = ?, delivery_type = ?, seo_text = COALESCE(?, seo_text), updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : 1, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, height_lift || '', max_reach || '', max_capacity || '', lift_type || '', transport_length || '', transport_height || '', width || '', boom_rotation_angle || '', basket_rotation_angle || '', delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', typeof seo_text === 'string' ? seo_text : null, req.params.id],
+    [title, description, short_description || '', price, specifications, fixedImageUrl, order_num, active !== undefined ? active : existing.active, finalUrl, fixedReachDiagramUrl, fixedReachDiagramsJson, fixedImagesJson, legacy.height_lift, legacy.max_reach, legacy.max_capacity, legacy.lift_type, legacy.transport_length, legacy.transport_height, legacy.width, legacy.boom_rotation_angle, legacy.basket_rotation_angle, delivery_per_km || 85, is_popular || 0, popular_order || 0, cardBulletsJson, typeof custom_specs === 'string' ? custom_specs : JSON.stringify(custom_specs || []), price_type || 'shift', delivery_type || 'per_km', typeof seo_text === 'string' ? seo_text : null, req.params.id],
     function(err) {
       if (err) {
         console.error('❌ Ошибка при обновлении услуги:', err);
@@ -3005,137 +3203,71 @@ app.put('/api/admin/services/:id', authenticateToken, (req, res) => {
         }
       });
       
+      // Адрес страницы изменился: старую страницу убираем в резервную папку, со старого адреса — переадресация
+      const previousUrl = normalizeServiceUrl(existing.url);
+      if (previousUrl && previousUrl !== finalUrl) {
+        retireEquipmentPage(previousUrl, trashDirFor('old-address', req.params.id));
+        addPageRedirect(previousUrl, finalUrl);
+      } else {
+        forgetPageRedirect(finalUrl);
+      }
+
       res.json({ success: true, changes: this.changes });
     }
   );
-});
-
-// Function to delete equipment page file
-function deleteEquipmentPage(serviceUrl) {
-  try {
-    if (!serviceUrl || serviceUrl.trim() === '') {
-      console.log('⚠️ No URL provided, skipping file deletion');
-      return;
-    }
-    
-    // Убираем начальный слэш и /avtopark/ или /equipment/ если есть
-    let filename = serviceUrl.replace(/^\/+/, '').replace(/^(avtopark|equipment)\//, '');
-    if (!filename.endsWith('.html')) {
-      filename += '.html';
-    }
-    
-    const equipmentDir = path.join(__dirname, 'public', 'equipment');
-    const filePath = path.join(equipmentDir, filename);
-    
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log(`✅ Deleted equipment page: ${filename}`);
-    } else {
-      console.log(`⚠️ Equipment page not found: ${filename}`);
-    }
-  } catch (error) {
-    console.error(`❌ Error deleting equipment page:`, error.message);
-  }
 }
 
-// Function to delete uploaded files
-function deleteUploadedFiles(fileUrls) {
-  if (!fileUrls) return;
-  
-  let filesToDelete = [];
-  
-  // Если это массив
-  if (Array.isArray(fileUrls)) {
-    filesToDelete = fileUrls.map(item => typeof item === 'string' ? item : (item.url || item));
-  }
-  // Если это строка
-  else if (typeof fileUrls === 'string' && fileUrls.trim()) {
-    // Пытаемся распарсить как JSON
-    try {
-      const parsed = JSON.parse(fileUrls);
-      if (Array.isArray(parsed)) {
-        filesToDelete = parsed.map(item => typeof item === 'string' ? item : (item.url || item));
-      } else if (parsed && typeof parsed === 'object') {
-        // Если это объект с url
-        if (parsed.url) {
-          filesToDelete.push(parsed.url);
-        }
-      }
-    } catch (e) {
-      // Не JSON, считаем это обычной строкой с URL файла
-      filesToDelete.push(fileUrls);
-    }
-  }
-  
-  filesToDelete.forEach(fileUrl => {
-    try {
-      if (!fileUrl || typeof fileUrl !== 'string') return;
-      
-      // Извлекаем имя файла из URL
-      // URL может быть вида: /uploads/filename.jpg или uploads/filename.jpg
-      let filename = fileUrl.replace(/^\/+/, '').replace(/^uploads\//, '');
-      
-      if (filename) {
-        const filePath = path.join(__dirname, 'uploads', filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log(`✅ Deleted uploaded file: ${filename}`);
-        } else {
-          console.log(`⚠️ File not found: ${filename}`);
-        }
-      }
-    } catch (error) {
-      console.error(`❌ Error deleting file ${fileUrl}:`, error.message);
-    }
-  });
-}
-
+// Удаление техники. Раньше страница искалась в старой папке public/equipment и оставалась на сайте,
+// а фото стирались безвозвратно — даже если тем же фото пользовалась другая машина. Теперь запись,
+// страница и фото переносятся в backups/deleted/… (см. trashDirFor), а общие фото остаются на месте.
 app.delete('/api/admin/services/:id', authenticateToken, (req, res) => {
   const serviceId = req.params.id;
-  
-  // Сначала получаем информацию об услуге перед удалением
-  db.get('SELECT url, image_url, images, reach_diagrams, reach_diagram_url FROM services WHERE id = ?', [serviceId], (err, service) => {
+
+  db.get('SELECT * FROM services WHERE id = ?', [serviceId], (err, service) => {
     if (err) {
       console.error('❌ Error fetching service for deletion:', err);
       return res.status(500).json({ error: err.message });
     }
-    
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
-    
-    // Удаляем HTML-файл страницы техники
-    if (service.url) {
-      deleteEquipmentPage(service.url);
-    }
-    
-    // Удаляем загруженные изображения
-    if (service.image_url) {
-      deleteUploadedFiles(service.image_url);
-    }
-    
-    if (service.images) {
-      deleteUploadedFiles(service.images);
-    }
-    
-    // Удаляем схемы вылета стрелы
-    if (service.reach_diagram_url) {
-      deleteUploadedFiles(service.reach_diagram_url);
-    }
-    
-    if (service.reach_diagrams) {
-      deleteUploadedFiles(service.reach_diagrams);
-    }
-    
-    // Теперь удаляем запись из базы данных
-    db.run('DELETE FROM services WHERE id = ?', [serviceId], function(deleteErr) {
-      if (deleteErr) {
-        console.error('❌ Error deleting service from database:', deleteErr);
-        return res.status(500).json({ error: deleteErr.message });
+
+    db.all('SELECT image_url, images, reach_diagram_url, reach_diagrams FROM services WHERE id != ?', [serviceId], (othersErr, others) => {
+      if (othersErr) {
+        return res.status(500).json({ error: othersErr.message });
       }
-      
-      console.log(`✅ Service ${serviceId} deleted successfully`);
-      res.json({ success: true, changes: this.changes });
+
+      // 1. Сначала сохраняем саму запись: без копии удаление не продолжаем
+      const trashDir = trashDirFor('service', serviceId);
+      try {
+        fs.mkdirSync(trashDir, { recursive: true });
+        fs.writeFileSync(path.join(trashDir, 'service.json'), JSON.stringify(service, null, 2), 'utf8');
+      } catch (backupErr) {
+        console.error('❌ Не удалось сохранить копию техники перед удалением:', backupErr.message);
+        return res.status(500).json({ error: 'Не удалось сохранить резервную копию техники, удаление отменено: ' + backupErr.message });
+      }
+
+      // 2. Удаляем запись из базы
+      db.run('DELETE FROM services WHERE id = ?', [serviceId], function(deleteErr) {
+        if (deleteErr) {
+          console.error('❌ Error deleting service from database:', deleteErr);
+          return res.status(500).json({ error: deleteErr.message });
+        }
+
+        // 3. Страница и фото — в резервную папку. Фото, которыми пользуется другая техника, не трогаем
+        const pageMoved = retireEquipmentPage(service.url, trashDir);
+        const usedElsewhere = new Set();
+        (others || []).forEach((other) => uploadFilesOfService(other).forEach((name) => usedElsewhere.add(name)));
+        let moved = 0;
+        let kept = 0;
+        uploadFilesOfService(service).forEach((name) => {
+          if (usedElsewhere.has(name)) { kept += 1; return; }
+          if (moveToTrash(path.join(__dirname, 'uploads', name), path.join(trashDir, 'uploads'))) moved += 1;
+        });
+
+        console.log(`✅ Service ${serviceId} deleted: страница ${pageMoved ? 'убрана' : 'не найдена'}, файлов перенесено ${moved}, оставлено (нужны другой технике) ${kept}. Копия: ${trashDir}`);
+        res.json({ success: true, changes: this.changes });
+      });
     });
   });
 });

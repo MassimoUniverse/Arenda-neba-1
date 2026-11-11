@@ -740,6 +740,18 @@ function syncMainCalcHalfShiftOption() {
   });
 }
 
+// Число из характеристики без округления до целого: «21.38 м» → 21.38, «13,5 м» → 13.5, «4 000 кг» → 4000
+function numberFromSpec(value) {
+  const m = String(value || '').replace(/\s+/g, '').replace(',', '.').match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+// Число для показа: 17.6 → «17,6», 4000 → «4 000»
+function formatSpecNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) : String(value);
+}
+
 // Загрузка данных для калькулятора из API
 async function loadCalculatorEquipmentFromAPI() {
   try {
@@ -772,6 +784,7 @@ async function loadCalculatorEquipmentFromAPI() {
       if (isSamohodnaya) {
         // Самоходная вышка - всегда используем ключ 'self'
         key = 'self';
+        height = numberFromSpec(service.height_lift); // настоящая высота из характеристик, а не условные 12 м
       } else if (isVezdehod) {
         // Вездеход - всегда используем ключ '30offroad', даже если есть высота в названии
         key = '30offroad';
@@ -787,31 +800,19 @@ async function loadCalculatorEquipmentFromAPI() {
       } else if (isPogruzchik) {
         // Телескопический погрузчик - используем специальный ключ для сортировки в конец
         key = 'loader';
-        // Извлекаем высоту для отображения, если есть
-        height = extractHeightFromTitle(service.title);
-        if (!height && service.height_lift) {
-          const heightMatch = service.height_lift.match(/(\d+(?:\.\d+)?)/);
-          if (heightMatch) {
-            height = Math.round(parseFloat(heightMatch[1]));
-          }
-        }
+        // Высота для показа: из названия, иначе из характеристик (без округления: 17,6 м)
+        height = extractHeightFromTitle(service.title) || numberFromSpec(service.height_lift);
       } else {
-        // Обычная автовышка - извлекаем высоту и используем как ключ
-        height = extractHeightFromTitle(service.title);
-        if (!height && service.height_lift) {
-          const heightMatch = service.height_lift.match(/(\d+(?:\.\d+)?)/);
-          if (heightMatch) {
-            height = Math.round(parseFloat(heightMatch[1]));
-          }
-        }
-        
-        if (!height) {
-          // Пропускаем услуги без высоты и без специального типа
-          return;
-        }
-        
-        key = height.toString();
+        // Обычная автовышка: высота из названия, иначе из характеристик (без округления — покажем «17,6 м»)
+        height = extractHeightFromTitle(service.title) || numberFromSpec(service.height_lift);
+
+        // Ключ — высота в метрах; техника без высоты раньше в калькулятор не попадала вовсе
+        key = height ? String(Math.round(height)) : 'id' + service.id;
       }
+
+      // Ключ должен быть уникальным: две машины одной высоты (или два вездехода) затирали друг друга,
+      // и в калькуляторе оставалась только одна из них
+      if (dynamicEquipment[key]) key = key + '-' + service.id;
       
       // Получаем изображение (функция getImageForService уже обрабатывает image_url и images)
       const image = getImageForService(service);
@@ -825,19 +826,12 @@ async function loadCalculatorEquipmentFromAPI() {
       let boom = specs.boom;
       
       // Используем данные из новых полей если они есть
-      if (service.max_capacity) {
-        const capacityMatch = service.max_capacity.match(/(\d+)/);
-        if (capacityMatch) {
-          capacity = parseInt(capacityMatch[1]);
-        }
-      }
-      
-      if (service.max_reach) {
-        const reachMatch = service.max_reach.match(/(\d+(?:\.\d+)?)/);
-        if (reachMatch) {
-          boom = Math.round(parseFloat(reachMatch[1]));
-        }
-      }
+      // «4 000 кг» раньше читалось как 4 кг (до первого пробела), «13,5 м» — как 13 м
+      const capacityFromSpec = numberFromSpec(service.max_capacity);
+      if (capacityFromSpec) capacity = capacityFromSpec;
+
+      const reachFromSpec = numberFromSpec(service.max_reach);
+      if (reachFromSpec) boom = reachFromSpec;
       
       // Если вылет не найден, используем формулу
       if (!boom && height) {
@@ -879,12 +873,11 @@ async function loadCalculatorEquipmentFromAPI() {
       };
     });
     
-    // Объединяем данные: сначала статические (fallback), потом динамические (приоритет)
-    // Это гарантирует, что данные из базы перезапишут статические данные
-    CALC_EQUIPMENT = {
-      ...STATIC_CALC_EQUIPMENT,
-      ...dynamicEquipment
-    };
+    // Если база ответила, показываем только то, что в ней есть. Раньше запасной список подмешивался всегда,
+    // и вездеход или подъёмник, убранные в архив, оставались в калькуляторе со старой ценой.
+    CALC_EQUIPMENT = Object.keys(dynamicEquipment).length
+      ? dynamicEquipment
+      : { ...STATIC_CALC_EQUIPMENT };
     
     // Заполняем select опциями
     populateCalculatorSelect();
@@ -1523,9 +1516,9 @@ function initCalculator() {
       if (specsList) {
         specsList.innerHTML = '';
         const items = [];
-        if (config.height) items.push({ icon: '📏', text: `Рабочая высота: ${config.height} м` });
-        if (config.capacity) items.push({ icon: '⚖️', text: `Грузоподъёмность: ${config.capacity} кг` });
-        if (config.boom) items.push({ icon: '🏗️', text: `Вылет стрелы: до ${config.boom} м` });
+        if (config.height) items.push({ icon: '📏', text: `Рабочая высота: ${formatSpecNumber(config.height)} м` });
+        if (config.capacity) items.push({ icon: '⚖️', text: `Грузоподъёмность: ${formatSpecNumber(config.capacity)} кг` });
+        if (config.boom) items.push({ icon: '🏗️', text: `Вылет стрелы: до ${formatSpecNumber(config.boom)} м` });
         items.forEach(({ icon, text }) => {
           const li = document.createElement('li');
           li.innerHTML = `<span class="spec-icon">${icon}</span> ${text}`;
