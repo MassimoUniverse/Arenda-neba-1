@@ -213,6 +213,14 @@ function generateEquipmentPageHTML(service) {
   const price = service.price ? fixEncoding(service.price) : '';
   const imageUrl = service.image_url || '/images/avtovyshka-13m.webp';
   const url = service.url || '';
+  // Фото в галерее — уменьшенные копии через /img/<ширина>/… (оригиналы по 200–400 КБ открываются
+  // только в полноэкранном просмотре). Хелпер внутри функции: regen-pages-direct.js вычисляет только её.
+  const galleryImg = (width) => {
+    const m = String(imageUrl).match(/^\/?((?:images|uploads)\/[^?#]+\.(?:webp|jpe?g|png))$/i);
+    if (!m) return imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl);
+    const version = Date.parse(String(service.updated_at || '').replace(' ', 'T') + 'Z');
+    return `/img/${width}/${m[1]}` + (isNaN(version) ? '' : `?v=${version}`);
+  };
   
   // Парсим схемы вылета стрелы
   let reachDiagrams = [];
@@ -441,12 +449,6 @@ function generateEquipmentPageHTML(service) {
     <noscript><div><img src="https://mc.yandex.ru/watch/40444210" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <noscript><div><img src="https://mc.yandex.ru/watch/114086028" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
-    
-    <!-- calltouch -->
-    <script>
-    (function(w,d,n,c){w.CalltouchDataObject=n;w[n]=function(){w[n]["callbacks"].push(arguments)};if(!w[n]["callbacks"]){w[n]["callbacks"]=[]}w[n]["loaded"]=false;if(typeof c!=="object"){c=[c]}w[n]["counters"]=c;for(var i=0;i<c.length;i+=1){p(c[i])}function p(cId){var a=d.getElementsByTagName("script")[0],s=d.createElement("script"),i=function(){a.parentNode.insertBefore(s,a)},m=typeof Array.prototype.find === 'function',n=m?"init-min.js":"init.js";s.async=true;s.src="https://mod.calltouch.ru/"+n+"?id="+cId;if(w.opera=="[object Opera]"){d.addEventListener("DOMContentLoaded",i,false)}else{i()}}})(window,document,"ct","k2vlrfd9");
-    </script>
-    <!-- calltouch -->
 </head>
 <body class="equipment-page">
     <!-- Progress Bar -->
@@ -495,7 +497,7 @@ function generateEquipmentPageHTML(service) {
             <a href="/#calculator">Калькулятор</a>
             <a href="/#autopark">Наш автопарк</a>
             <a href="/#reviews">Отзывы</a>
-            <a href="/#quick-contact-form">Оставить заявку</a>
+            <a href="/#calculator">Оставить заявку</a>
             <a href="/#contacts">Контакты</a>
         </nav>
     </header>
@@ -526,10 +528,10 @@ function generateEquipmentPageHTML(service) {
                 <div class="equipment-left">
                     <div class="equipment-gallery">
                         <div class="main-image">
-                            <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="${title}" id="mainEquipmentImage" style="border-radius: 12px; overflow: hidden;">
+                            <img src="${galleryImg(1200)}" alt="${title}" id="mainEquipmentImage" fetchpriority="high" style="border-radius: 12px; overflow: hidden;">
                         </div>
                         <div class="gallery-thumbnails" id="galleryThumbnails">
-                            <img src="${imageUrl.startsWith('http') ? imageUrl : (imageUrl.startsWith('/') ? '..' + imageUrl : '../' + imageUrl)}" alt="Вид 1" class="active">
+                            <img src="${galleryImg(480)}" alt="Вид 1" class="active">
                         </div>
                     </div>
                 </div>
@@ -1211,7 +1213,7 @@ app.get('/avtopark/:filename(*)', (req, res) => {
       console.log(`   📋 Available files: ${files.join(', ')}`);
     }
     
-    return res.status(404).send(`Page not found: ${filename}`);
+    return sendNotFoundPage(req, res);
   }
   
     console.log(`✅ File found, serving: ${filename}`);
@@ -3483,6 +3485,18 @@ if (!fs.existsSync(publicEquipmentDir)) {
   fs.mkdirSync(publicEquipmentDir, { recursive: true });
   console.log('✅ Папка public/equipment создана');
 }
+
+// Страница «не найдено». Раньше посетитель видел голый текст «Cannot GET /…» без оформления и ссылок.
+// Страницам отдаём public/404.html (код ответа остаётся 404), для /api/* — JSON, для файлов — пустой ответ.
+function sendNotFoundPage(req, res) {
+  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+  const isPage = (req.method === 'GET' || req.method === 'HEAD') && !/\.(?!html?$)[a-z0-9]{2,5}$/i.test(req.path);
+  if (!isPage) return res.status(404).end();
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'), (err) => {
+    if (err && !res.headersSent) res.status(404).type('text/plain').send('Страница не найдена');
+  });
+}
+app.use(sendNotFoundPage);
 
 // Start server
 app.listen(PORT, () => {

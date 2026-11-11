@@ -1546,7 +1546,8 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 
 @media (max-width: 900px) {
   .equipment-content {
-    grid-template-columns: 1fr;
+    /* minmax(0, …): колонка не шире экрана, даже если содержимое не хочет сжиматься */
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .equipment-left {
@@ -2040,6 +2041,23 @@ body.equipment-page .site-header.scrolled .mobile-menu-btn span {
 .equipment-tab-icon {
   font-size: 18px;
   line-height: 1;
+}
+
+/* Узкие телефоны: две вкладки с длинными названиями не помещались в строку и растягивали
+   страницу шире экрана (на 360 px — на 32 px). Уменьшаем отступы и шрифт, название
+   переносится на вторую строку. */
+@media (max-width: 480px) {
+  .equipment-tab {
+    padding: 12px 8px;
+    font-size: 13px;
+    line-height: 1.25;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .equipment-tab-icon {
+    font-size: 16px;
+  }
 }
 
 .equipment-tab-content {

@@ -112,6 +112,23 @@ function fixEncoding(text) {
   }
 }
 
+// Уменьшенная копия фото через /img/<ширина>/… (server.js). Оригиналы весят по 200–400 КБ,
+// поэтому в галерее показываем копии, а оригинал открываем только в полноэкранном просмотре.
+function eqThumb(src, width) {
+  if (!src) return src;
+  const local = String(src)
+    .replace(/^https?:\/\/(?:www\.|origin\.)?avtovyshka-spb\.ru/i, '')
+    .replace(/^https?:\/\/localhost(?::\d+)?/i, '')
+    .replace(/^\.\.\//, '/');
+  const m = local.match(/^\/?((?:images|uploads)\/[^?#]+\.(?:webp|jpe?g|png))(\?[^#]*)?$/i);
+  return m ? `/img/${width}/${m[1]}${m[2] || ''}` : src;
+}
+
+// Один и тот же файл, если адреса отличаются только параметром ?v=
+function sameImageFile(a, b) {
+  return !!a && !!b && String(a).split('?')[0] === String(b).split('?')[0];
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // =============================================
   // БУРГЕР-МЕНЮ ДЛЯ МОБИЛЬНЫХ
@@ -185,7 +202,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Устанавливаем изображение по умолчанию сразу (только если нет изображения или это unsplash)
   const defaultImage = document.querySelector('.main-image img, .equipment-image img');
-  if (defaultImage && (!defaultImage.src || defaultImage.src.includes('unsplash') || defaultImage.src.includes('http'))) {
+  // Смотрим адрес из HTML (атрибут), а не defaultImage.src: свойство всегда содержит полный адрес с «http»,
+  // из-за чего готовое фото каждый раз подменялось несуществующим файлом и потом запрашивалось заново.
+  const defaultImageAttr = defaultImage ? (defaultImage.getAttribute('src') || '') : '';
+  if (defaultImage && (!defaultImageAttr || defaultImageAttr.includes('unsplash') || /^https?:/i.test(defaultImageAttr))) {
     const pathLower = currentPath.toLowerCase();
     let imagePath = '../images/avtovyshka-13m.png';
     
@@ -665,7 +685,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             imgEl.style.setProperty('display', 'block', 'important');
             imgEl.style.setProperty('overflow', 'hidden', 'important'); // Обрезаем по закругленным углам
             
-            imgEl.src = imageUrl;
+            // В галерее — копия шириной 1200 px; оригинал открывается по нажатию (полноэкранный просмотр).
+            // Если это фото уже стоит в HTML страницы (адрес отличается только ?v=), заново его не запрашиваем.
+            const displayUrl = eqThumb(imageUrl, 1200);
+            if (!sameImageFile(imgEl.getAttribute('src'), displayUrl)) imgEl.src = displayUrl;
             imgEl.alt = `${service.title} - вид ${index + 1}`;
             
             // Обновляем активную миниатюру
@@ -785,6 +808,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           
           // Очищаем только миниатюры, не трогая кнопки
           const existingThumbs = thumbsContainer.querySelectorAll('img');
+          const htmlThumbSrc = existingThumbs.length ? (existingThumbs[0].getAttribute('src') || '') : '';
           existingThumbs.forEach(thumb => thumb.remove());
           
           // Создаем кнопки навигации, если их еще нет
@@ -840,7 +864,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (normalizedUrl && !normalizedUrl.startsWith('http') && !normalizedUrl.startsWith('/') && !normalizedUrl.startsWith('../')) {
               normalizedUrl = '/' + normalizedUrl;
             }
-            thumb.src = normalizedUrl;
+            // Миниатюра — копия шириной 480 px (раньше под каждую миниатюру грузился оригинал целиком)
+            let thumbUrl = eqThumb(normalizedUrl, 480);
+            if (index === 0 && sameImageFile(htmlThumbSrc, thumbUrl)) thumbUrl = htmlThumbSrc;
+            thumb.src = thumbUrl;
+            thumb.dataset.galleryIndex = String(index);
             thumb.alt = `${service.title} - вид ${index + 1}`;
             thumb.className = index === 0 ? 'active' : '';
             thumb.style.cursor = 'pointer';
@@ -1427,6 +1455,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
       
       thumb.addEventListener('click', () => {
+        // Миниатюры из базы переключают фото сами (setMainImage): у них уменьшенный адрес, в главное фото он не годится
+        if (thumb.dataset.galleryIndex) return;
         thumbs.forEach((t) => t.classList.remove('active'));
         thumb.classList.add('active');
         mainImage.src = thumb.src;

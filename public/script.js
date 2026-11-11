@@ -302,6 +302,7 @@ const STATIC_CALC_EQUIPMENT = {
   },
   self: {
     name: 'Самоходный подъёмник',
+    priceUnit: 'day', // сдаётся посуточно, а не сменами
     description: 'Полноприводный дизельный вездеход — работает на любом грунте, бездорожье и открытых площадках.',
     baseShift: 18000,
     baseHalfShift: null,
@@ -683,6 +684,20 @@ function syncMainCalcHalfShiftOption() {
     if (halfOpt) halfOpt.remove();
     if (shiftsSelectEl.value === '0.5') shiftsSelectEl.value = '1';
   }
+  // Подписи под единицу аренды: большинство машин сдаётся сменами, самоходный подъёмник — сутками.
+  // Раньше для него тоже стояло «смена, 7 часов», хотя цена на странице техники — за сутки.
+  const isDay = config.priceUnit === 'day';
+  const optionLabels = isDay
+    ? { '0.5': 'Полсуток', '1': '1 сутки', '2': '2 суток', '3': '3 суток', more: 'Более 3 суток' }
+    : { '0.5': 'Полсмены', '1': '1 смена', '2': '2 смены', '3': '3 смены', more: 'Более 3 смен' };
+  Array.from(shiftsSelectEl.options).forEach((opt) => {
+    if (optionLabels[opt.value]) opt.textContent = optionLabels[opt.value];
+  });
+  const shiftsField = shiftsSelectEl.closest('.field');
+  const shiftsLabelEl = shiftsField ? shiftsField.querySelector('.field-label') : null;
+  if (shiftsLabelEl) shiftsLabelEl.textContent = isDay ? 'Количество суток' : 'Количество смен';
+  const customShiftsEl = document.getElementById('calc-shifts-custom');
+  if (customShiftsEl) customShiftsEl.placeholder = isDay ? 'Введите количество суток' : 'Введите количество смен';
   const custom = shiftsSelectEl.previousElementSibling;
   if (!custom || !custom.classList.contains('calc-select')) return;
   const list = custom.querySelector('.calc-select-options-list');
@@ -854,6 +869,8 @@ async function loadCalculatorEquipmentFromAPI() {
         description: service.short_description || getShortDescription(service.description),
         baseShift: prices.baseShift,
         baseHalfShift: prices.baseHalfShift,
+        // Единица аренды из админки («Смена» / «Сутки»); по цене — запасной признак
+        priceUnit: (service.price_type === 'day' || /сутк/i.test(service.price || '')) ? 'day' : 'shift',
         extraPerKm: extraPerKm,
         height: height || (key === 'self' ? 12 : key === '30offroad' ? 30 : null),
         capacity: capacity,
@@ -1435,11 +1452,16 @@ function initCalculator() {
       total = (config.baseShift || 0) * Math.max(shifts, 1);
     }
     const formatted = total.toLocaleString('ru-RU');
+    const isDay = config.priceUnit === 'day'; // техника сдаётся сутками, а не сменами
     let shiftsText;
     let timeText = '';
     if (shifts === 0.5) {
-      shiftsText = 'полсмены';
-      timeText = 'Полсмены включает в себя 3 часа работы и один час подачи';
+      shiftsText = isDay ? 'полсуток' : 'полсмены';
+      timeText = isDay ? 'Полсуток — 12 часов аренды' : 'Полсмены включает в себя 3 часа работы и один час подачи';
+    } else if (isDay) {
+      timeText = 'Сутки — 24 часа аренды';
+      if (shiftsValue === 'more') shiftsText = `${shifts} суток`;
+      else shiftsText = shifts === 1 ? 'сутки' : 'суток';
     } else {
       timeText = 'Смена включает в себя 7 часов работы и один час подачи';
       if (shiftsValue === 'more') {
@@ -1475,7 +1497,7 @@ function initCalculator() {
     if (shiftsValue === 'more') {
       sumEl.innerHTML = `${formatted} ₽ за ${shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
     } else {
-      sumEl.innerHTML = `${formatted} ₽ за ${shiftsNum === 0.5 ? 'полсмены' : shiftsNum} ${shiftsNum === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
+      sumEl.innerHTML = `${formatted} ₽ за ${shiftsNum === 0.5 ? shiftsText : shiftsNum} ${shiftsNum === 0.5 ? '' : shiftsText} <span class="price-vat">без НДС</span>${timeText ? `<br><span class="calculator-time">${timeText}</span>` : ''}`;
     }
   }
 
@@ -1495,7 +1517,7 @@ function initCalculator() {
 
       const priceEl = document.getElementById('calculator-preview-price');
       if (priceEl && config.baseShift) {
-        priceEl.innerHTML = `от <strong>${config.baseShift.toLocaleString('ru-RU')} ₽</strong> / смена`;
+        priceEl.innerHTML = `от <strong>${config.baseShift.toLocaleString('ru-RU')} ₽</strong> / ${config.priceUnit === 'day' ? 'сутки' : 'смена'}`;
       }
 
       if (specsList) {
