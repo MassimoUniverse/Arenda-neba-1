@@ -774,6 +774,7 @@ function generateEquipmentPageHTML(service) {
     <script src="/vendor/lenis.min.js"></script>
     <script src="/vendor/flatpickr/flatpickr.min.js"></script>
     <script src="/vendor/flatpickr/ru.js"></script>
+    <script src="../lead-form.js"></script>
     <script src="../equipment-page.js"></script>
     <script src="../cookie-consent.js" defer></script>
 </body>
@@ -2350,15 +2351,174 @@ function processServiceRow(row, res) {
   res.json(fixedRow);
 }
 
-// Submit request
-app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
-  const { name, phone, email, message, equipment, price, privacy_agreed } = req.body;
+// ===== Защита формы заявки =====
+// Капчи нет намеренно: она отпугивает живых клиентов. Защита незаметная:
+//   • проверка телефона (те же правила, что в браузере — public/lead-form.js);
+//   • ограничение частоты по адресу посетителя, по номеру телефона и общее на сайт;
+//   • поле-ловушка и «слишком быстрая отправка» — признаки робота;
+//   • повтор той же заявки в течение двух минут не создаёт вторую запись и второе письмо.
+// При отказе посетитель всегда видит понятный текст с телефоном, а не «тихий» успех:
+// если под фильтр попадёт живой человек, он позвонит, и заявка не потеряется.
+// Счётчики живут в памяти процесса и обнуляются при перезапуске — как у защиты входа в админку.
+const LeadForm = require('./public/lead-form.js');
+const SITE_PHONE_TEXT = '+7 (991) 000-91-11';
+const LEAD_WINDOW_MS = 10 * 60 * 1000;
+const LEAD_HOUR_MS = 60 * 60 * 1000;
+const LEAD_DAY_MS = 24 * 60 * 60 * 1000;
+const LEAD_MAX_PER_VISITOR = 8;        // попыток с одного адреса посетителя за 10 минут
+const LEAD_MAX_PER_VISITOR_DAY = 25;   // и за сутки
+const LEAD_MAX_PER_PEER = 40;          // с одного адреса соединения за 10 минут (шлюз Яндекса общий для всех — порог высокий)
+const LEAD_MAX_GLOBAL_HOUR = 80;       // всего на сайт за час: наплыв с тысяч разных адресов
+const LEAD_MAX_PER_PHONE_HOUR = 4;     // принятых заявок с одним номером за час
+const LEAD_DUPLICATE_MS = 2 * 60 * 1000;
+const LEAD_MIN_FILL_MS = 2500;         // человек не успеет открыть страницу и отправить форму быстрее
+const LEAD_TOO_MANY = `Слишком много заявок за короткое время. Если это ошибка — позвоните нам: ${SITE_PHONE_TEXT}.`;
+const LEAD_GENERIC_FAIL = `Не получилось отправить заявку. Позвоните нам: ${SITE_PHONE_TEXT}.`;
 
-  if (!name || !phone || !privacy_agreed) {
-    return res.status(400).json({ error: 'Name, phone, and privacy agreement are required' });
+const leadHits = new Map(); // ключ -> отметки времени (мс)
+
+function leadRecent(key, windowMs, now) {
+  const hits = leadHits.get(key);
+  if (!hits) return 0;
+  let count = 0;
+  for (let i = hits.length - 1; i >= 0 && now - hits[i] < windowMs; i--) count += 1;
+  return count;
+}
+
+function leadMark(key, now) {
+  const hits = leadHits.get(key);
+  if (hits) hits.push(now);
+  else leadHits.set(key, [now]);
+}
+
+function leadUnmark(key) {
+  const hits = leadHits.get(key);
+  if (hits) hits.pop();
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, hits] of leadHits) {
+    const fresh = hits.filter((t) => now - t < LEAD_DAY_MS);
+    if (fresh.length) leadHits.set(key, fresh);
+    else leadHits.delete(key);
   }
+}, 10 * 60 * 1000).unref();
+
+// Заявки с сайта идут через шлюз Яндекса: настоящий адрес посетителя шлюз кладёт в x-real-remote-address,
+// а X-Real-IP (его ставит nginx) — это адрес самого шлюза. При прямом обращении шлюза нет — берём X-Real-IP.
+function leadVisitorIp(req) {
+  if (req.get('x-serverless-gateway-id')) {
+    const fromGateway = req.get('x-real-remote-address') || String(req.get('x-forwarded-for') || '').split(',')[0].trim();
+    if (fromGateway) return fromGateway;
+  }
+  return req.get('X-Real-IP') || req.socket.remoteAddress || 'unknown';
+}
+
+// Адрес соединения подделать нельзя — по нему ловим тех, кто шлёт заявки мимо шлюза с выдуманными заголовками
+function leadPeerIp(req) {
+  return req.get('X-Real-IP') || req.socket.remoteAddress || 'unknown';
+}
+
+// Проверка частоты — до приёма файла, чтобы наплыв не забивал диск вложениями
+function leadRateLimit(req, res, next) {
+  const now = Date.now();
+  const visitor = 'v:' + leadVisitorIp(req);
+  const peer = 'p:' + leadPeerIp(req);
+  const blocked =
+    leadRecent(visitor, LEAD_WINDOW_MS, now) >= LEAD_MAX_PER_VISITOR ||
+    leadRecent(visitor, LEAD_DAY_MS, now) >= LEAD_MAX_PER_VISITOR_DAY ||
+    leadRecent(peer, LEAD_WINDOW_MS, now) >= LEAD_MAX_PER_PEER ||
+    leadRecent('all', LEAD_HOUR_MS, now) >= LEAD_MAX_GLOBAL_HOUR;
+  if (blocked) {
+    console.warn(`🚫 Заявка отклонена: слишком часто (${visitor})`);
+    return res.status(429).json({ error: LEAD_TOO_MANY });
+  }
+  leadMark(visitor, now);
+  leadMark(peer, now);
+  leadMark('all', now);
+  next();
+}
+
+// Приём вложения: при неподходящем файле отвечаем понятным текстом (раньше посетитель видел «ошибка подключения»)
+function leadUpload(req, res, next) {
+  // До двух файлов в одном поле: старая версия страницы техники присылала вложение дважды,
+  // и из-за этого заявка с реквизитами отклонялась целиком. Берём первый файл, лишний убираем.
+  attachmentUpload.array('attachment', 2)(req, res, (err) => {
+    if (!err) {
+      const files = Array.isArray(req.files) ? req.files : [];
+      req.file = files[0];
+      files.slice(1).forEach((extra) => fs.unlink(extra.path, () => {}));
+      return next();
+    }
+    console.warn('🚫 Заявка: файл не принят —', err.code || '', err.message);
+    let text = `Не получилось принять файл. Отправьте заявку без него или позвоните нам: ${SITE_PHONE_TEXT}.`;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      text = `Файл слишком большой: можно прикрепить до 10 МБ. Отправьте заявку без файла или позвоните нам: ${SITE_PHONE_TEXT}.`;
+    } else if (!err.code) {
+      text = `Этот файл прикрепить нельзя: подходят PDF, DOC, DOCX, JPG и PNG. Отправьте заявку без файла или позвоните нам: ${SITE_PHONE_TEXT}.`;
+    }
+    res.status(400).json({ error: text });
+  });
+}
+
+// Submit request
+app.post('/api/requests', leadRateLimit, leadUpload, (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim();
+  const message = String(body.message || '').trim();
+  const equipment = String(body.equipment || '').trim();
+  const price = String(body.price || '').trim();
+  const privacy_agreed = body.privacy_agreed;
+
+  const reject = (status, error, reason) => {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    console.warn(`🚫 Заявка отклонена: ${reason}`);
+    return res.status(status).json({ error });
+  };
+
+  if (!name || !String(body.phone || '').trim() || !privacy_agreed) {
+    return reject(400, 'Заполните имя и телефон и отметьте согласие на обработку данных.', 'не заполнены обязательные поля');
+  }
+  // Признаки робота: заполнено невидимое поле или форма отправлена быстрее, чем успел бы человек
+  if (String(body.hp_check || '').trim()) {
+    return reject(400, LEAD_GENERIC_FAIL, 'заполнено поле-ловушка');
+  }
+  const formMs = Number(body.form_ms);
+  if (body.form_ms !== undefined && body.form_ms !== '' && Number.isFinite(formMs) && formMs < LEAD_MIN_FILL_MS) {
+    return reject(400, LEAD_GENERIC_FAIL, `форма отправлена через ${formMs} мс после открытия`);
+  }
+  if (name.length > 100 || email.length > 120 || message.length > 3000 || equipment.length > 200 || price.length > 100) {
+    return reject(400, `Слишком длинный текст в одном из полей. Сократите сообщение или позвоните нам: ${SITE_PHONE_TEXT}.`, 'слишком длинные поля');
+  }
+  // Разметка ссылок, как в рассылках, или три и больше ссылок в сообщении (одну-две — например, на карту — пропускаем)
+  if (/\[url=|<a\s+href|<\/a>/i.test(message + ' ' + name) || (message.match(/https?:\/\/|www\./gi) || []).length >= 3) {
+    return reject(400, LEAD_GENERIC_FAIL, 'сообщение похоже на рассылку (ссылки)');
+  }
+  const phoneCheck = LeadForm.normalizePhone(body.phone);
+  if (!phoneCheck.ok) {
+    return reject(400, phoneCheck.error, 'телефон не прошёл проверку');
+  }
+  const phone = phoneCheck.phone; // в базу и в письмо — в едином виде: +7 (999) 123-45-67
 
   const equipmentText = [equipment, price].filter(Boolean).join(' — ') || '';
+
+  // Та же заявка второй раз за две минуты (двойное нажатие, повтор) — отвечаем «принято», но не дублируем
+  const now = Date.now();
+  const duplicateKey = 'dup:' + crypto.createHash('sha1').update([phone, name, equipmentText, message].join('|')).digest('hex');
+  const phoneKey = 'ph:' + phone;
+  if (leadRecent(duplicateKey, LEAD_DUPLICATE_MS, now) >= 1) {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    console.log('ℹ️ Повтор заявки за две минуты — вторая запись не создаётся');
+    return res.json({ success: true, duplicate: true, message: 'Заявка уже получена. Мы свяжемся с вами в ближайшее время.' });
+  }
+  if (leadRecent(phoneKey, LEAD_HOUR_MS, now) >= LEAD_MAX_PER_PHONE_HOUR) {
+    return reject(429, LEAD_TOO_MANY, 'много заявок с одного номера за час');
+  }
+  leadMark(duplicateKey, now);
+  leadMark(phoneKey, now);
+
   const attachmentPath = req.file ? `uploads/attachments/${req.file.filename}` : null;
 
   db.run(
@@ -2367,6 +2527,9 @@ app.post('/api/requests', attachmentUpload.single('attachment'), (req, res) => {
     function(err) {
       if (err) {
         console.error('Request insert error:', err.message);
+        // заявка не сохранилась — повторная попытка не должна считаться повтором
+        leadUnmark(duplicateKey);
+        leadUnmark(phoneKey);
         res.status(500).json({ error: 'Ошибка при отправке заявки. Пожалуйста, позвоните нам.' });
         return;
       }

@@ -1509,6 +1509,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('equipmentCalculatorForm');
     const resultEl = document.getElementById('equipmentCalcResult');
     if (!form || !resultEl) return;
+    // Незаметная защита от роботов: поле-ловушка и отметка времени (public/lead-form.js)
+    if (window.LeadForm) window.LeadForm.protect(form);
     
     // Предотвращаем повторную инициализацию
     if (calculatorInitialized) return;
@@ -1949,6 +1951,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
+      // Проверяем номер до отправки: с опечаткой в телефоне заявка бесполезна — перезвонить не получится
+      if (window.LeadForm && !window.LeadForm.checkPhoneField(form)) return;
+
       // Собираем данные формы
       const formData = new FormData(form);
       const data = {};
@@ -1987,10 +1992,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Собираем FormData (поддержка файла-вложения)
       const fd = new FormData();
-      Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
+      // Файл добавляем один раз, строкой ниже. Раньше он попадал сюда ещё и из перебора полей формы,
+      // уходил дважды, и сервер отклонял заявку с реквизитами целиком.
+      Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null && !(v instanceof File)) fd.append(k, v); });
       fd.set('privacy_agreed', data.privacy_agreed ? '1' : '');
       const fileInput = form.querySelector('input[name="attachment"]');
       if (fileInput && fileInput.files && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+      if (window.LeadForm) window.LeadForm.appendMeta(fd, form);
 
       // Отправляем данные на сервер
       try {
@@ -2011,7 +2019,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Сбрасываем результат расчета
           resultEl.innerHTML = '<p class="calc-result-text">Выберите параметры и нажмите «Рассчитать»</p>';
         } else {
-          alert('Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.');
+          // Сервер объясняет причину отказа (например, ошибка в номере) — показываем её, а не общую фразу
+          const failure = await response.json().catch(() => ({}));
+          alert(failure.error || 'Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.');
         }
       } catch (error) {
         console.error('Ошибка при отправке заявки:', error);

@@ -31,6 +31,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Any successful non-GET `/api/admin/*` request resets the 60 s SSR cache (`seoDataCache`).
 - **Homepage calculator** (`loadCalculatorEquipmentFromAPI` in `script.js`): keys are the height (`21`), `self`, `30offroad`, `loader`; a clash gets `-<id>` appended, a machine with no height gets `id<id>`. Only machines from the API are listed.
 
+### Lead form: phone check and anti-spam (2026-11)
+
+- **`public/lead-form.js`** is shared by the browser (`window.LeadForm`) and the server (`require` in `server.js`), so both validate the phone the same way. `normalizePhone()` accepts Russian/Kazakh numbers in any spelling, an extension («доб. 12»), two numbers separated by a comma, and foreign numbers written with `+`; it stores them as `+7 (999) 123-45-67`.
+- Both forms (homepage `#calculator-form`, equipment page `#equipmentCalculatorForm`) call `LeadForm.checkPhoneField(form)` before sending and show the hint under the field. `LeadForm.protect(form)` adds a hidden trap field `hp_check` and a timestamp; `appendMeta()` sends `hp_check` and `form_ms`.
+- **`POST /api/requests`** = `leadRateLimit` → `leadUpload` → handler. No captcha on purpose. Rejections always answer with a Russian text and the phone number (never a silent «success»), so a real person caught by a filter can still call.
+  - Limits (in memory, reset on restart): 8 attempts / 10 min and 25 / day per visitor, 40 / 10 min per connection address, 80 / hour for the whole site, 4 accepted leads / hour per phone number.
+  - The visitor address comes from the Yandex API Gateway header `x-real-remote-address` (present when `x-serverless-gateway-id` is set); `X-Real-IP` from nginx is the gateway itself for such requests.
+  - The same lead repeated within 2 minutes answers «already received» without a second row or e-mail.
+  - Up to two files are accepted in `attachment` and the first is kept: old cached equipment pages sent the file twice.
+- Do not test the form against production from a local copy: `window.LEAD_API_BASE` in `script.js` / `equipment-page.js` points at the production gateway. Point it at the copy first.
+
 ### Database fields worth knowing
 
 - **`services`**: includes `short_description`, `is_popular`, `popular_order`, `card_bullets`, `image_url`, `images` (JSON), `custom_specs`, `updated_at`, etc.

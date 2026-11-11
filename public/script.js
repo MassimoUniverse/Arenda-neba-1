@@ -1421,6 +1421,8 @@ function initCalculator() {
   const previewTitle = document.getElementById('calculator-title');
   const specsList = document.getElementById('calculator-specs');
   if (!form || !sumEl) return;
+  // Незаметная защита от роботов: поле-ловушка и отметка времени (public/lead-form.js)
+  if (window.LeadForm) window.LeadForm.protect(form);
 
   // Возвращает результат расчёта для отображения и отправки в заявке
   function getCalculatorResult() {
@@ -1801,6 +1803,10 @@ function initCalculator() {
     }
 
     if (messageDiv) messageDiv.classList.remove('show', 'success', 'error');
+
+    // Проверяем номер до отправки: с опечаткой в телефоне заявка бесполезна — перезвонить не получится
+    if (window.LeadForm && !window.LeadForm.checkPhoneField(form)) return;
+
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Отправка...';
@@ -1817,6 +1823,7 @@ function initCalculator() {
     if (data.price) fd.append('price', data.price);
     const fileInput = form.querySelector('input[name="attachment"]');
     if (fileInput && fileInput.files && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+    if (window.LeadForm) window.LeadForm.appendMeta(fd, form);
 
     try {
       const response = await fetch(window.LEAD_API_BASE + '/api/requests', {

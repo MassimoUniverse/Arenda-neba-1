@@ -4874,3 +4874,16 @@ input[type='number'] {
     font-size: 13px;
   }
 }
+
+/* Подсказка об ошибке под полем формы заявки (её показывает lead-form.js) */
+.lead-field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #dc2626;
+  text-align: left;
+}
+
+.lead-input-invalid {
+  border-color: #dc2626 !important;
+}
